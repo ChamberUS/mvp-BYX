@@ -15,6 +15,9 @@ from adaptive_trader.domain.models import (
 
 
 class DefaultRiskManager:
+    def __init__(self, *, local_simulation: bool = False) -> None:
+        self._local_simulation = local_simulation
+
     def evaluate(
         self,
         signal: MarketSignal,
@@ -31,7 +34,7 @@ class DefaultRiskManager:
                 order_intent=None,
             )
 
-        if not limits.trading_enabled:
+        if not limits.trading_enabled and not self._local_simulation:
             return reject("trading_enabled is false")
         if limits.allow_leverage:
             return reject("leverage is forbidden")
@@ -43,24 +46,36 @@ class DefaultRiskManager:
             return reject("average down is forbidden")
         if signal.direction is SignalDirection.HOLD:
             return reject("signal is not actionable")
-        if signal.direction is SignalDirection.SELL:
-            return reject("short selling is not supported by spot-only execution")
-        if len(portfolio.positions) >= limits.maximum_open_positions:
+        if signal.direction is SignalDirection.SELL and not limits.allow_short_selling:
+            position = next(
+                (item for item in portfolio.positions if item.symbol == signal.symbol), None
+            )
+            if position is None:
+                return reject("spot sell requires an existing position")
+            if signal.suggested_quantity > position.quantity:
+                return reject("sell quantity exceeds existing position")
+        if (
+            signal.direction is SignalDirection.BUY
+            and len(portfolio.positions) >= limits.maximum_open_positions
+        ):
             return reject("maximum open positions reached")
         if portfolio.trades_today >= limits.maximum_trades_per_day:
             return reject("maximum daily trades reached")
         max_daily_loss = portfolio.equity * limits.maximum_daily_loss_percent / Decimal("100")
         if portfolio.daily_loss >= max_daily_loss:
             return reject("maximum daily loss reached")
-        max_position_value = portfolio.equity * limits.maximum_position_percent / Decimal("100")
         requested_value = signal.suggested_quantity * signal.entry_price
-        if requested_value > max_position_value:
-            return reject("requested position exceeds configured limit")
-        if requested_value > portfolio.cash_balance:
-            return reject("requested position exceeds available cash")
+        if signal.direction is SignalDirection.BUY:
+            max_position_value = portfolio.equity * limits.maximum_position_percent / Decimal("100")
+            if requested_value > max_position_value:
+                return reject("requested position exceeds configured limit")
+            if requested_value > portfolio.cash_balance:
+                return reject("requested position exceeds available cash")
         downside = signal.entry_price - signal.stop_loss
         upside = signal.take_profit - signal.entry_price
-        if downside <= 0 or upside / downside < limits.minimum_risk_reward:
+        if signal.direction is SignalDirection.BUY and (
+            downside <= 0 or upside / downside < limits.minimum_risk_reward
+        ):
             return reject("risk/reward is below configured minimum")
         intent = OrderIntent(
             intent_id=f"{signal.signal_id}-INTENT",

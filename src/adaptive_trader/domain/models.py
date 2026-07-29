@@ -47,6 +47,11 @@ def _require_positive(value: Decimal, field_name: str) -> None:
         raise ValueError(f"{field_name} must be positive")
 
 
+def _require_aware(value: datetime, field_name: str) -> None:
+    if value.tzinfo is None or value.utcoffset() is None:
+        raise ValueError(f"{field_name} must be timezone-aware")
+
+
 @dataclass(frozen=True, slots=True)
 class Candle:
     symbol: str
@@ -56,17 +61,51 @@ class Candle:
     low: Decimal
     close: Decimal
     volume: Decimal
+    exchange: str = "BINANCE"
+    interval: str = "1m"
+    close_time: datetime | None = None
+    quote_volume: Decimal | None = None
+    trades_count: int | None = None
+    taker_buy_base_volume: Decimal | None = None
+    taker_buy_quote_volume: Decimal | None = None
+    is_closed: bool = True
+    collected_at: datetime | None = None
 
     def __post_init__(self) -> None:
+        _require_aware(self.timestamp, "timestamp")
+        if self.close_time is not None:
+            _require_aware(self.close_time, "close_time")
+            if self.close_time < self.timestamp:
+                raise ValueError("close_time must not precede timestamp")
+        if self.collected_at is not None:
+            _require_aware(self.collected_at, "collected_at")
+        if not self.exchange or not self.interval:
+            raise ValueError("exchange and interval are required")
         for name in ("open", "high", "low", "close"):
             _require_positive(getattr(self, name), name)
         _require_decimal(self.volume, "volume")
         if self.volume < 0:
             raise ValueError("volume must not be negative")
+        for name in (
+            "quote_volume",
+            "taker_buy_base_volume",
+            "taker_buy_quote_volume",
+        ):
+            value = getattr(self, name)
+            if value is not None:
+                _require_decimal(value, name)
+                if value < 0:
+                    raise ValueError(f"{name} must not be negative")
+        if self.trades_count is not None and self.trades_count < 0:
+            raise ValueError("trades_count must not be negative")
         if self.high < max(self.open, self.close) or self.low > min(self.open, self.close):
             raise ValueError("candle high/low do not contain open and close")
         if self.low > self.high:
             raise ValueError("candle low must not exceed high")
+
+    @property
+    def open_time(self) -> datetime:
+        return self.timestamp
 
 
 @dataclass(frozen=True, slots=True)
@@ -76,6 +115,7 @@ class MarketContext:
     candles: tuple[Candle, ...]
     latest_candle: Candle
     indicators: Mapping[str, Decimal]
+    interval: str = "1m"
 
     def __post_init__(self) -> None:
         if not self.candles:
@@ -84,6 +124,8 @@ class MarketContext:
             raise ValueError("latest_candle must be the last candle in candles")
         if self.latest_candle.symbol != self.symbol:
             raise ValueError("market context symbol must match candles")
+        if self.latest_candle.interval != self.interval:
+            raise ValueError("market context interval must match candles")
         for name, value in self.indicators.items():
             _require_decimal(value, f"indicator {name}")
 
@@ -159,10 +201,20 @@ class SimulatedOrder:
     price: Decimal
     status: OrderStatus
     created_at: datetime
+    reference_price: Decimal | None = None
+    fee: Decimal = Decimal("0")
+    slippage_cost: Decimal = Decimal("0")
+    spread_cost: Decimal = Decimal("0")
 
     def __post_init__(self) -> None:
         _require_positive(self.quantity, "quantity")
         _require_positive(self.price, "price")
+        for name in ("reference_price", "fee", "slippage_cost", "spread_cost"):
+            value = getattr(self, name)
+            if value is not None:
+                _require_decimal(value, name)
+                if value < 0:
+                    raise ValueError(f"{name} must not be negative")
 
 
 @dataclass(frozen=True, slots=True)
@@ -174,6 +226,9 @@ class Fill:
     price: Decimal
     fee: Decimal
     filled_at: datetime
+    reference_price: Decimal | None = None
+    slippage_cost: Decimal = Decimal("0")
+    spread_cost: Decimal = Decimal("0")
 
     def __post_init__(self) -> None:
         for name in ("quantity", "price"):
@@ -181,6 +236,12 @@ class Fill:
         _require_decimal(self.fee, "fee")
         if self.fee < 0:
             raise ValueError("fee must not be negative")
+        for name in ("reference_price", "slippage_cost", "spread_cost"):
+            value = getattr(self, name)
+            if value is not None:
+                _require_decimal(value, name)
+                if value < 0:
+                    raise ValueError(f"{name} must not be negative")
 
 
 @dataclass(frozen=True, slots=True)
@@ -191,10 +252,22 @@ class Position:
     average_entry_price: Decimal
     current_price: Decimal
     opened_at: datetime
+    stop_loss: Decimal | None = None
+    take_profit: Decimal | None = None
+    initial_risk: Decimal | None = None
+    entry_fee: Decimal = Decimal("0")
+    partial_taken: bool = False
 
     def __post_init__(self) -> None:
         for name in ("quantity", "average_entry_price", "current_price"):
             _require_positive(getattr(self, name), name)
+        for name in ("stop_loss", "take_profit", "initial_risk"):
+            value = getattr(self, name)
+            if value is not None:
+                _require_positive(value, name)
+        _require_decimal(self.entry_fee, "entry_fee")
+        if self.entry_fee < 0:
+            raise ValueError("entry_fee must not be negative")
 
     @property
     def market_value(self) -> Decimal:
