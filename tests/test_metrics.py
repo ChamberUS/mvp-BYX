@@ -14,7 +14,7 @@ def test_metrics_handle_empty_trades() -> None:
         end_price=Decimal("110"),
     )
 
-    assert metrics.total_trades == 0
+    assert metrics.closed_trade_count == 0
     assert metrics.win_rate is None
     assert metrics.profit_factor is None
     assert metrics.maximum_drawdown_value == Decimal("10")

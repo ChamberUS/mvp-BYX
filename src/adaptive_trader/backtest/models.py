@@ -39,7 +39,10 @@ class BacktestMetrics:
     total_fees: Decimal
     estimated_slippage: Decimal
     total_spread_cost: Decimal
-    total_trades: int
+    entry_count: int
+    order_count: int
+    closed_trade_count: int
+    partial_exit_count: int
     winning_trades: int
     losing_trades: int
     win_rate: Decimal | None
@@ -58,6 +61,10 @@ class BacktestMetrics:
     average_holding_seconds: Decimal | None
     average_exposure_percent: Decimal
     buy_and_hold_return: Decimal | None
+
+    @property
+    def total_trades(self) -> int:
+        return self.closed_trade_count
 
 
 @dataclass(frozen=True, slots=True)

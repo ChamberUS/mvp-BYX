@@ -50,6 +50,16 @@ class BacktestOrderExecutor:
             raise ValueError("reference price must be positive")
         self._reference_price = reference_price
 
+    def estimate_buy_cost(self, intent: OrderIntent, reference_price: Decimal) -> Decimal:
+        if intent.direction is not SignalDirection.BUY:
+            raise ExecutionError("buy cost estimation requires a BUY intent")
+        quantity = _quantize(intent.quantity, self._config.quantity_precision, ROUND_DOWN)
+        if quantity <= 0 or quantity < self._config.minimum_order_quantity:
+            raise ExecutionError("quantity is below the configured minimum")
+        effective = self._effective_price(reference_price, SignalDirection.BUY)
+        fee = effective * quantity * self._config.taker_fee_bps / Decimal("10000")
+        return effective * quantity + fee
+
     def execute(self, intent: OrderIntent) -> SimulatedOrder:
         if self._reference_price is None:
             raise ExecutionError("reference price must be set before execution")
@@ -57,15 +67,7 @@ class BacktestOrderExecutor:
         if quantity <= 0 or quantity < self._config.minimum_order_quantity:
             raise ExecutionError("quantity is below the configured minimum")
         reference = self._reference_price
-        cost_bps = self._config.spread_bps + self._config.slippage_bps
-        cost = reference * cost_bps / Decimal("10000")
-        if intent.direction is SignalDirection.BUY:
-            effective = reference + cost
-        elif intent.direction is SignalDirection.SELL:
-            effective = reference - cost
-        else:
-            raise ExecutionError("HOLD cannot be executed")
-        effective = _quantize(effective, self._config.price_precision, ROUND_HALF_UP)
+        effective = self._effective_price(reference, intent.direction)
         spread_cost = reference * self._config.spread_bps / Decimal("10000") * quantity
         slippage_cost = reference * self._config.slippage_bps / Decimal("10000") * quantity
         fee = effective * quantity * self._config.taker_fee_bps / Decimal("10000")
@@ -83,3 +85,14 @@ class BacktestOrderExecutor:
             slippage_cost=slippage_cost,
             spread_cost=spread_cost,
         )
+
+    def _effective_price(self, reference: Decimal, direction: SignalDirection) -> Decimal:
+        cost_bps = self._config.spread_bps + self._config.slippage_bps
+        cost = reference * cost_bps / Decimal("10000")
+        if direction is SignalDirection.BUY:
+            effective = reference + cost
+        elif direction is SignalDirection.SELL:
+            effective = reference - cost
+        else:
+            raise ExecutionError("HOLD cannot be executed")
+        return _quantize(effective, self._config.price_precision, ROUND_HALF_UP)

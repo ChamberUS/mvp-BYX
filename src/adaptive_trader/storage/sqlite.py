@@ -19,7 +19,7 @@ from adaptive_trader.domain.models import (
     serialize_model,
 )
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 
 class SchemaMigrationRequired(RuntimeError):
@@ -127,7 +127,11 @@ def _create_v2_tables(connection: sqlite3.Connection) -> None:
             equity TEXT NOT NULL,
             daily_loss TEXT NOT NULL,
             trades_today INTEGER NOT NULL,
-            positions_json TEXT NOT NULL
+            positions_json TEXT NOT NULL,
+            day_start_equity TEXT NOT NULL DEFAULT '0',
+            entries_today INTEGER NOT NULL DEFAULT 0,
+            orders_today INTEGER NOT NULL DEFAULT 0,
+            closed_trades_today INTEGER NOT NULL DEFAULT 0
         )""",
     )
     for statement in statements:
@@ -191,6 +195,31 @@ def _migrate_v1_to_v2(connection: sqlite3.Connection) -> None:
                 connection.execute(f"ALTER TABLE {table} ADD COLUMN {column}")
 
 
+def _migrate_v2_to_v3(connection: sqlite3.Connection) -> None:
+    existing = {
+        str(row[1]) for row in connection.execute("PRAGMA table_info(portfolio_snapshots)")
+    }
+    columns = (
+        ("day_start_equity", "TEXT NOT NULL DEFAULT '0'"),
+        ("entries_today", "INTEGER NOT NULL DEFAULT 0"),
+        ("orders_today", "INTEGER NOT NULL DEFAULT 0"),
+        ("closed_trades_today", "INTEGER NOT NULL DEFAULT 0"),
+    )
+    for name, definition in columns:
+        if name not in existing:
+            connection.execute(
+                f"ALTER TABLE portfolio_snapshots ADD COLUMN {name} {definition}"
+            )
+    connection.execute(
+        "UPDATE portfolio_snapshots SET day_start_equity = equity "
+        "WHERE day_start_equity = '0'"
+    )
+    connection.execute(
+        "UPDATE portfolio_snapshots SET orders_today = trades_today "
+        "WHERE orders_today = 0 AND trades_today > 0"
+    )
+
+
 def create_schema(connection: sqlite3.Connection) -> None:
     with connection:
         connection.execute(
@@ -211,6 +240,18 @@ def create_schema(connection: sqlite3.Connection) -> None:
             )
         elif version == 1:
             _migrate_v1_to_v2(connection)
+            connection.execute(
+                "INSERT INTO schema_migrations(version, applied_at) VALUES (?, datetime('now'))",
+                (2,),
+            )
+            _migrate_v2_to_v3(connection)
+            connection.execute(
+                "INSERT INTO schema_migrations(version, applied_at) VALUES (?, datetime('now'))",
+                (SCHEMA_VERSION,),
+            )
+        elif version == 2:
+            _create_v2_tables(connection)
+            _migrate_v2_to_v3(connection)
             connection.execute(
                 "INSERT INTO schema_migrations(version, applied_at) VALUES (?, datetime('now'))",
                 (SCHEMA_VERSION,),
@@ -512,14 +553,22 @@ class DatabaseRepository:
         data = serialize_model(snapshot)
         with self._connection:
             self._connection.execute(
-                "INSERT OR REPLACE INTO portfolio_snapshots VALUES (?, ?, ?, ?, ?, ?, ?)",
+                """INSERT OR REPLACE INTO portfolio_snapshots(
+                    snapshot_id, captured_at, cash_balance, equity, daily_loss,
+                    trades_today, positions_json, day_start_equity, entries_today,
+                    orders_today, closed_trades_today
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     data["snapshot_id"],
                     data["captured_at"],
                     data["cash_balance"],
                     data["equity"],
                     data["daily_loss"],
-                    data["trades_today"],
+                    data["orders_today"],
                     json.dumps(data["positions"], sort_keys=True),
+                    data["day_start_equity"],
+                    data["entries_today"],
+                    data["orders_today"],
+                    data["closed_trades_today"],
                 ),
             )

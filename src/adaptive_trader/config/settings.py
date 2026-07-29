@@ -147,6 +147,8 @@ class TradingConfig:
             raise ConfigError("average down is forbidden")
         if self.allow_short_selling:
             raise ConfigError("short selling is forbidden")
+        if not self.execute_on_next_candle_open:
+            raise ConfigError("execution must occur on a later candle open")
 
     def is_research_only(self) -> bool:
         return (

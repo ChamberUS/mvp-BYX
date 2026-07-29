@@ -284,17 +284,31 @@ class PortfolioSnapshot:
     captured_at: datetime
     cash_balance: Decimal
     equity: Decimal
+    day_start_equity: Decimal
     daily_loss: Decimal
-    trades_today: int
+    entries_today: int
+    orders_today: int
+    closed_trades_today: int
     positions: tuple[Position, ...]
 
     def __post_init__(self) -> None:
-        for name in ("cash_balance", "equity", "daily_loss"):
+        for name in ("cash_balance", "equity", "day_start_equity", "daily_loss"):
             _require_decimal(getattr(self, name), name)
-        if self.cash_balance < 0 or self.equity < 0 or self.daily_loss < 0:
+        if any(
+            value < 0
+            for value in (
+                self.cash_balance,
+                self.equity,
+                self.day_start_equity,
+                self.daily_loss,
+            )
+        ):
             raise ValueError("portfolio monetary values must not be negative")
-        if self.trades_today < 0:
-            raise ValueError("trades_today must not be negative")
+        if any(
+            value < 0
+            for value in (self.entries_today, self.orders_today, self.closed_trades_today)
+        ):
+            raise ValueError("portfolio counters must not be negative")
 
 
 @dataclass(frozen=True, slots=True)

@@ -29,3 +29,8 @@ def test_environment_configuration_is_validated() -> None:
 def test_invalid_boolean_is_rejected() -> None:
     with pytest.raises(ConfigError):
         load_config({"ADAPTIVE_TRADER_TRADING_ENABLED": "yes"})
+
+
+def test_same_candle_execution_is_rejected() -> None:
+    with pytest.raises(ConfigError):
+        TradingConfig(execute_on_next_candle_open=False)

@@ -62,6 +62,7 @@ class BacktestEngine:
         pending = None
         pending_signal_time: datetime | None = None
         pending_execution_index: int | None = None
+        entry_candle_index: int | None = None
         trades: list[TradeRecord] = []
         warnings: list[str] = [
             "BACKTEST_ONLY: no real orders were sent",
@@ -70,8 +71,24 @@ class BacktestEngine:
         ]
         equity_curve: list[Decimal] = [initial_capital]
         exposure_curve: list[Decimal] = [Decimal("0")]
-        trade_count = 0
+        entry_count = 0
+        order_count = 0
+        closed_trade_count = 0
+        partial_exit_count = 0
+        current_day = ordered[0].open_time.astimezone(UTC).date()
+        day_start_equity = initial_capital
+        entries_today = 0
+        orders_today = 0
+        closed_trades_today = 0
         for index, candle in enumerate(ordered):
+            candle_day = candle.open_time.astimezone(UTC).date()
+            if candle_day != current_day:
+                previous_candle = ordered[index - 1]
+                day_start_equity = self._equity(cash, position, previous_candle.close)
+                entries_today = 0
+                orders_today = 0
+                closed_trades_today = 0
+                current_day = candle_day
             if (
                 pending is not None
                 and pending_execution_index is not None
@@ -80,11 +97,11 @@ class BacktestEngine:
                 if pending_signal_time is None or index == 0:
                     raise RuntimeError("pending order lost its decision timestamp")
                 if pending.direction is SignalDirection.BUY:
-                    requested_value = pending.quantity * candle.open
-                    if requested_value > cash:
+                    estimated_cost = self._executor.estimate_buy_cost(pending, candle.open)
+                    if estimated_cost > cash:
                         warnings.append(
                             "entry skipped at "
-                            f"{candle.open_time.isoformat()}: insufficient cash after gap"
+                            f"{candle.open_time.isoformat()}: effective cost exceeds cash"
                         )
                         pending = None
                         pending_execution_index = None
@@ -92,33 +109,56 @@ class BacktestEngine:
                         self._executor.set_reference_price(candle.open)
                         order = self._executor.execute(pending)
                         fill = self._fill(order, candle.open_time)
-                        cash -= order.price * order.quantity + order.fee
-                        position = Position(
-                            position_id=f"{order.order_id}-POSITION",
-                            symbol=order.symbol,
-                            quantity=order.quantity,
-                            average_entry_price=order.price,
-                            current_price=order.price,
-                            opened_at=candle.open_time,
-                            stop_loss=pending.stop_loss,
-                            take_profit=pending.take_profit,
-                            initial_risk=order.price - pending.stop_loss,
-                            entry_fee=order.fee,
-                            partial_taken=False,
-                        )
-                        trade_count += 1
-                        self._save_order_fill_position(order, fill, position)
-                        pending = None
-                        pending_execution_index = None
+                        total_cost = order.price * order.quantity + order.fee
+                        if total_cost > cash:
+                            warnings.append(
+                                "entry skipped at "
+                                f"{candle.open_time.isoformat()}: effective cost exceeds cash"
+                            )
+                            pending = None
+                            pending_execution_index = None
+                        elif order.price <= pending.stop_loss:
+                            warnings.append(
+                                "entry skipped at "
+                                f"{candle.open_time.isoformat()}: gap invalidated stop"
+                            )
+                            pending = None
+                            pending_execution_index = None
+                        else:
+                            cash -= total_cost
+                            if cash < 0:
+                                raise RuntimeError("backtest cash balance became negative")
+                            position = Position(
+                                position_id=f"{order.order_id}-POSITION",
+                                symbol=order.symbol,
+                                quantity=order.quantity,
+                                average_entry_price=order.price,
+                                current_price=order.price,
+                                opened_at=candle.open_time,
+                                stop_loss=pending.stop_loss,
+                                take_profit=pending.take_profit,
+                                initial_risk=order.price - pending.stop_loss,
+                                entry_fee=order.fee,
+                                partial_taken=False,
+                            )
+                            entry_candle_index = index
+                            entry_count += 1
+                            order_count += 1
+                            orders_today += 1
+                            entries_today += 1
+                            self._save_order_fill_position(order, fill, position)
+                            pending = None
+                            pending_execution_index = None
                 else:
                     raise RuntimeError("only BUY entries can be scheduled")
+            # Process old protective levels first; close-based protection applies next candle.
             if position is not None:
                 position = Position(
                     position_id=position.position_id,
                     symbol=position.symbol,
                     quantity=position.quantity,
                     average_entry_price=position.average_entry_price,
-                    current_price=candle.close,
+                    current_price=candle.open,
                     opened_at=position.opened_at,
                     stop_loss=position.stop_loss,
                     take_profit=position.take_profit,
@@ -126,13 +166,37 @@ class BacktestEngine:
                     entry_fee=position.entry_fee,
                     partial_taken=position.partial_taken,
                 )
-                position, cash, partial_trade_count = self._manage_position_extensions(
-                    position, cash, ordered[: index + 1], candle, index, trades
+                position, cash, partial_orders, partial_trades, partial_exits = (
+                    self._manage_position_extensions(
+                        position,
+                        cash,
+                        ordered[: index + 1],
+                        candle,
+                        index,
+                        trades,
+                        day_start_equity,
+                        entries_today,
+                        orders_today,
+                        closed_trades_today,
+                        entry_candle_index,
+                    )
                 )
-                trade_count += partial_trade_count
+                order_count += partial_orders
+                closed_trade_count += partial_trades
+                partial_exit_count += partial_exits
+                orders_today += partial_orders
+                closed_trades_today += partial_trades
                 exit_reason, trigger, ambiguous = self._exit_trigger(position, candle)
                 if trigger is not None and exit_reason is not None:
-                    portfolio = self._snapshot(cash, position, candle, trade_count)
+                    portfolio = self._snapshot(
+                        cash,
+                        position,
+                        candle,
+                        day_start_equity,
+                        entries_today,
+                        orders_today,
+                        closed_trades_today,
+                    )
                     exit_signal = self._exit_signal(position, trigger, candle, exit_reason, index)
                     decision = self._risk_manager.evaluate(exit_signal, portfolio, self._config)
                     self._save_risk(decision)
@@ -141,6 +205,8 @@ class BacktestEngine:
                         order = self._executor.execute(decision.order_intent)
                         fill = self._fill(order, candle.open_time)
                         cash += order.price * order.quantity - order.fee
+                        if entry_candle_index is None:
+                            raise RuntimeError("position lost its entry candle index")
                         trade = self._trade_record(
                             position,
                             order,
@@ -149,11 +215,20 @@ class BacktestEngine:
                             exit_reason,
                             ambiguous,
                             index,
+                            entry_candle_index,
                         )
                         trades.append(trade)
-                        trade_count += 1
+                        order_count += 1
+                        closed_trade_count += 1
+                        orders_today += 1
+                        closed_trades_today += 1
                         self._save_order_fill_position(order, fill, None)
                         position = None
+                        entry_candle_index = None
+                if position is not None:
+                    position = self._update_position_protection(
+                        position, ordered[: index + 1], candle
+                    )
             if (
                 index < len(ordered) - 1
                 and index + 1 >= self._config.warmup_candles
@@ -180,7 +255,15 @@ class BacktestEngine:
                 )
                 if self._repository is not None:
                     self._repository.save_strategy_decision(record)
-                portfolio = self._snapshot(cash, position, candle, trade_count)
+                portfolio = self._snapshot(
+                    cash,
+                    position,
+                    candle,
+                    day_start_equity,
+                    entries_today,
+                    orders_today,
+                    closed_trades_today,
+                )
                 decision = self._risk_manager.evaluate(signal, portfolio, self._config)
                 self._save_risk(decision)
                 if decision.approved and decision.order_intent is not None:
@@ -194,7 +277,15 @@ class BacktestEngine:
                 if position and equity
                 else Decimal("0")
             )
-            snapshot = self._snapshot(cash, position, candle, trade_count)
+            snapshot = self._snapshot(
+                cash,
+                position,
+                candle,
+                day_start_equity,
+                entries_today,
+                orders_today,
+                closed_trades_today,
+            )
             if self._repository is not None:
                 self._repository.save_portfolio_snapshot(snapshot)
         if position is not None and self._config.force_close_at_end:
@@ -202,7 +293,17 @@ class BacktestEngine:
             trigger = candle.close
             exit_signal = self._exit_signal(position, trigger, candle, "FORCED_END", len(ordered))
             decision = self._risk_manager.evaluate(
-                exit_signal, self._snapshot(cash, position, candle, trade_count), self._config
+                exit_signal,
+                self._snapshot(
+                    cash,
+                    position,
+                    candle,
+                    day_start_equity,
+                    entries_today,
+                    orders_today,
+                    closed_trades_today,
+                ),
+                self._config,
             )
             self._save_risk(decision)
             if decision.approved and decision.order_intent is not None:
@@ -210,13 +311,27 @@ class BacktestEngine:
                 order = self._executor.execute(decision.order_intent)
                 fill = self._fill(order, candle.close_time or candle.open_time)
                 cash += order.price * order.quantity - order.fee
+                if entry_candle_index is None:
+                    raise RuntimeError("position lost its entry candle index")
                 trades.append(
                     self._trade_record(
-                        position, order, fill, candle, "FORCED_END", False, len(ordered)
+                        position,
+                        order,
+                        fill,
+                        candle,
+                        "FORCED_END",
+                        False,
+                        len(ordered) - 1,
+                        entry_candle_index,
                     )
                 )
+                order_count += 1
+                closed_trade_count += 1
+                orders_today += 1
+                closed_trades_today += 1
                 self._save_order_fill_position(order, fill, None)
                 position = None
+                entry_candle_index = None
                 warnings.append("open position was force-closed at the final candle close")
         final_price = ordered[-1].close
         final_capital = self._equity(cash, position, final_price)
@@ -230,9 +345,12 @@ class BacktestEngine:
             start_price=ordered[0].open,
             end_price=final_price,
             unrealized_pnl=unrealized,
+            entry_count=entry_count,
+            order_count=order_count,
+            partial_exit_count=partial_exit_count,
         )
         return BacktestResult(
-            report_version="1",
+            report_version="2",
             strategy_version="deterministic-ema-atr-volume-v1",
             symbol=symbol,
             interval=interval,
@@ -261,18 +379,28 @@ class BacktestEngine:
             previous = candle
 
     def _snapshot(
-        self, cash: Decimal, position: Position | None, candle: Candle, trades: int
+        self,
+        cash: Decimal,
+        position: Position | None,
+        candle: Candle,
+        day_start_equity: Decimal,
+        entries_today: int,
+        orders_today: int,
+        closed_trades_today: int,
     ) -> PortfolioSnapshot:
         positions = (position,) if position is not None else ()
         equity = self._equity(cash, position, candle.close)
-        daily_loss = max(Decimal("0"), self._config.initial_balance - equity)
+        daily_loss = max(Decimal("0"), day_start_equity - equity)
         return PortfolioSnapshot(
             snapshot_id=f"snapshot-{candle.open_time.isoformat()}",
             captured_at=candle.close_time or candle.open_time,
             cash_balance=cash,
             equity=equity,
+            day_start_equity=day_start_equity,
             daily_loss=daily_loss,
-            trades_today=trades,
+            entries_today=entries_today,
+            orders_today=orders_today,
+            closed_trades_today=closed_trades_today,
             positions=positions,
         )
 
@@ -294,41 +422,28 @@ class BacktestEngine:
         candle: Candle,
         index: int,
         trades: list[TradeRecord],
-    ) -> tuple[Position, Decimal, int]:
+        day_start_equity: Decimal,
+        entries_today: int,
+        orders_today: int,
+        closed_trades_today: int,
+        entry_candle_index: int | None,
+    ) -> tuple[Position, Decimal, int, int, int]:
         updated = position
         risk = updated.initial_risk
-        stop_loss = updated.stop_loss
-        if stop_loss is not None and risk is not None:
-            if len(history) >= self._config.atr_period and self._config.trailing_stop_enabled:
-                trailing = (
-                    candle.close
-                    - atr(history, self._config.atr_period)
-                    * self._config.trailing_stop_atr_multiple
-                )
-                if trailing > stop_loss:
-                    updated = replace(updated, stop_loss=trailing)
-                    stop_loss = trailing
-            if (
-                candle.close
-                >= updated.average_entry_price + risk * self._config.break_even_after_r_multiple
-            ):
-                if stop_loss < updated.average_entry_price:
-                    updated = replace(updated, stop_loss=updated.average_entry_price)
-                    stop_loss = updated.average_entry_price
         if not self._config.partial_take_profit_enabled or updated.partial_taken:
-            return updated, cash, 0
+            return updated, cash, 0, 0, 0
         if risk is None:
-            return updated, cash, 0
-        if stop_loss is not None and candle.low <= stop_loss:
-            return updated, cash, 0
+            return updated, cash, 0, 0, 0
+        if updated.stop_loss is not None and candle.low <= updated.stop_loss:
+            return updated, cash, 0, 0, 0
         partial_target = (
             updated.average_entry_price + risk * self._config.partial_take_profit_r_multiple
         )
         if candle.high < partial_target:
-            return updated, cash, 0
+            return updated, cash, 0, 0, 0
         quantity = updated.quantity * self._config.partial_take_profit_percent / Decimal("100")
         if quantity <= 0 or quantity >= updated.quantity:
-            return replace(updated, partial_taken=True), cash, 0
+            return replace(updated, partial_taken=True), cash, 0, 0, 0
         signal = BacktestEngine._exit_signal(
             updated,
             partial_target,
@@ -338,11 +453,23 @@ class BacktestEngine:
             quantity=quantity,
         )
         decision = self._risk_manager.evaluate(
-            signal, self._snapshot(cash, updated, candle, index), self._config
+            signal,
+            self._snapshot(
+                cash,
+                updated,
+                candle,
+                day_start_equity,
+                entries_today,
+                orders_today,
+                closed_trades_today,
+            ),
+            self._config,
         )
         self._save_risk(decision)
         if not decision.approved or decision.order_intent is None:
-            return updated, cash, 0
+            return updated, cash, 0, 0, 0
+        if entry_candle_index is None:
+            raise RuntimeError("position lost its entry candle index")
         self._executor.set_reference_price(partial_target)
         order = self._executor.execute(decision.order_intent)
         fill = self._fill(order, candle.close_time or candle.open_time)
@@ -358,6 +485,7 @@ class BacktestEngine:
                 "PARTIAL_TAKE_PROFIT",
                 False,
                 index,
+                entry_candle_index,
             )
         )
         remaining = replace(
@@ -367,7 +495,32 @@ class BacktestEngine:
             partial_taken=True,
         )
         self._save_order_fill_position(order, fill, remaining)
-        return remaining, cash, 1
+        return remaining, cash, 1, 1, 1
+
+    def _update_position_protection(
+        self, position: Position, history: tuple[Candle, ...], candle: Candle
+    ) -> Position:
+        updated = replace(position, current_price=candle.close)
+        risk = updated.initial_risk
+        stop_loss = updated.stop_loss
+        if stop_loss is None or risk is None:
+            return updated
+        if len(history) >= self._config.atr_period and self._config.trailing_stop_enabled:
+            trailing = (
+                candle.close
+                - atr(history, self._config.atr_period)
+                * self._config.trailing_stop_atr_multiple
+            )
+            if trailing > stop_loss:
+                updated = replace(updated, stop_loss=trailing)
+                stop_loss = trailing
+        if (
+            candle.close
+            >= updated.average_entry_price + risk * self._config.break_even_after_r_multiple
+            and stop_loss < updated.average_entry_price
+        ):
+            updated = replace(updated, stop_loss=updated.average_entry_price)
+        return updated
 
     @staticmethod
     def _exit_trigger(
@@ -436,6 +589,7 @@ class BacktestEngine:
         reason: str,
         ambiguous: bool,
         index: int,
+        entry_candle_index: int,
     ) -> TradeRecord:
         from adaptive_trader.domain.models import SimulatedOrder
 
@@ -459,7 +613,7 @@ class BacktestEngine:
             net_pnl=net,
             exit_reason=reason,
             intrabar_ambiguous=ambiguous,
-            holding_candles=max(1, index),
+            holding_candles=index - entry_candle_index,
         )
 
     def _save_risk(self, decision: object) -> None:

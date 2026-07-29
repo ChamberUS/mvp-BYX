@@ -4,11 +4,11 @@ Núcleo determinístico para pesquisa, coleta pública, backtest e paper trading
 
 ## Pipeline
 
-`BinancePublicClient` acessa somente klines públicos. `HistoricalCandleDownloader` pagina por período e faz upsert idempotente no SQLite v2. `MarketContextBuilder` valida candles fechados, ordem, símbolo, intervalo e horizonte temporal antes de calcular indicadores `Decimal`. A estratégia retorna somente `MarketSignal`; o `RiskManager` aprova ou rejeita e somente um `OrderIntent` aprovado chega ao executor local.
+`BinancePublicClient` acessa somente klines públicos. `HistoricalCandleDownloader` pagina por período e faz upsert idempotente no SQLite schema v3. `MarketContextBuilder` valida candles fechados, ordem, símbolo, intervalo e horizonte temporal antes de calcular indicadores `Decimal`. A estratégia retorna somente `MarketSignal`; o `RiskManager` aprova ou rejeita e somente um `OrderIntent` aprovado chega ao executor local.
 
-No backtest, a série completa fica no motor, mas a estratégia recebe apenas `candles[:T]`. A decisão no fechamento de `T` é executada na abertura de `T+1`. O executor aplica taxas, spread e slippage configurados em basis points. Stops e alvos têm política intrabar conservadora `STOP_FIRST`; posições abertas podem ser fechadas explicitamente no último candle.
+No backtest, a série completa fica no motor, mas a estratégia recebe apenas `candles[:T]`. A decisão no fechamento de `T` é executada na abertura futura `T + latency_candles`; execução no mesmo candle é rejeitada pela configuração. Stops e alvos usam os níveis antigos durante o OHLC corrente. Trailing e break-even só são calculados após o fechamento e valem para o candle seguinte. O executor aplica taxas, spread e slippage configurados em basis points; o caixa é validado pelo custo efetivo antes da compra. Stops e alvos têm política intrabar conservadora `STOP_FIRST`; posições abertas podem ser fechadas explicitamente no último candle.
 
-Dados permanentes são candles, decisões, ordens simuladas, fills, posições e snapshots. O `MarketContext` é recriado para cada análise e não mantém estado entre barras.
+Dados permanentes são candles, decisões, ordens simuladas, fills, posições e snapshots. O `MarketContext` é recriado para cada análise e não mantém estado entre barras. Snapshots mantêm `day_start_equity`, `entries_today`, `orders_today` e `closed_trades_today`; o dia de negociação é UTC, com reset dos contadores na troca de data. O limite diário de entradas e a perda diária bloqueiam apenas novas compras; saídas protetivas continuam permitidas.
 
 ## Instalação
 

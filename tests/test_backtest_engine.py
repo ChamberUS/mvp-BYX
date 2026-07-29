@@ -136,3 +136,7 @@ def test_optional_partial_take_profit_is_deterministic() -> None:
     result = engine.run(candles())
 
     assert any(trade.exit_reason == "PARTIAL_TAKE_PROFIT" for trade in result.trades)
+    assert result.metrics.entry_count == 1
+    assert result.metrics.order_count == 3
+    assert result.metrics.closed_trade_count == 2
+    assert result.metrics.partial_exit_count == 1

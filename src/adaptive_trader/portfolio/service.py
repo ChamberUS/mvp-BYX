@@ -12,7 +12,10 @@ def initial_portfolio(config: TradingConfig, captured_at: datetime) -> Portfolio
         captured_at=captured_at,
         cash_balance=config.initial_balance,
         equity=config.initial_balance,
+        day_start_equity=config.initial_balance,
         daily_loss=config.initial_balance * 0,
-        trades_today=0,
+        entries_today=0,
+        orders_today=0,
+        closed_trades_today=0,
         positions=(),
     )

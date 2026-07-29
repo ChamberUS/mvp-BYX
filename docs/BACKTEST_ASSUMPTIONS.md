@@ -3,12 +3,18 @@
 - A fonte prevista é a API pública de klines da Binance Spot; nenhum endpoint autenticado é usado.
 - Apenas candles fechados entram no contexto e no backtest por padrão.
 - A estratégia recebe somente candles com abertura menor ou igual ao instante analisado.
-- Uma decisão no fechamento do candle `T` é executada na abertura de `T+1`.
+- Uma decisão no fechamento do candle `T` é executada na abertura de `T + latency_candles`; `latency_candles >= 1` e execução no mesmo candle é inválida.
+- O dia de negociação usa UTC. Na troca de data, `day_start_equity` recebe o patrimônio marcado no fechamento anterior e `entries_today`, `orders_today` e `closed_trades_today` são zerados.
+- O limite de operações diárias conta apenas novas entradas BUY. Saídas SELL de posições existentes continuam permitidas mesmo após limite de entradas ou perda diária.
+- A perda diária é `max(0, day_start_equity - current_equity)` e o limite percentual usa `day_start_equity`.
 - Compras usam preço de referência mais spread e slippage; vendas usam preço de referência menos ambos.
 - Spread e slippage são custos simulados em basis points, não cotações oficiais universais.
 - Taxas são simuladas em basis points e debitadas do caixa.
+- Uma compra só é executada se o custo efetivo quantizado, incluindo taxa, spread e slippage, couber no caixa; o caixa nunca pode ficar negativo.
 - Stop loss e take profit usam níveis já aprovados pelo risco.
 - Se stop e alvo forem atingidos pelo mesmo OHLC, `STOP_FIRST` é aplicado e o relatório marca `intrabar_ambiguous=true`.
+- Stop trailing e break-even são calculados somente depois do fechamento do candle e não podem retroagir sobre a mínima/máxima desse mesmo candle.
+- `holding_candles` é a diferença entre o índice do candle de saída e o índice da entrada original, inclusive para saídas parciais e fechamento forçado.
 - Uma posição aberta no fim é fechada no último fechamento quando `force_close_at_end=true`.
 - O modelo não simula livro de ofertas, liquidez, partial fills, latência de rede ou impacto de mercado detalhado.
 - OHLC não revela a ordem intrabar; por isso o resultado não escolhe o melhor caminho.

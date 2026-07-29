@@ -55,7 +55,10 @@ def empty_portfolio(analysis_time: datetime) -> PortfolioSnapshot:
         captured_at=analysis_time,
         cash_balance=Decimal("10000"),
         equity=Decimal("10000"),
+        day_start_equity=Decimal("10000"),
         daily_loss=Decimal("0"),
-        trades_today=0,
+        entries_today=0,
+        orders_today=0,
+        closed_trades_today=0,
         positions=(),
     )

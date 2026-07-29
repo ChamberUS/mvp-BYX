@@ -22,6 +22,9 @@ def calculate_metrics(
     start_price: Decimal,
     end_price: Decimal,
     unrealized_pnl: Decimal = Decimal("0"),
+    entry_count: int | None = None,
+    order_count: int | None = None,
+    partial_exit_count: int | None = None,
 ) -> BacktestMetrics:
     fees = sum((trade.fees for trade in trades), Decimal("0"))
     slippage = sum((trade.slippage_cost for trade in trades), Decimal("0"))
@@ -30,6 +33,13 @@ def calculate_metrics(
     gains = tuple(trade.net_pnl for trade in trades if trade.net_pnl > 0)
     losses = tuple(trade.net_pnl for trade in trades if trade.net_pnl < 0)
     total = len(trades)
+    resolved_entry_count = total if entry_count is None else entry_count
+    resolved_order_count = total if order_count is None else order_count
+    resolved_partial_exit_count = (
+        sum(trade.exit_reason == "PARTIAL_TAKE_PROFIT" for trade in trades)
+        if partial_exit_count is None
+        else partial_exit_count
+    )
     win_rate = Decimal(len(gains)) / Decimal(total) * Decimal("100") if total else None
     average_gain = _average(gains)
     average_loss = _average(losses)
@@ -60,7 +70,10 @@ def calculate_metrics(
         total_fees=fees,
         estimated_slippage=slippage,
         total_spread_cost=spread,
-        total_trades=total,
+        entry_count=resolved_entry_count,
+        order_count=resolved_order_count,
+        closed_trade_count=total,
+        partial_exit_count=resolved_partial_exit_count,
         winning_trades=len(gains),
         losing_trades=len(losses),
         win_rate=win_rate,

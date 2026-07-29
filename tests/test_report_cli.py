@@ -18,7 +18,7 @@ def test_report_writers_and_cli_do_not_need_network(
     write_json(result, json_path)
     write_trades_csv(result, csv_path)
 
-    assert read_json(json_path)["report_version"] == "1"
+    assert read_json(json_path)["report_version"] == "2"
     assert "BACKTEST ONLY" in render_summary(result)
     assert "trade_id" in csv_path.read_text(encoding="utf-8")
     monkeypatch.setenv("ADAPTIVE_TRADER_DB_PATH", str(tmp_path / "cli.sqlite3"))

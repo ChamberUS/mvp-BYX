@@ -12,7 +12,7 @@ def test_database_creation_has_all_required_tables(tmp_path: Path) -> None:
     initialize_database(path)
     status = database_status(path)
 
-    assert status["schema_version"] == 2
+    assert status["schema_version"] == 3
     assert set(status["tables"]) >= {
         "candles",
         "strategy_decisions",
@@ -100,8 +100,46 @@ def test_v1_database_is_migrated_without_deleting_legacy_data(tmp_path: Path) ->
     status = database_status(path)
     repository = DatabaseRepository(path)
     try:
-        assert status["schema_version"] == 2
+        assert status["schema_version"] == 3
         assert "candles_v1_legacy" in status["tables"]
         assert repository.count_candles("ETHUSDT", "1m") == 1
     finally:
         repository.close()
+
+
+def test_v2_snapshot_is_migrated_to_v3_without_losing_data(tmp_path: Path) -> None:
+    path = tmp_path / "v2.sqlite3"
+    connection = sqlite3.connect(path)
+    connection.executescript(
+        """
+        CREATE TABLE schema_migrations(version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL);
+        INSERT INTO schema_migrations VALUES (2, '2026-01-01T00:00:00+00:00');
+        CREATE TABLE portfolio_snapshots(
+            snapshot_id TEXT PRIMARY KEY, captured_at TEXT NOT NULL,
+            cash_balance TEXT NOT NULL, equity TEXT NOT NULL, daily_loss TEXT NOT NULL,
+            trades_today INTEGER NOT NULL, positions_json TEXT NOT NULL
+        );
+        INSERT INTO portfolio_snapshots VALUES
+            ('snapshot-1', '2026-01-01T00:00:00+00:00', '9900', '10000', '100', 3, '[]');
+        """
+    )
+    connection.commit()
+    connection.close()
+
+    initialize_database(path)
+
+    connection = sqlite3.connect(path)
+    try:
+        columns = {row[1] for row in connection.execute("PRAGMA table_info(portfolio_snapshots)")}
+        row = connection.execute(
+            "SELECT day_start_equity, orders_today FROM portfolio_snapshots"
+        ).fetchone()
+        assert columns >= {
+            "day_start_equity",
+            "entries_today",
+            "orders_today",
+            "closed_trades_today",
+        }
+        assert row == ("10000", 3)
+    finally:
+        connection.close()

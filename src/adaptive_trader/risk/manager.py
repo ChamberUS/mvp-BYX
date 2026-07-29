@@ -59,11 +59,16 @@ class DefaultRiskManager:
             and len(portfolio.positions) >= limits.maximum_open_positions
         ):
             return reject("maximum open positions reached")
-        if portfolio.trades_today >= limits.maximum_trades_per_day:
-            return reject("maximum daily trades reached")
-        max_daily_loss = portfolio.equity * limits.maximum_daily_loss_percent / Decimal("100")
-        if portfolio.daily_loss >= max_daily_loss:
-            return reject("maximum daily loss reached")
+        if signal.direction is SignalDirection.BUY:
+            if portfolio.entries_today >= limits.maximum_trades_per_day:
+                return reject("maximum daily entries reached")
+            max_daily_loss = (
+                portfolio.day_start_equity
+                * limits.maximum_daily_loss_percent
+                / Decimal("100")
+            )
+            if portfolio.daily_loss >= max_daily_loss:
+                return reject("maximum daily loss reached")
         requested_value = signal.suggested_quantity * signal.entry_price
         if signal.direction is SignalDirection.BUY:
             max_position_value = portfolio.equity * limits.maximum_position_percent / Decimal("100")
