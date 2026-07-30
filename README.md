@@ -1,10 +1,18 @@
 # Adaptive Trader
 
-Núcleo determinístico para pesquisa, coleta pública, backtest e paper trading de criptoativos em Binance Spot. Esta sprint não usa API key, autenticação, futuros, margem, alavancagem, IA, notícias, web ou operações reais.
+Núcleo determinístico para coleta pública, pesquisa e backtest de `ETHUSDT` em Binance Spot e
+Binance USD-M Futures. Futures existe somente como simulação histórica local com margem isolada
+e alavancagem limitada a `3x`. Esta sprint não implementa autenticação, Testnet, paper trading,
+ordens, IA, notícias, interface web ou operações reais.
 
 ## Pipeline
 
-`BinancePublicClient` acessa somente klines públicos. `HistoricalCandleDownloader` pagina por período e faz upsert idempotente no SQLite schema v3. `MarketContextBuilder` valida candles fechados, ordem, símbolo, intervalo e horizonte temporal antes de calcular indicadores `Decimal`. A estratégia retorna somente `MarketSignal`; o `RiskManager` aprova ou rejeita e somente um `OrderIntent` aprovado chega ao executor local.
+`BinancePublicClient` acessa somente klines públicos Spot. `BinanceFuturesPublicClient` acessa
+somente os endpoints públicos USD-M de klines, mark-price klines e funding history. Os
+downloaders paginam por período e fazem upsert idempotente no SQLite schema v4.
+`MarketContextBuilder` valida candles fechados, ordem, símbolo, intervalo e horizonte temporal
+antes de calcular indicadores `Decimal`. A estratégia Spot retorna somente `MarketSignal`; o
+`RiskManager` aprova ou rejeita e somente um `OrderIntent` aprovado chega ao executor local.
 
 No backtest, a série completa fica no motor, mas a estratégia recebe apenas `candles[:T]`. A decisão no fechamento de `T` é executada na abertura futura `T + latency_candles`; execução no mesmo candle é rejeitada pela configuração. Stops e alvos usam os níveis antigos durante o OHLC corrente. Trailing e break-even só são calculados após o fechamento e valem para o candle seguinte. O executor aplica taxas, spread e slippage configurados em basis points; o caixa é validado pelo custo efetivo antes da compra. Stops e alvos têm política intrabar conservadora `STOP_FIRST`; posições abertas podem ser fechadas explicitamente no último candle.
 
@@ -143,3 +151,105 @@ habilita produção.
 `diagnostics.example.toml` documenta períodos, horizontes e limiares sem credenciais. O método e
 suas limitações estão em `docs/RESEARCH_METHODOLOGY.md`; `research.example.toml` também é apenas
 um exemplo sem segredos.
+
+## Validação controlada das hipóteses Spot
+
+O catálogo imutável `spot-hypotheses-v1.toml` limita a Sprint 3A.4 a seis variantes: baseline,
+time exits de 12/24 candles, alvo `R=2.5` e as duas combinações previamente registradas. A
+execução usa somente `ETHUSDT 1h` local, compara saídas em `STRICT_TRENDING_UP` e depois compara
+somente baseline e a vencedora com quatro modos de regime. `NO_REGIME_FILTER_DIAGNOSTIC` nunca é
+candidata. Stop, target, time exit e fechamento final seguem essa ordem; ambiguidades entre stop
+e target permanecem `STOP_FIRST`.
+
+Selection usa exclusivamente development (`2022-01-01` a `2024-12-31`) e `BASE_COST`. A
+configuração escolhida é bloqueada antes da confirmação em validation (`2025-01-01` a
+`2025-12-31`). O período já consumido de 2026 não é carregado. Nenhuma busca ampla, Futures,
+leverage, rede, API autenticada, paper trading ou ordem externa participa.
+
+```bash
+adaptive-trader research hypotheses spot run \
+  --symbol ETHUSDT --interval 1h \
+  --development-start 2022-01-01T00:00:00Z \
+  --development-end 2024-12-31T23:00:00Z \
+  --validation-start 2025-01-01T00:00:00Z \
+  --validation-end 2025-12-31T23:00:00Z \
+  --consumed-test-start 2026-01-01T00:00:00Z \
+  --consumed-test-end 2026-07-01T00:00:00Z \
+  --output-dir reports/research --yes
+
+adaptive-trader research hypotheses spot show \
+  --experiment reports/research/<experiment-id>
+adaptive-trader research candidate freeze \
+  --experiment reports/research/<experiment-id> --candidate-version 1
+adaptive-trader research candidate inspect \
+  --candidate configs/candidates/<candidate-id>.toml
+adaptive-trader research candidate verify \
+  --candidate configs/candidates/<candidate-id>.toml
+```
+
+Freeze falha se qualquer critério obrigatório não passar, se o modo for diagnóstico ou se a
+versão já existir. Uma candidata congelada continua sendo apenas pesquisa e recebe a declaração
+`NOT_APPROVED_FOR_PRODUCTION`. O future holdout é somente planejado; não é executado nesta sprint.
+
+## Pesquisa USD-M Futures
+
+O fluxo Futures é deliberadamente separado do `BacktestEngine` Spot:
+
+- `FuturesBacktestEngine` mantém wallet, margem isolada, posição, PnL long/short, funding e
+  liquidação próprios;
+- `FuturesRiskManager` recebe `FuturesSignal` e só libera `FuturesOrderIntent` aprovado;
+- sinais `ENTER_SHORT` não são confundidos com venda Spot;
+- mark price é obrigatório para PnL não realizado, manutenção e liquidação;
+- funding ausente falha por padrão; zero implícito é proibido;
+- manutenção usa taxa fixa explícita e aproximada;
+- em ambiguidade OHLC, liquidação tem prioridade `LIQUIDATION_FIRST`;
+- leverage padrão é `1x`, margem é somente `ISOLATED` e valores acima de `3x` são rejeitados;
+- `SPOT_PROXY_FOR_TESTS_ONLY` invalida o relatório e existe apenas para fixtures.
+
+Spot e Futures possuem datasets, contabilidade, métricas e resultados separados. A comparação
+gera `market_comparison.csv`, `market_comparison.json` e `market_comparison.md`; resultados nunca
+são somados. O período consumido de `2026-01-01` a `2026-07-01` é removido de toda seleção.
+Uma estratégia `NOT_CANDIDATE` em `1x` não pode virar candidata por amplificação de exposição.
+
+Coleta pública explícita:
+
+```bash
+adaptive-trader market futures download-klines \
+  --symbol ETHUSDT --interval 1h \
+  --start 2022-01-01T00:00:00Z --end 2025-12-31T23:00:00Z
+adaptive-trader market futures download-mark-price \
+  --symbol ETHUSDT --interval 1h \
+  --start 2022-01-01T00:00:00Z --end 2025-12-31T23:00:00Z
+adaptive-trader market futures download-funding \
+  --symbol ETHUSDT \
+  --start 2022-01-01T00:00:00Z --end 2025-12-31T23:00:00Z
+adaptive-trader market futures status --symbol ETHUSDT --interval 1h
+```
+
+`--start` e `--end` são inclusivos. Pesquisa nunca inicia esses downloads automaticamente.
+
+Pesquisa local:
+
+```bash
+adaptive-trader research futures inspect \
+  --symbol ETHUSDT --interval 1h \
+  --start 2022-01-01T00:00:00Z --end 2025-12-31T23:00:00Z
+adaptive-trader research futures backtest \
+  --symbol ETHUSDT --interval 1h --mode long-short --leverage 1 \
+  --start 2022-01-01T00:00:00Z --end 2025-12-31T23:00:00Z \
+  --output-dir reports/research/futures
+adaptive-trader research futures walk-forward \
+  --symbol ETHUSDT --interval 1h --mode long-short --leverage 1 \
+  --train-days 365 --validation-days 90 --step-days 90 \
+  --start 2022-01-01T00:00:00Z --end 2025-12-31T23:00:00Z \
+  --output-dir reports/research/futures-walk-forward
+adaptive-trader research market compare \
+  --symbol ETHUSDT --interval 1h --markets spot,futures \
+  --futures-modes long,short,long-short --leverages 1,2,3 \
+  --start 2022-01-01T00:00:00Z --end 2026-07-01T00:00:00Z \
+  --exclude-start 2026-01-01T00:00:00Z \
+  --exclude-end 2026-07-01T00:00:00Z \
+  --output-dir reports/research/market-comparison --yes
+```
+
+Detalhes e limitações estão em `docs/FUTURES_RESEARCH_METHODOLOGY.md`.

@@ -12,7 +12,7 @@ def test_database_creation_has_all_required_tables(tmp_path: Path) -> None:
     initialize_database(path)
     status = database_status(path)
 
-    assert status["schema_version"] == 3
+    assert status["schema_version"] == 4
     assert set(status["tables"]) >= {
         "candles",
         "strategy_decisions",
@@ -21,6 +21,9 @@ def test_database_creation_has_all_required_tables(tmp_path: Path) -> None:
         "fills",
         "positions",
         "portfolio_snapshots",
+        "futures_candles",
+        "futures_mark_prices",
+        "futures_funding_rates",
     }
 
 
@@ -100,7 +103,7 @@ def test_v1_database_is_migrated_without_deleting_legacy_data(tmp_path: Path) ->
     status = database_status(path)
     repository = DatabaseRepository(path)
     try:
-        assert status["schema_version"] == 3
+        assert status["schema_version"] == 4
         assert "candles_v1_legacy" in status["tables"]
         assert repository.count_candles("ETHUSDT", "1m") == 1
     finally:

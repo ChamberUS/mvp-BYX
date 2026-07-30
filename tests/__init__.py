@@ -1,0 +1,1 @@
+"""Adaptive Trader test suite."""

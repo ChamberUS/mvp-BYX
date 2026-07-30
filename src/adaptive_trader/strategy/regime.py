@@ -6,6 +6,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
+from enum import StrEnum
 
 from adaptive_trader.domain.models import Candle, MarketRegime
 from adaptive_trader.indicators import candle_ema, higher_highs_and_lows, lower_highs_and_lows
@@ -15,6 +16,17 @@ from adaptive_trader.indicators import candle_ema, higher_highs_and_lows, lower_
 class RegimeResult:
     regime: MarketRegime
     rationale: str
+
+
+class SpotRegimeMode(StrEnum):
+    STRICT_TRENDING_UP = "STRICT_TRENDING_UP"
+    UP_OR_TRANSITION = "UP_OR_TRANSITION"
+    EMA_TREND_ONLY = "EMA_TREND_ONLY"
+    NO_REGIME_FILTER_DIAGNOSTIC = "NO_REGIME_FILTER_DIAGNOSTIC"
+
+    @property
+    def diagnostic_only(self) -> bool:
+        return self is SpotRegimeMode.NO_REGIME_FILTER_DIAGNOSTIC
 
 
 class DeterministicRegimeClassifier:

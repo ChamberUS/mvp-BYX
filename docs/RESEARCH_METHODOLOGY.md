@@ -57,3 +57,43 @@ Manifests record dataset/configuration hashes, effective-period metadata, segmen
 Monte Carlo de sequências de trades é opcional e permanece deliberadamente pendente nesta sprint; nenhuma conclusão probabilística é produzida por embaralhamento de candles.
 
 All outputs are research-only backtests. No authenticated endpoint or real order exists in this sprint. Past results do not guarantee future results and are not financial advice.
+
+## Controlled Spot hypothesis validation
+
+Sprint 3A.4 uses the immutable `spot-hypotheses-v1.toml` catalog. Stage one compares exactly six
+pre-registered exit variants under `STRICT_TRENDING_UP`. Stage two compares only baseline and the
+stage-one development winner under `STRICT_TRENDING_UP`, `UP_OR_TRANSITION`,
+`EMA_TREND_ONLY`, and `NO_REGIME_FILTER_DIAGNOSTIC`. The diagnostic mode carries
+`DIAGNOSTIC_ONLY_REGIME_DISABLED` and cannot be selected or frozen.
+
+The transition rule is point-in-time: the previous short EMA and close must be at or below the
+previous long EMA, while the current short EMA and close are above the current long EMA. No
+future candle is visible. EMA-only and diagnostic modes preserve volume, ATR, EMA periods, stop
+distance, risk limits, and costs.
+
+Walk-forward is rolling with fixed 365-day train, 90-day evaluation, and 90-day step windows.
+Development chooses by median fold net return, then positive-fold percentage, lower worst
+drawdown, lower zero-trade percentage, lower cost sensitivity, more closed trades, and lower
+predefined complexity. Validation never enters ranking and cannot mutate the development lock.
+LOW, BASE, HIGH, and STRESS cost scenarios are fixed; only BASE selects.
+
+The consumed interval from `2026-01-01T00:00:00Z` through `2026-07-01T00:00:00Z` may appear
+only as excluded/already-consumed metadata. Candidate assessment, freeze, walk-forward,
+comparison, and ranking reject its use. A freeze writes a new TOML, manifest, and canonical
+SHA-256 without overwriting prior versions. Freeze does not approve production, enable paper
+trading, execute a future holdout, run Futures, apply leverage, or send an external order.
+
+## Spot versus Futures
+
+Spot e USD-M Futures são experimentos distintos com datasets, hashes, custos e contabilidade
+separados. A comparação usa o mesmo símbolo, intervalo, período, warmup e hipótese conceitual,
+mas nunca soma resultados. Futures registra também funding, margem, leverage e liquidação.
+
+A ordem de pesquisa é fixa: primeiro `1x`, depois custos/funding, consistência e liquidações; só
+então `2x` e `3x`. Leverage não participa de seleção no teste consumido e não converte
+automaticamente uma hipótese sem vantagem em candidata. Os modos long, short espelhado e
+long-short são relatados separadamente, sem escolha automática.
+
+O hash combinado Futures incorpora market type, contract type, candles, mark prices, funding,
+símbolo, intervalo e fonte. Alterar um evento de funding altera o hash combinado. Consulte
+`FUTURES_RESEARCH_METHODOLOGY.md` para as fórmulas e limitações específicas.

@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import csv
+import hashlib
 import json
 import logging
 import os
@@ -20,11 +21,39 @@ from pathlib import Path
 from adaptive_trader.backtest.cli import build_engine
 from adaptive_trader.backtest.report import read_json, render_summary, write_json, write_trades_csv
 from adaptive_trader.config.settings import ConfigError, TradingConfig, load_config
+from adaptive_trader.domain.market import MarketType, TradingMode
 from adaptive_trader.domain.models import Candle, SignalDirection, serialize_model
+from adaptive_trader.futures.datasets import FuturesDataset, validate_futures_dataset
+from adaptive_trader.futures.models import (
+    FundingMissingPolicy,
+    FundingRate,
+    FuturesBacktestConfig,
+    FuturesBacktestResult,
+    FuturesCandle,
+    MarkPriceCandle,
+)
+from adaptive_trader.futures.report import write_futures_report
+from adaptive_trader.futures.research import (
+    development_only_dataset,
+    futures_benchmarks,
+    futures_comparison_row,
+    mode_from_cli,
+    run_futures_backtest,
+    run_futures_walk_forward,
+    write_market_comparison,
+    write_walk_forward_report,
+)
+from adaptive_trader.market_data.binance_futures_public import BinanceFuturesPublicClient
 from adaptive_trader.market_data.binance_public import BinancePublicClient
 from adaptive_trader.market_data.exceptions import MarketDataError
+from adaptive_trader.market_data.futures_history import FuturesHistoricalDownloader
 from adaptive_trader.market_data.history import HistoricalCandleDownloader
 from adaptive_trader.observability.logging import configure_logging
+from adaptive_trader.research.candidate_freeze import (
+    freeze_candidate,
+    inspect_candidate,
+    verify_candidate,
+)
 from adaptive_trader.research.config import ResearchFileConfig, load_experiment_toml
 from adaptive_trader.research.costs import run_cost_scenarios_by_fold
 from adaptive_trader.research.datasets import (
@@ -43,6 +72,11 @@ from adaptive_trader.research.service import (
     run_walk_forward_experiment,
 )
 from adaptive_trader.research.splits import build_walk_forward_plan
+from adaptive_trader.research.spot_experiment import SpotHypothesisExperiment
+from adaptive_trader.research.spot_hypotheses import (
+    SpotExperimentPeriods,
+    load_spot_hypothesis_catalog,
+)
 from adaptive_trader.research.walk_forward import WalkForwardRunner
 from adaptive_trader.storage.sqlite import (
     SCHEMA_VERSION,
@@ -73,6 +107,22 @@ def _parser() -> argparse.ArgumentParser:
     status = market_commands.add_parser("status")
     status.add_argument("--symbol", default=None)
     status.add_argument("--interval", default=None)
+    futures_market = market_commands.add_parser("futures")
+    futures_market_commands = futures_market.add_subparsers(
+        dest="futures_market_command",
+        required=True,
+    )
+    futures_klines = futures_market_commands.add_parser("download-klines")
+    _add_market_range_args(futures_klines, required_dates=True)
+    futures_mark = futures_market_commands.add_parser("download-mark-price")
+    _add_market_range_args(futures_mark, required_dates=True)
+    futures_funding = futures_market_commands.add_parser("download-funding")
+    futures_funding.add_argument("--symbol", default=None)
+    futures_funding.add_argument("--start", required=True)
+    futures_funding.add_argument("--end", required=True)
+    futures_status = futures_market_commands.add_parser("status")
+    futures_status.add_argument("--symbol", default=None)
+    futures_status.add_argument("--interval", default=None)
     backtest = commands.add_parser("backtest")
     backtest_commands = backtest.add_subparsers(dest="backtest_command", required=True)
     run = backtest_commands.add_parser("run")
@@ -199,6 +249,75 @@ def _parser() -> argparse.ArgumentParser:
     )
     research_config_show = research_config_commands.add_parser("show")
     research_config_show.add_argument("--file", type=Path, required=True)
+    hypotheses = research_commands.add_parser("hypotheses")
+    hypotheses_commands = hypotheses.add_subparsers(
+        dest="hypotheses_market",
+        required=True,
+    )
+    spot_hypotheses = hypotheses_commands.add_parser("spot")
+    spot_hypotheses_commands = spot_hypotheses.add_subparsers(
+        dest="spot_hypotheses_command",
+        required=True,
+    )
+    spot_hypotheses_run = spot_hypotheses_commands.add_parser("run")
+    spot_hypotheses_run.add_argument("--symbol", required=True)
+    spot_hypotheses_run.add_argument("--interval", required=True)
+    spot_hypotheses_run.add_argument("--development-start", required=True)
+    spot_hypotheses_run.add_argument("--development-end", required=True)
+    spot_hypotheses_run.add_argument("--validation-start", required=True)
+    spot_hypotheses_run.add_argument("--validation-end", required=True)
+    spot_hypotheses_run.add_argument("--consumed-test-start", required=True)
+    spot_hypotheses_run.add_argument("--consumed-test-end", required=True)
+    spot_hypotheses_run.add_argument("--output-dir", type=Path, required=True)
+    spot_hypotheses_run.add_argument("--yes", action="store_true")
+    spot_hypotheses_show = spot_hypotheses_commands.add_parser("show")
+    spot_hypotheses_show.add_argument("--experiment", type=Path, required=True)
+    candidate = research_commands.add_parser("candidate")
+    candidate_commands = candidate.add_subparsers(
+        dest="candidate_command",
+        required=True,
+    )
+    candidate_freeze = candidate_commands.add_parser("freeze")
+    candidate_freeze.add_argument("--experiment", type=Path, required=True)
+    candidate_freeze.add_argument("--candidate-version", type=int, required=True)
+    candidate_inspect = candidate_commands.add_parser("inspect")
+    candidate_inspect.add_argument("--candidate", type=Path, required=True)
+    candidate_verify = candidate_commands.add_parser("verify")
+    candidate_verify.add_argument("--candidate", type=Path, required=True)
+    futures_research = research_commands.add_parser("futures")
+    futures_research_commands = futures_research.add_subparsers(
+        dest="futures_research_command",
+        required=True,
+    )
+    futures_inspect = futures_research_commands.add_parser("inspect")
+    _add_market_range_args(futures_inspect, required_dates=True)
+    _add_futures_research_options(futures_inspect, include_execution=False)
+    futures_backtest = futures_research_commands.add_parser("backtest")
+    _add_market_range_args(futures_backtest, required_dates=True)
+    _add_futures_research_options(futures_backtest, include_execution=True)
+    futures_backtest.add_argument("--output-dir", type=Path, required=True)
+    futures_walk = futures_research_commands.add_parser("walk-forward")
+    _add_market_range_args(futures_walk, required_dates=True)
+    _add_futures_research_options(futures_walk, include_execution=True)
+    futures_walk.add_argument("--train-days", type=int, required=True)
+    futures_walk.add_argument("--validation-days", type=int, required=True)
+    futures_walk.add_argument("--step-days", type=int, required=True)
+    futures_walk.add_argument("--output-dir", type=Path, required=True)
+    market_research = research_commands.add_parser("market")
+    market_research_commands = market_research.add_subparsers(
+        dest="research_market_command",
+        required=True,
+    )
+    market_compare = market_research_commands.add_parser("compare")
+    _add_market_range_args(market_compare, required_dates=True)
+    market_compare.add_argument("--markets", default="spot,futures")
+    market_compare.add_argument("--futures-modes", default="long,short,long-short")
+    market_compare.add_argument("--leverages", default="1,2,3")
+    market_compare.add_argument("--exclude-start", default="2026-01-01T00:00:00Z")
+    market_compare.add_argument("--exclude-end", default="2026-07-01T00:00:00Z")
+    market_compare.add_argument("--warmup-candles", type=int, default=None)
+    market_compare.add_argument("--output-dir", type=Path, required=True)
+    market_compare.add_argument("--yes", action="store_true")
     return parser
 
 
@@ -207,6 +326,29 @@ def _add_market_range_args(parser: argparse.ArgumentParser, *, required_dates: b
     parser.add_argument("--interval", default=None)
     parser.add_argument("--start", required=required_dates)
     parser.add_argument("--end", required=required_dates)
+
+
+def _add_futures_research_options(
+    parser: argparse.ArgumentParser,
+    *,
+    include_execution: bool,
+) -> None:
+    parser.add_argument(
+        "--funding-missing-policy",
+        choices=[item.value for item in FundingMissingPolicy],
+        default=FundingMissingPolicy.FAIL.value,
+    )
+    parser.add_argument("--disable-funding", action="store_true")
+    if include_execution:
+        parser.add_argument(
+            "--mode",
+            choices=("long", "short", "long-short"),
+            default="long-short",
+        )
+        parser.add_argument("--leverage", default="1")
+        parser.add_argument("--warmup-candles", type=int, default=None)
+        parser.add_argument("--time-exit-candles", type=int, default=None)
+        parser.add_argument("--target-r", default="2")
 
 
 def _parse_datetime(value: str) -> datetime:
@@ -250,7 +392,11 @@ def _doctor(config: TradingConfig) -> int:
             str(config.database_path.parent),
         ),
         _check("sqlite", _sqlite_check(config.database_path), str(config.database_path)),
-        _check("research-only", config.is_research_only(), "trading_enabled=false and spot-only"),
+        _check(
+            "research-only",
+            config.is_research_only(),
+            "trading disabled; Spot default; Futures endpoints are public research-only",
+        ),
         _check("credentials", no_credentials, "no authenticated Binance configuration found"),
     ]
     return 0 if all(checks) else 1
@@ -320,6 +466,252 @@ def _market_status(config: TradingConfig, args: argparse.Namespace) -> int:
     finally:
         repository.close()
     print(json.dumps(payload, sort_keys=True))
+    return 0
+
+
+async def _futures_download(config: TradingConfig, args: argparse.Namespace) -> int:
+    symbol = args.symbol or config.symbol
+    start = _parse_datetime(args.start)
+    end = _parse_datetime(args.end)
+    repository = DatabaseRepository(config.database_path)
+    client = BinanceFuturesPublicClient(
+        timeout_seconds=config.request_timeout_seconds,
+        maximum_retries=config.maximum_retries,
+    )
+    downloader = FuturesHistoricalDownloader(client, repository)
+    try:
+        if args.futures_market_command == "download-klines":
+            stats = await downloader.download_klines(
+                symbol=symbol,
+                interval=args.interval or config.interval,
+                start_time=start,
+                end_time=end,
+            )
+        elif args.futures_market_command == "download-mark-price":
+            stats = await downloader.download_mark_prices(
+                symbol=symbol,
+                interval=args.interval or config.interval,
+                start_time=start,
+                end_time=end,
+            )
+        elif args.futures_market_command == "download-funding":
+            stats = await downloader.download_funding(
+                symbol=symbol,
+                start_time=start,
+                end_time=end,
+            )
+        else:
+            raise ValueError("unsupported futures download command")
+    finally:
+        await client.aclose()
+        repository.close()
+    print(json.dumps(serialize_model(stats), indent=2, sort_keys=True))
+    return 0
+
+
+def _futures_status(config: TradingConfig, args: argparse.Namespace) -> int:
+    symbol = args.symbol or config.symbol
+    interval = args.interval or config.interval
+    repository = DatabaseRepository(config.database_path)
+    try:
+        candles = repository.get_futures_candles(symbol, interval)
+        marks = repository.get_mark_prices(symbol, interval)
+        funding = repository.get_funding_rates(symbol)
+    finally:
+        repository.close()
+    content = serialize_model(
+        {
+            "candles": candles,
+            "mark_prices": marks,
+            "funding_rates": funding,
+        }
+    )
+    digest = hashlib.sha256(
+        json.dumps(content, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    print(
+        json.dumps(
+            {
+                "market_type": MarketType.USD_M_FUTURES.value,
+                "contract_type": "PERPETUAL",
+                "symbol": symbol,
+                "interval": interval,
+                "candle_count": len(candles),
+                "mark_price_count": len(marks),
+                "funding_rate_count": len(funding),
+                "latest_open_time": candles[-1].open_time.isoformat() if candles else None,
+                "content_hash": digest,
+                "range_semantics": "start_and_end_inclusive",
+                "research_only": True,
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return 0
+
+
+def _futures_policy(args: argparse.Namespace) -> tuple[bool, FundingMissingPolicy]:
+    if args.disable_funding:
+        return False, FundingMissingPolicy.DISABLE_EXPLICITLY
+    policy = FundingMissingPolicy(args.funding_missing_policy)
+    if policy is FundingMissingPolicy.DISABLE_EXPLICITLY:
+        raise ValueError("DISABLE_EXPLICITLY requires --disable-funding")
+    return True, policy
+
+
+def _futures_config(
+    config: TradingConfig,
+    args: argparse.Namespace,
+) -> FuturesBacktestConfig:
+    funding_enabled, funding_policy = _futures_policy(args)
+    return FuturesBacktestConfig(
+        initial_balance=config.initial_balance,
+        leverage=_parse_decimal(str(args.leverage), "leverage"),
+        maximum_leverage=Decimal("3"),
+        trading_mode=mode_from_cli(args.mode),
+        funding_enabled=funding_enabled,
+        funding_missing_policy=funding_policy,
+        symbol=args.symbol or config.symbol,
+        interval=args.interval or config.interval,
+        warmup_candles=args.warmup_candles or config.warmup_candles,
+        short_ema_period=config.short_ema_period,
+        long_ema_period=config.long_ema_period,
+        atr_period=config.atr_period,
+        volume_period=config.volume_period,
+        minimum_volume_ratio=config.minimum_volume_ratio,
+        maximum_atr_relative=config.maximum_atr_relative,
+        stop_atr_multiple=config.stop_atr_multiple,
+        target_r_multiple=_parse_decimal(str(args.target_r), "target_r"),
+        time_exit_candles=args.time_exit_candles,
+    )
+
+
+def _load_futures_dataset(
+    config: TradingConfig,
+    args: argparse.Namespace,
+) -> FuturesDataset:
+    start = _parse_datetime(args.start)
+    end = _parse_datetime(args.end)
+    if end < start:
+        raise ValueError("end must not precede start")
+    symbol = args.symbol or config.symbol
+    interval = args.interval or config.interval
+    funding_enabled, funding_policy = _futures_policy(args)
+    repository = DatabaseRepository(config.database_path)
+    try:
+        candles = repository.get_futures_candles(
+            symbol,
+            interval,
+            start_time=start,
+            end_time=end,
+        )
+        marks = repository.get_mark_prices(
+            symbol,
+            interval,
+            start_time=start,
+            end_time=end,
+        )
+        funding = repository.get_funding_rates(
+            symbol,
+            start_time=start,
+            end_time=end,
+        )
+    finally:
+        repository.close()
+    if not candles:
+        raise ValueError("no local USD-M Futures candles; research never downloads automatically")
+    return validate_futures_dataset(
+        candles,
+        marks,
+        funding,
+        source="BINANCE_USD_M_PUBLIC_SQLITE",
+        funding_enabled=funding_enabled,
+        funding_missing_policy=funding_policy,
+    )
+
+
+def _research_futures_inspect(config: TradingConfig, args: argparse.Namespace) -> int:
+    dataset = _load_futures_dataset(config, args)
+    payload = {
+        "dataset_id": dataset.dataset_id,
+        "market_type": dataset.market_type.value,
+        "contract_type": dataset.contract_type.value,
+        "symbol": dataset.symbol,
+        "interval": dataset.interval,
+        "first_open_time": dataset.candles[0].open_time.isoformat(),
+        "last_open_time": dataset.candles[-1].open_time.isoformat(),
+        "end_is_inclusive": True,
+        "candle_count": len(dataset.candles),
+        "mark_price_count": len(dataset.mark_prices),
+        "funding_rate_count": len(dataset.funding_rates),
+        "duplicate_count": dataset.duplicate_count,
+        "gap_count": dataset.gap_count,
+        "mark_price_missing_count": dataset.mark_price_missing_count,
+        "funding_gap_count": dataset.funding_gap_count,
+        "all_candles_closed": all(item.is_closed for item in dataset.candles),
+        "candle_hash": dataset.candle_hash,
+        "mark_price_hash": dataset.mark_price_hash,
+        "funding_hash": dataset.funding_hash,
+        "combined_dataset_hash": dataset.combined_dataset_hash,
+        "valid_for_research": dataset.valid_for_research,
+        "warnings": dataset.warnings,
+    }
+    print(json.dumps(serialize_model(payload), indent=2, sort_keys=True))
+    return 0
+
+
+def _research_futures_backtest(config: TradingConfig, args: argparse.Namespace) -> int:
+    run_config = _futures_config(config, args)
+    dataset = _load_futures_dataset(config, args)
+    result = run_futures_backtest(dataset, run_config)
+    files = write_futures_report(args.output_dir, dataset, run_config, result)
+    (args.output_dir / "benchmarks.json").write_text(
+        json.dumps(
+            {"benchmarks": futures_benchmarks(dataset, run_config)},
+            default=str,
+            indent=2,
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
+    print(
+        json.dumps(
+            {
+                "research_only": True,
+                "metrics": serialize_model(result.metrics),
+                "files": sorted((*files, "benchmarks.json")),
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return 0
+
+
+def _research_futures_walk_forward(config: TradingConfig, args: argparse.Namespace) -> int:
+    run_config = _futures_config(config, args)
+    dataset = _load_futures_dataset(config, args)
+    runs = run_futures_walk_forward(
+        dataset,
+        run_config,
+        train_days=args.train_days,
+        validation_days=args.validation_days,
+        step_days=args.step_days,
+    )
+    files = write_walk_forward_report(args.output_dir, dataset, run_config, runs)
+    print(
+        json.dumps(
+            {
+                "research_only": True,
+                "fold_count": len(runs),
+                "automatic_selection": False,
+                "files": files,
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
     return 0
 
 
@@ -704,6 +1096,244 @@ def _research_timeframe_compare(config: TradingConfig, args: argparse.Namespace)
     return 0
 
 
+def _research_market_compare(config: TradingConfig, args: argparse.Namespace) -> int:
+    if not args.yes:
+        raise ValueError("market comparison requires --yes acknowledgement")
+    markets = {item.strip().lower() for item in args.markets.split(",") if item.strip()}
+    if not markets or markets - {"spot", "futures"}:
+        raise ValueError("--markets supports only spot,futures")
+    modes = tuple(item.strip() for item in args.futures_modes.split(",") if item.strip())
+    if not modes or any(item not in {"long", "short", "long-short"} for item in modes):
+        raise ValueError("unsupported futures mode in --futures-modes")
+    leverages = tuple(
+        sorted(
+            {
+                _parse_decimal(item.strip(), "leverage")
+                for item in args.leverages.split(",")
+                if item.strip()
+            }
+        )
+    )
+    if not leverages or any(item > Decimal("3") for item in leverages):
+        raise ValueError("leverages must be in [1, 3]")
+    if Decimal("1") not in leverages:
+        leverages = (Decimal("1"), *leverages)
+    start = _parse_datetime(args.start)
+    end = _parse_datetime(args.end)
+    exclude_start = _parse_datetime(args.exclude_start)
+    exclude_end = _parse_datetime(args.exclude_end)
+    if end < start or exclude_end < exclude_start:
+        raise ValueError("invalid comparison period")
+    symbol = args.symbol or config.symbol
+    interval = args.interval or config.interval
+    warmup = args.warmup_candles or config.warmup_candles
+    rows: list[dict[str, object]] = []
+    futures_candles: tuple[FuturesCandle, ...] = ()
+    marks: tuple[MarkPriceCandle, ...] = ()
+    funding: tuple[FundingRate, ...] = ()
+    repository = DatabaseRepository(config.database_path)
+    try:
+        if "spot" in markets:
+            spot_candles = tuple(
+                item
+                for item in repository.get_candles(
+                    symbol,
+                    interval,
+                    start_time=start,
+                    end_time=end,
+                )
+                if item.open_time < exclude_start
+            )
+            rows.append(_spot_comparison_row(config, spot_candles, symbol, interval, warmup))
+        if "futures" in markets:
+            futures_candles = repository.get_futures_candles(
+                symbol,
+                interval,
+                start_time=start,
+                end_time=end,
+            )
+            marks = repository.get_mark_prices(
+                symbol,
+                interval,
+                start_time=start,
+                end_time=end,
+            )
+            funding = repository.get_funding_rates(
+                symbol,
+                start_time=start,
+                end_time=end,
+            )
+    finally:
+        repository.close()
+    if "futures" in markets:
+        if not futures_candles:
+            raise ValueError("no local Futures data; comparison never downloads automatically")
+        base_config = FuturesBacktestConfig(
+            initial_balance=config.initial_balance,
+            funding_enabled=True,
+            funding_missing_policy=FundingMissingPolicy.FAIL,
+            symbol=symbol,
+            interval=interval,
+            warmup_candles=warmup,
+            short_ema_period=config.short_ema_period,
+            long_ema_period=config.long_ema_period,
+            atr_period=config.atr_period,
+            volume_period=config.volume_period,
+            minimum_volume_ratio=config.minimum_volume_ratio,
+            maximum_atr_relative=config.maximum_atr_relative,
+            stop_atr_multiple=config.stop_atr_multiple,
+            target_r_multiple=config.target_r_multiple,
+        )
+        complete_dataset = validate_futures_dataset(
+            futures_candles,
+            marks,
+            funding,
+            source="BINANCE_USD_M_PUBLIC_SQLITE",
+        )
+        safe_dataset = development_only_dataset(
+            complete_dataset,
+            consumed_test_start=exclude_start,
+            consumed_test_end=exclude_end,
+            config=base_config,
+        )
+        for mode_name in modes:
+            one_x_candidate = False
+            for leverage in leverages:
+                run_config = replace(
+                    base_config,
+                    trading_mode=mode_from_cli(mode_name),
+                    leverage=leverage,
+                )
+                result = run_futures_backtest(safe_dataset, run_config)
+                if leverage == Decimal("1"):
+                    one_x_candidate = _futures_candidate(result)
+                prefix = {
+                    "long": "FUTURES_LONG_BASELINE",
+                    "short": "FUTURES_SHORT_MIRRORED",
+                    "long-short": "FUTURES_LONG_SHORT",
+                }[mode_name]
+                rows.append(
+                    futures_comparison_row(
+                        f"{prefix}_{leverage}X",
+                        result,
+                        one_x_candidate=one_x_candidate,
+                    )
+                )
+        for experiment, changes in (
+            ("FUTURES_TIME_EXIT_12", {"time_exit_candles": 12}),
+            ("FUTURES_TIME_EXIT_24", {"time_exit_candles": 24}),
+            ("FUTURES_TARGET_R_2_5", {"target_r_multiple": Decimal("2.5")}),
+        ):
+            variant_config = replace(
+                base_config,
+                trading_mode=TradingMode.FUTURES_LONG_SHORT,
+                leverage=Decimal("1"),
+                **changes,
+            )
+            variant = run_futures_backtest(safe_dataset, variant_config)
+            rows.append(
+                futures_comparison_row(
+                    experiment,
+                    variant,
+                    one_x_candidate=_futures_candidate(variant),
+                )
+            )
+    paths = write_market_comparison(args.output_dir, tuple(rows))
+    print(
+        json.dumps(
+            {
+                "research_only": True,
+                "consumed_test_used_for_selection": False,
+                "automatic_selection": False,
+                "experiments": len(rows),
+                "files": [str(path) for path in paths],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return 0
+
+
+def _spot_comparison_row(
+    config: TradingConfig,
+    candles: tuple[Candle, ...],
+    symbol: str,
+    interval: str,
+    warmup: int,
+) -> dict[str, object]:
+    if len(candles) <= warmup:
+        raise ValueError("insufficient local Spot data after consumed-test exclusion")
+    dataset = validate_dataset(candles, source="sqlite", gap_policy=GapPolicy.WARN)
+    segment = _segment(
+        dataset,
+        name="SPOT_BASELINE",
+        evaluation_start=dataset.start_time,
+        evaluation_end=dataset.end_time + timedelta(microseconds=1),
+        warmup_candles=warmup,
+    )
+    run = ResearchExperimentRunner().run_segment(
+        segment,
+        replace(config, symbol=symbol, interval=interval, warmup_candles=warmup),
+    )
+    if run.result is None:
+        raise ValueError(run.error or "Spot comparison backtest failed")
+    result = run.result
+    metrics = result.metrics
+    net_return = metrics.net_return / metrics.initial_capital * Decimal("100")
+    drawdown = metrics.maximum_drawdown_percent
+    return {
+        "experiment": "SPOT_BASELINE",
+        "market_type": MarketType.SPOT.value,
+        "trading_mode": TradingMode.SPOT_LONG_ONLY.value,
+        "leverage": Decimal("1"),
+        "trade_count": metrics.closed_trade_count,
+        "long_trades": metrics.closed_trade_count,
+        "short_trades": 0,
+        "net_return": net_return,
+        "maximum_drawdown": drawdown,
+        "return_to_drawdown": net_return / drawdown if drawdown else Decimal("0"),
+        "wallet_volatility": _equity_volatility(result.equity_curve),
+        "exposure": metrics.average_exposure_percent,
+        "fees": metrics.total_fees,
+        "funding": Decimal("0"),
+        "liquidations": 0,
+        "margin_utilization": Decimal("0"),
+        "worst_fold": net_return,
+        "positive_fold_percent": Decimal("100") if net_return > 0 else Decimal("0"),
+        "zero_trade_fold_percent": (
+            Decimal("100") if metrics.closed_trade_count == 0 else Decimal("0")
+        ),
+        "candidate_status": (
+            "CANDIDATE"
+            if net_return > 0 and metrics.closed_trade_count >= 10
+            else "NOT_CANDIDATE"
+        ),
+        "warnings": "",
+    }
+
+
+def _futures_candidate(result: FuturesBacktestResult) -> bool:
+    return (
+        result.metrics.net_pnl > 0
+        and result.metrics.trade_count >= 10
+        and result.metrics.liquidation_count == 0
+    )
+
+
+def _equity_volatility(curve: tuple[Decimal, ...]) -> Decimal:
+    returns = tuple(
+        (current - previous) / previous
+        for previous, current in zip(curve, curve[1:], strict=False)
+        if previous
+    )
+    if len(returns) < 2:
+        return Decimal("0")
+    mean = sum(returns, Decimal("0")) / Decimal(len(returns))
+    variance = sum((item - mean) ** 2 for item in returns) / Decimal(len(returns))
+    return variance.sqrt() * Decimal("100")
+
+
 def _research_exits_compare(config: TradingConfig, args: argparse.Namespace) -> int:
     run_config = _research_config(config, args)
     start = _parse_datetime(args.start)
@@ -810,6 +1440,113 @@ def _research_config_show(args: argparse.Namespace) -> int:
     return 0
 
 
+def _research_hypotheses_spot_run(
+    config: TradingConfig,
+    args: argparse.Namespace,
+) -> int:
+    if not args.yes:
+        raise ValueError("controlled hypothesis execution requires --yes")
+    periods = SpotExperimentPeriods(
+        development_start=_parse_datetime(args.development_start),
+        development_end=_parse_datetime(args.development_end),
+        validation_start=_parse_datetime(args.validation_start),
+        validation_end=_parse_datetime(args.validation_end),
+        consumed_test_start=_parse_datetime(args.consumed_test_start),
+        consumed_test_end=_parse_datetime(args.consumed_test_end),
+    )
+    periods.assert_pre_registered()
+    if args.symbol != "ETHUSDT" or args.interval != "1h":
+        raise ValueError("Sprint 3A.4 is pre-registered for ETHUSDT 1h only")
+    repository = DatabaseRepository(config.database_path)
+    try:
+        candles = repository.get_candles(
+            args.symbol,
+            args.interval,
+            start_time=periods.development_start,
+            end_time=periods.validation_end,
+        )
+    finally:
+        repository.close()
+    dataset = validate_dataset(
+        candles,
+        source="sqlite-local-only",
+        gap_policy=GapPolicy.WARN,
+    )
+    result = SpotHypothesisExperiment(
+        config=config,
+        dataset=dataset,
+        periods=periods,
+        catalog=load_spot_hypothesis_catalog(),
+        output_dir=args.output_dir,
+    ).run()
+    print(
+        json.dumps(
+            {
+                "research_only": True,
+                "experiment_id": result.experiment_id,
+                "output_path": str(result.output_path),
+                "stage_one_winner": result.stage_one_selection.selected_variant_id,
+                "final_variant": result.final_selection.selected_variant_id,
+                "final_regime_mode": (
+                    result.final_selection.selected_regime_mode.value
+                    if result.final_selection.selected_regime_mode
+                    else None
+                ),
+                "candidate_status": result.candidate_status,
+                "duration_seconds": str(result.duration_seconds),
+                "consumed_test_used": False,
+                "network_used": False,
+                "futures_executed": False,
+                "external_orders_sent": False,
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return 0
+
+
+def _research_hypotheses_spot_show(args: argparse.Namespace) -> int:
+    payload = {
+        "manifest": read_json(args.experiment / "experiment_manifest.json"),
+        "criteria": read_json(args.experiment / "candidate_criteria.json"),
+        "freeze_decision": read_json(
+            args.experiment / "candidate_freeze_decision.json"
+        ),
+    }
+    print(json.dumps(payload, indent=2, sort_keys=True))
+    return 0
+
+
+def _research_candidate_freeze(args: argparse.Namespace) -> int:
+    files = freeze_candidate(args.experiment, args.candidate_version)
+    print(
+        json.dumps(
+            {
+                "candidate_id": files.candidate_id,
+                "config_path": str(files.config_path),
+                "manifest_path": str(files.manifest_path),
+                "hash_path": str(files.hash_path),
+                "config_hash": files.config_hash,
+                "declaration": "NOT_APPROVED_FOR_PRODUCTION",
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return 0
+
+
+def _research_candidate_inspect(args: argparse.Namespace) -> int:
+    print(json.dumps(inspect_candidate(args.candidate), indent=2, sort_keys=True))
+    return 0
+
+
+def _research_candidate_verify(args: argparse.Namespace) -> int:
+    print(json.dumps(verify_candidate(args.candidate), indent=2, sort_keys=True))
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     configure_logging(logging.DEBUG if args.verbose else logging.INFO)
@@ -833,6 +1570,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             return asyncio.run(_download(config, args))
         if args.command == "market" and args.market_command == "status":
             return _market_status(config, args)
+        if args.command == "market" and args.market_command == "futures":
+            if args.futures_market_command == "status":
+                return _futures_status(config, args)
+            return asyncio.run(_futures_download(config, args))
         if args.command == "backtest" and args.backtest_command == "run":
             return _backtest_run(config, args)
         if args.command == "backtest" and args.backtest_command == "show":
@@ -885,6 +1626,28 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.command == "research" and args.research_command == "config":
             if args.research_config_command == "show":
                 return _research_config_show(args)
+        if args.command == "research" and args.research_command == "hypotheses":
+            if args.spot_hypotheses_command == "run":
+                return _research_hypotheses_spot_run(config, args)
+            if args.spot_hypotheses_command == "show":
+                return _research_hypotheses_spot_show(args)
+        if args.command == "research" and args.research_command == "candidate":
+            if args.candidate_command == "freeze":
+                return _research_candidate_freeze(args)
+            if args.candidate_command == "inspect":
+                return _research_candidate_inspect(args)
+            if args.candidate_command == "verify":
+                return _research_candidate_verify(args)
+        if args.command == "research" and args.research_command == "futures":
+            if args.futures_research_command == "inspect":
+                return _research_futures_inspect(config, args)
+            if args.futures_research_command == "backtest":
+                return _research_futures_backtest(config, args)
+            if args.futures_research_command == "walk-forward":
+                return _research_futures_walk_forward(config, args)
+        if args.command == "research" and args.research_command == "market":
+            if args.research_market_command == "compare":
+                return _research_market_compare(config, args)
     except (
         ConfigError,
         MarketDataError,

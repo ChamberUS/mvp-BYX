@@ -6,8 +6,10 @@ import os
 from collections.abc import Mapping
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
+from enum import StrEnum
 from pathlib import Path
 
+from adaptive_trader.domain.market import ContractType, MarginMode, MarketType, TradingMode
 from adaptive_trader.domain.models import SerializedValue, serialize_model
 
 
@@ -25,10 +27,24 @@ def _decimal(value: str, name: str) -> Decimal:
     return result
 
 
+def _enum_value[EnumValue: StrEnum](
+    enum_type: type[EnumValue],
+    value: str,
+    name: str,
+) -> EnumValue:
+    try:
+        return enum_type(value)
+    except ValueError as exc:
+        raise ConfigError(f"{name} has an unsupported value") from exc
+
+
 @dataclass(frozen=True, slots=True)
 class TradingConfig:
     symbol: str = "ETHUSDT"
-    market: str = "SPOT"
+    market: MarketType = MarketType.SPOT
+    contract_type: ContractType = ContractType.NONE
+    margin_mode: MarginMode = MarginMode.NONE
+    trading_mode: TradingMode = TradingMode.SPOT_LONG_ONLY
     initial_balance: Decimal = Decimal("10000")
     maximum_open_positions: int = 1
     maximum_position_percent: Decimal = Decimal("5")
@@ -76,8 +92,14 @@ class TradingConfig:
             raise ConfigError("symbol must be a non-empty uppercase alphanumeric value")
         if self.exchange != "BINANCE":
             raise ConfigError("only Binance public market data is supported")
-        if self.market != "SPOT":
+        if self.market is not MarketType.SPOT:
             raise ConfigError("only SPOT market is supported")
+        if self.contract_type is not ContractType.NONE:
+            raise ConfigError("Spot configuration requires contract_type NONE")
+        if self.margin_mode is not MarginMode.NONE:
+            raise ConfigError("Spot configuration requires margin_mode NONE")
+        if self.trading_mode is not TradingMode.SPOT_LONG_ONLY:
+            raise ConfigError("Spot configuration requires SPOT_LONG_ONLY")
         if self.interval not in {"1m", "5m", "15m", "1h", "4h", "1d"}:
             raise ConfigError("unsupported interval")
         for name in (
@@ -153,7 +175,7 @@ class TradingConfig:
     def is_research_only(self) -> bool:
         return (
             not self.trading_enabled
-            and self.market == "SPOT"
+            and self.market is MarketType.SPOT
             and not self.allow_leverage
             and not self.allow_margin
             and not self.allow_futures
@@ -188,7 +210,26 @@ def load_config(environment: Mapping[str, str] | None = None) -> TradingConfig:
     database_path = Path(values.get("ADAPTIVE_TRADER_DB_PATH", "data/adaptive_trader.sqlite3"))
     return TradingConfig(
         symbol=values.get("ADAPTIVE_TRADER_SYMBOL", "ETHUSDT"),
-        market=values.get("ADAPTIVE_TRADER_MARKET", "SPOT"),
+        market=_enum_value(
+            MarketType,
+            values.get("ADAPTIVE_TRADER_MARKET", "SPOT"),
+            "market",
+        ),
+        contract_type=_enum_value(
+            ContractType,
+            values.get("ADAPTIVE_TRADER_CONTRACT_TYPE", "NONE"),
+            "contract_type",
+        ),
+        margin_mode=_enum_value(
+            MarginMode,
+            values.get("ADAPTIVE_TRADER_MARGIN_MODE", "NONE"),
+            "margin_mode",
+        ),
+        trading_mode=_enum_value(
+            TradingMode,
+            values.get("ADAPTIVE_TRADER_TRADING_MODE", "SPOT_LONG_ONLY"),
+            "trading_mode",
+        ),
         initial_balance=_decimal(
             values.get("ADAPTIVE_TRADER_INITIAL_BALANCE", "10000"), "initial_balance"
         ),

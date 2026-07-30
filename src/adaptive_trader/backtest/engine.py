@@ -265,18 +265,15 @@ class BacktestEngine:
                 partial_exit_count += partial_exits
                 orders_today += partial_orders
                 closed_trades_today += partial_trades
+                exit_reason, trigger, ambiguous = self._exit_trigger(position, candle)
                 time_exit = (
-                    self._time_exit_candles is not None
+                    trigger is None
+                    and self._time_exit_candles is not None
                     and entry_candle_index is not None
                     and index - entry_candle_index >= self._time_exit_candles
                 )
-                exit_reason: str | None
-                trigger: Decimal | None
-                ambiguous: bool
                 if time_exit:
                     exit_reason, trigger, ambiguous = "TIME_EXIT", candle.close, False
-                else:
-                    exit_reason, trigger, ambiguous = self._exit_trigger(position, candle)
                 if trigger is not None and exit_reason is not None:
                     portfolio = self._snapshot(
                         cash,

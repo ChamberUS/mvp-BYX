@@ -1,0 +1,29 @@
+[market]
+market_type = "USD_M_FUTURES"
+contract_type = "PERPETUAL"
+margin_mode = "ISOLATED"
+trading_mode = "FUTURES_LONG_SHORT"
+
+[risk]
+leverage = "1"
+maximum_leverage = "3"
+maximum_position_notional_percent = "25"
+maintenance_margin_rate = "0.005"
+liquidation_fee_rate = "0.005"
+stop_loss_required = true
+post_liquidation_cooldown_candles = 24
+
+[costs]
+maker_fee_bps = "2"
+taker_fee_bps = "5"
+spread_bps = "2"
+slippage_bps = "5"
+
+[funding]
+enabled = true
+missing_policy = "FAIL"
+
+[research]
+leverages = ["1", "2", "3"]
+consumed_test_start = "2026-01-01T00:00:00Z"
+consumed_test_end = "2026-07-01T00:00:00Z"

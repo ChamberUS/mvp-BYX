@@ -1,0 +1,31 @@
+[hypotheses.baseline]
+target_r_multiple = "CURRENT"
+time_exit_candles = 0
+
+[hypotheses.time_exit_12]
+target_r_multiple = "CURRENT"
+time_exit_candles = 12
+
+[hypotheses.time_exit_24]
+target_r_multiple = "CURRENT"
+time_exit_candles = 24
+
+[hypotheses.target_r_2_5]
+target_r_multiple = "2.5"
+time_exit_candles = 0
+
+[hypotheses.time_exit_12_target_r_2_5]
+target_r_multiple = "2.5"
+time_exit_candles = 12
+
+[hypotheses.time_exit_24_target_r_2_5]
+target_r_multiple = "2.5"
+time_exit_candles = 24
+
+[regime_modes]
+values = [
+  "STRICT_TRENDING_UP",
+  "UP_OR_TRANSITION",
+  "EMA_TREND_ONLY",
+  "NO_REGIME_FILTER_DIAGNOSTIC",
+]

@@ -3,12 +3,15 @@ from decimal import Decimal
 import pytest
 
 from adaptive_trader.config.settings import ConfigError, TradingConfig, load_config
+from adaptive_trader.domain.market import MarketType, TradingMode
 
 
 def test_default_configuration_is_safe() -> None:
     config = TradingConfig()
 
     assert config.symbol == "ETHUSDT"
+    assert config.market is MarketType.SPOT
+    assert config.trading_mode is TradingMode.SPOT_LONG_ONLY
     assert config.initial_balance == Decimal("10000")
     assert config.trading_enabled is False
     assert config.is_research_only() is True
