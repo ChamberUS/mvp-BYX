@@ -18,10 +18,16 @@ from pathlib import Path
 from adaptive_trader.backtest.cli import build_engine
 from adaptive_trader.backtest.report import read_json, render_summary, write_json, write_trades_csv
 from adaptive_trader.config.settings import ConfigError, TradingConfig, load_config
+from adaptive_trader.domain.models import Candle, serialize_model
 from adaptive_trader.market_data.binance_public import BinancePublicClient
 from adaptive_trader.market_data.exceptions import MarketDataError
 from adaptive_trader.market_data.history import HistoricalCandleDownloader
 from adaptive_trader.observability.logging import configure_logging
+from adaptive_trader.research.config import ResearchFileConfig, load_experiment_toml
+from adaptive_trader.research.datasets import dataset_to_dict, holdout_split, validate_dataset
+from adaptive_trader.research.models import GapPolicy, WalkForwardMode
+from adaptive_trader.research.service import run_holdout_experiment, run_walk_forward_experiment
+from adaptive_trader.research.splits import build_walk_forward_plan
 from adaptive_trader.storage.sqlite import (
     SCHEMA_VERSION,
     DatabaseRepository,
@@ -59,6 +65,67 @@ def _parser() -> argparse.ArgumentParser:
     run.add_argument("--output", type=Path, required=True)
     show = backtest_commands.add_parser("show")
     show.add_argument("--file", type=Path, required=True)
+    research = commands.add_parser("research")
+    research_commands = research.add_subparsers(dest="research_command", required=True)
+    dataset = research_commands.add_parser("dataset")
+    dataset_commands = dataset.add_subparsers(dest="dataset_command", required=True)
+    inspect = dataset_commands.add_parser("inspect")
+    _add_market_range_args(inspect, required_dates=True)
+    inspect.add_argument("--gap-policy", choices=[item.value for item in GapPolicy], default="WARN")
+    holdout = research_commands.add_parser("holdout")
+    holdout_commands = holdout.add_subparsers(dest="holdout_command", required=True)
+    holdout_run = holdout_commands.add_parser("run")
+    _add_market_range_args(holdout_run, required_dates=False)
+    holdout_run.add_argument("--train-percent", default="60")
+    holdout_run.add_argument("--validation-percent", default="20")
+    holdout_run.add_argument("--test-percent", default="20")
+    holdout_run.add_argument("--warmup-candles", type=int, default=None)
+    holdout_run.add_argument(
+        "--gap-policy", choices=[item.value for item in GapPolicy], default="WARN"
+    )
+    holdout_run.add_argument("--output-dir", type=Path, required=True)
+    holdout_run.add_argument("--config", dest="config_file", type=Path, default=None)
+    holdout_run.add_argument("--yes", action="store_true")
+    walk = research_commands.add_parser("walk-forward")
+    walk_commands = walk.add_subparsers(dest="walk_forward_command", required=True)
+    walk_run = walk_commands.add_parser("run")
+    _add_market_range_args(walk_run, required_dates=False)
+    walk_run.add_argument("--train-days", type=int, required=True)
+    walk_run.add_argument("--validation-days", type=int, required=True)
+    walk_run.add_argument("--step-days", type=int, required=True)
+    walk_run.add_argument("--warmup-candles", type=int, default=None)
+    walk_run.add_argument(
+        "--mode", choices=[item.value.lower() for item in WalkForwardMode], default="rolling"
+    )
+    walk_run.add_argument(
+        "--gap-policy", choices=[item.value for item in GapPolicy], default="WARN"
+    )
+    walk_run.add_argument("--output-dir", type=Path, required=True)
+    walk_run.add_argument("--config", dest="config_file", type=Path, default=None)
+    walk_run.add_argument("--yes", action="store_true")
+    sensitivity = research_commands.add_parser("sensitivity")
+    sensitivity_commands = sensitivity.add_subparsers(dest="sensitivity_command", required=True)
+    sensitivity_run = sensitivity_commands.add_parser("run")
+    _add_market_range_args(sensitivity_run, required_dates=False)
+    sensitivity_run.add_argument("--warmup-candles", type=int, default=None)
+    sensitivity_run.add_argument("--train-percent", default="60")
+    sensitivity_run.add_argument("--validation-percent", default="20")
+    sensitivity_run.add_argument("--test-percent", default="20")
+    sensitivity_run.add_argument(
+        "--gap-policy", choices=[item.value for item in GapPolicy], default="WARN"
+    )
+    sensitivity_run.add_argument("--output-dir", type=Path, required=True)
+    sensitivity_run.add_argument("--config", dest="config_file", type=Path, default=None)
+    report = research_commands.add_parser("report")
+    report_commands = report.add_subparsers(dest="report_command", required=True)
+    report_show = report_commands.add_parser("show")
+    report_show.add_argument("--experiment", type=Path, required=True)
+    research_config = research_commands.add_parser("config")
+    research_config_commands = research_config.add_subparsers(
+        dest="research_config_command", required=True
+    )
+    research_config_show = research_config_commands.add_parser("show")
+    research_config_show.add_argument("--file", type=Path, required=True)
     return parser
 
 
@@ -218,6 +285,153 @@ def _backtest_run(config: TradingConfig, args: argparse.Namespace) -> int:
     return 0
 
 
+def _research_dataset(config: TradingConfig, args: argparse.Namespace) -> int:
+    candles = _research_candles(config, args)
+    dataset = validate_dataset(
+        candles,
+        source="sqlite",
+        gap_policy=GapPolicy(args.gap_policy),
+    )
+    print(json.dumps({"dataset": dataset_to_dict(dataset)}, indent=2, sort_keys=True))
+    return 0
+
+
+def _research_candles(
+    config: TradingConfig, args: argparse.Namespace
+) -> tuple[Candle, ...]:
+    file_config = _research_file_config(args)
+    if file_config is None and (args.start is None or args.end is None):
+        raise ValueError("research dates are required unless --config is provided")
+    start = file_config.start if file_config else _parse_datetime(args.start)
+    end = file_config.end if file_config else _parse_datetime(args.end)
+    if end <= start:
+        raise ValueError("end must be after start")
+    symbol = file_config.symbol if file_config else args.symbol or config.symbol
+    interval = file_config.interval if file_config else args.interval or config.interval
+    repository = DatabaseRepository(config.database_path)
+    try:
+        candles = repository.get_candles(symbol, interval, start_time=start, end_time=end)
+    finally:
+        repository.close()
+    if not candles:
+        raise ValueError("no persisted closed candles match the research period")
+    return candles
+
+
+def _research_file_config(args: argparse.Namespace) -> ResearchFileConfig | None:
+    path = getattr(args, "config_file", None)
+    return load_experiment_toml(path) if path is not None else None
+
+
+def _research_config(config: TradingConfig, args: argparse.Namespace) -> TradingConfig:
+    file_config = _research_file_config(args)
+    symbol = file_config.symbol if file_config else args.symbol or config.symbol
+    interval = file_config.interval if file_config else args.interval or config.interval
+    warmup = (
+        file_config.warmup_candles
+        if file_config
+        else args.warmup_candles
+        if args.warmup_candles is not None
+        else config.warmup_candles
+    )
+    if warmup < 1:
+        raise ValueError("warmup_candles must be positive")
+    return replace(config, symbol=symbol, interval=interval, warmup_candles=warmup)
+
+
+def _research_holdout(config: TradingConfig, args: argparse.Namespace) -> int:
+    run_config = _research_config(config, args)
+    file_config = _research_file_config(args)
+    gap_policy = file_config.gap_policy if file_config else GapPolicy(args.gap_policy)
+    dataset = validate_dataset(
+        _research_candles(run_config, args),
+        source="sqlite",
+        gap_policy=gap_policy,
+    )
+    split = holdout_split(
+        dataset,
+        train_percent=_parse_decimal(
+            str(file_config.train_percent if file_config else getattr(args, "train_percent", "60")),
+            "train_percent",
+        ),
+        validation_percent=_parse_decimal(
+            str(
+                file_config.validation_percent
+                if file_config
+                else getattr(args, "validation_percent", "20")
+            ),
+            "validation_percent",
+        ),
+        test_percent=_parse_decimal(
+            str(file_config.test_percent if file_config else getattr(args, "test_percent", "20")),
+            "test_percent",
+        ),
+        warmup_candles=run_config.warmup_candles,
+    )
+    result = run_holdout_experiment(
+        dataset=dataset,
+        split=split,
+        config=run_config,
+        experiment_name=file_config.experiment_name if file_config else "holdout",
+        output_root=file_config.output_dir if file_config else args.output_dir,
+        gap_policy=gap_policy.value,
+    )
+    print(
+        json.dumps(
+            {"experiment_id": result.experiment_id, "summary": serialize_model(result.summary)},
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return 0
+
+
+def _research_walk_forward(config: TradingConfig, args: argparse.Namespace) -> int:
+    run_config = _research_config(config, args)
+    file_config = _research_file_config(args)
+    dataset = validate_dataset(
+        _research_candles(run_config, args),
+        source="sqlite",
+        gap_policy=GapPolicy(args.gap_policy),
+    )
+    plan = build_walk_forward_plan(
+        dataset,
+        train_days=file_config.train_days if file_config else args.train_days,
+        validation_days=file_config.validation_days if file_config else args.validation_days,
+        step_days=file_config.step_days if file_config else args.step_days,
+        warmup_candles=run_config.warmup_candles,
+        mode=file_config.walk_mode if file_config else WalkForwardMode(args.mode.upper()),
+    )
+    results = run_walk_forward_experiment(
+        dataset=dataset,
+        plan=plan,
+        config=run_config,
+        experiment_name=file_config.experiment_name if file_config else "walk-forward",
+        output_root=file_config.output_dir if file_config else args.output_dir,
+        gap_policy=file_config.gap_policy.value if file_config else args.gap_policy,
+    )
+    print(
+        json.dumps(
+            {"fold_count": len(results), "plan_id": plan.plan_id},
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return 0
+
+
+def _research_report(args: argparse.Namespace) -> int:
+    summary = read_json(args.experiment / "summary.json")
+    print(json.dumps(summary, indent=2, sort_keys=True))
+    return 0
+
+
+def _research_config_show(args: argparse.Namespace) -> int:
+    research_config = load_experiment_toml(args.file)
+    print(json.dumps(serialize_model(research_config), indent=2, sort_keys=True))
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     configure_logging(logging.DEBUG if args.verbose else logging.INFO)
@@ -258,6 +472,24 @@ def main(argv: Sequence[str] | None = None) -> int:
                 )
             )
             return 0
+        if args.command == "research" and args.research_command == "dataset":
+            if args.dataset_command == "inspect":
+                return _research_dataset(config, args)
+        if args.command == "research" and args.research_command == "holdout":
+            if args.holdout_command == "run":
+                return _research_holdout(config, args)
+        if args.command == "research" and args.research_command == "walk-forward":
+            if args.walk_forward_command == "run":
+                return _research_walk_forward(config, args)
+        if args.command == "research" and args.research_command == "sensitivity":
+            if args.sensitivity_command == "run":
+                return _research_holdout(config, args)
+        if args.command == "research" and args.research_command == "report":
+            if args.report_command == "show":
+                return _research_report(args)
+        if args.command == "research" and args.research_command == "config":
+            if args.research_config_command == "show":
+                return _research_config_show(args)
     except (
         ConfigError,
         MarketDataError,

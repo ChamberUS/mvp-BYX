@@ -1,0 +1,29 @@
+[experiment]
+name = "ethusdt-1m-walk-forward"
+mode = "walk_forward"
+output_dir = "reports/research"
+
+[dataset]
+symbol = "ETHUSDT"
+interval = "1m"
+start = "2024-01-01T00:00:00Z"
+end = "2025-01-01T00:00:00Z"
+gap_policy = "WARN"
+
+[walk_forward]
+mode = "ROLLING"
+train_days = 90
+validation_days = 30
+step_days = 30
+warmup_candles = 100
+
+[selection]
+mode = "FIXED_PARAMETERS"
+criterion = "return_to_drawdown"
+maximum_parameter_combinations = 100
+minimum_closed_trades = 10
+
+[costs.base]
+taker_fee_bps = "20"
+spread_bps = "2"
+slippage_bps = "5"

@@ -57,3 +57,27 @@ O CI executa esses checks em Python 3.12 para pushes e pull requests em `main`. 
 `trading_enabled` permanece `false`. O motor pode usar um `DefaultRiskManager(local_simulation=True)` somente dentro do backtest local; isso não habilita trading externo. A estratégia não conhece banco, internet ou executor. Não existe caminho de envio de ordem para Binance.
 
 O backtest não modela livro de ofertas, liquidez detalhada, fills parciais, impacto real, latência de rede ou ordem intrabar além da política conservadora documentada. Resultados passados não garantem resultados futuros.
+
+## Laboratório de research
+
+A camada `adaptive_trader.research` organiza experimentos sem duplicar o `BacktestEngine`. Ela valida datasets imutáveis com SHA-256, cria holdout temporal e walk-forward rolling/expanding, aplica warmup sem permitir trades durante o warmup e registra hashes em manifests.
+
+Benchmarks `BUY_AND_HOLD` e `CASH`, cenários de custos, sensibilidade local, análise aproximada por regime e diagnósticos de concentração/overfitting são comparativos. Nenhum resultado é escolhido automaticamente para produção; o teste final não participa da seleção.
+
+Exemplos offline, usando candles já persistidos:
+
+```bash
+adaptive-trader research dataset inspect --symbol ETHUSDT --interval 1m \
+  --start 2024-01-01T00:00:00Z --end 2025-01-01T00:00:00Z
+adaptive-trader research holdout run --symbol ETHUSDT --interval 1m \
+  --start 2024-01-01T00:00:00Z --end 2025-01-01T00:00:00Z \
+  --train-percent 60 --validation-percent 20 --test-percent 20 \
+  --output-dir reports/research
+adaptive-trader research walk-forward run --symbol ETHUSDT --interval 1m \
+  --start 2024-01-01T00:00:00Z --end 2025-01-01T00:00:00Z \
+  --train-days 90 --validation-days 30 --step-days 30 --mode rolling \
+  --output-dir reports/research
+adaptive-trader research report show --experiment reports/research/<experiment-id>
+```
+
+O método e suas limitações estão em `docs/RESEARCH_METHODOLOGY.md`; `research.example.toml` é apenas um exemplo e não contém credenciais.

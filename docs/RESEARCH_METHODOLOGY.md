@@ -1,0 +1,35 @@
+# Research methodology
+
+## Purpose
+
+The `research` layer organizes deterministic backtests. It does not select a production strategy, send orders, or claim profitability.
+
+## Temporal discipline
+
+Candles remain chronological. The holdout flow separates train, validation, and final test periods. Walk-forward creates rolling or expanding train windows followed by later validation windows. The final test period is never used to select parameters.
+
+Warmup candles may calculate EMA, ATR, and volume indicators. They cannot generate trades, and evaluation metrics begin at the declared evaluation period. No future candle is copied into a fold.
+
+## Dataset identity
+
+Datasets reject open candles, duplicates, mixed symbols, mixed intervals, and out-of-order data. Gaps are reported and follow `FAIL`, `WARN`, or `ALLOW` policy; missing candles are never fabricated. A canonical SHA-256 hash identifies the relevant candle content.
+
+## Benchmarks and costs
+
+BUY_AND_HOLD and CASH are references, not optimization targets. BUY_AND_HOLD applies the same configured fee, spread, and slippage assumptions to executable entry and exit. Cost scenarios show how results change under conservative assumptions; costs are never optimized.
+
+## Robustness
+
+Local sensitivity evaluates nearby, explicitly bounded parameters. Diagnostics report train/validation gaps, fold consistency, benchmark comparisons, concentration, drawdown, and cost sensitivity. Few trades make every such diagnostic weak. Stability across nearby periods and parameters matters more than one isolated return.
+
+The regime classifier is approximate and uses only candles available up to each evaluated point. It is not a retroactive label and does not establish causal market regimes.
+
+## Overfitting
+
+Overfitting means adapting a configuration to historical noise rather than durable behavior. A small manual grid can still overfit, so selection is fixed by an explicit criterion and happens only on training data. No genetic search, unrestricted search, machine learning, or automatic production approval is implemented.
+
+Manifests record dataset/configuration hashes, segment hashes, code metadata when available, costs, split policy, and warnings. The reproducibility hash excludes execution time, absolute paths, and machine identity.
+
+Monte Carlo de sequências de trades é opcional e permanece deliberadamente pendente nesta sprint; nenhuma conclusão probabilística é produzida por embaralhamento de candles.
+
+All outputs are research-only backtests. No authenticated endpoint or real order exists in this sprint. Past results do not guarantee future results and are not financial advice.
