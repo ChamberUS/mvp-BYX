@@ -51,11 +51,39 @@ class BacktestEngine:
             volume_period=config.volume_period,
         )
 
-    def run(self, candles: Sequence[Candle]) -> BacktestResult:
+    def run(
+        self,
+        candles: Sequence[Candle],
+        *,
+        evaluation_start_time: datetime | None = None,
+    ) -> BacktestResult:
         ordered = tuple(candles)
         self._validate_candles(ordered)
         symbol = ordered[0].symbol
         interval = ordered[0].interval
+        requested_evaluation_start = evaluation_start_time
+        if evaluation_start_time is not None and (
+            evaluation_start_time.tzinfo is None or evaluation_start_time.utcoffset() is None
+        ):
+            raise ValueError("evaluation_start_time must be timezone-aware")
+        if evaluation_start_time is None:
+            requested_index = 0
+            evaluation_index = 0
+        else:
+            requested_index = next(
+                (
+                    index
+                    for index, candle in enumerate(ordered)
+                    if candle.open_time >= evaluation_start_time
+                ),
+                -1,
+            )
+            if requested_index < 0:
+                raise ValueError("evaluation_start_time is after the available dataset")
+            evaluation_index = max(requested_index, self._config.warmup_candles)
+            if evaluation_index >= len(ordered):
+                raise ValueError("evaluation period has no candles after indicator warmup")
+        evaluation_candles = ordered[evaluation_index:]
         initial_capital = self._config.initial_balance
         cash = initial_capital
         position: Position | None = None
@@ -69,18 +97,33 @@ class BacktestEngine:
             "execution uses simulated fees, spread and slippage",
             "ambiguous intrabar policy is STOP_FIRST",
         ]
+        if (
+            requested_evaluation_start is not None
+            and requested_evaluation_start < ordered[0].open_time
+        ):
+            warnings.append("EVALUATION_START_BEFORE_DATASET: using first available candle")
+        if evaluation_index > requested_index:
+            warnings.append(
+                "WARMUP_REDUCED_EVALUATION_PERIOD: "
+                f"requested={ordered[requested_index].open_time.isoformat()} "
+                f"effective={ordered[evaluation_index].open_time.isoformat()}"
+            )
+        if len(evaluation_candles) < 2:
+            warnings.append("EVALUATION_PERIOD_SHORT_FOR_INDICATORS")
         equity_curve: list[Decimal] = [initial_capital]
-        exposure_curve: list[Decimal] = [Decimal("0")]
+        exposure_curve: list[Decimal] = []
         entry_count = 0
         order_count = 0
         closed_trade_count = 0
         partial_exit_count = 0
-        current_day = ordered[0].open_time.astimezone(UTC).date()
+        current_day = evaluation_candles[0].open_time.astimezone(UTC).date()
         day_start_equity = initial_capital
         entries_today = 0
         orders_today = 0
         closed_trades_today = 0
         for index, candle in enumerate(ordered):
+            if index < evaluation_index:
+                continue
             candle_day = candle.open_time.astimezone(UTC).date()
             if candle_day != current_day:
                 previous_candle = ordered[index - 1]
@@ -229,9 +272,14 @@ class BacktestEngine:
                     position = self._update_position_protection(
                         position, ordered[: index + 1], candle
                     )
+            ready_for_analysis = (
+                index >= evaluation_index
+                if evaluation_start_time is not None
+                else index + 1 >= self._config.warmup_candles
+            )
             if (
                 index < len(ordered) - 1
-                and index + 1 >= self._config.warmup_candles
+                and ready_for_analysis
                 and position is None
                 and pending is None
             ):
@@ -333,7 +381,7 @@ class BacktestEngine:
                 position = None
                 entry_candle_index = None
                 warnings.append("open position was force-closed at the final candle close")
-        final_price = ordered[-1].close
+        final_price = evaluation_candles[-1].close
         final_capital = self._equity(cash, position, final_price)
         unrealized = self._unrealized(position, final_price)
         metrics = calculate_metrics(
@@ -342,7 +390,7 @@ class BacktestEngine:
             trades=tuple(trades),
             equity_curve=tuple(equity_curve),
             exposure_curve=tuple(exposure_curve),
-            start_price=ordered[0].open,
+            start_price=evaluation_candles[0].open,
             end_price=final_price,
             unrealized_pnl=unrealized,
             entry_count=entry_count,
@@ -354,14 +402,24 @@ class BacktestEngine:
             strategy_version="deterministic-ema-atr-volume-v1",
             symbol=symbol,
             interval=interval,
-            start_time=ordered[0].open_time,
-            end_time=ordered[-1].close_time or ordered[-1].open_time,
+            start_time=evaluation_candles[0].open_time,
+            end_time=evaluation_candles[-1].close_time or evaluation_candles[-1].open_time,
             executed_at=self._clock(),
-            candle_count=len(ordered),
+            candle_count=len(evaluation_candles),
             parameters=self._config.as_dict(),
             metrics=metrics,
             trades=tuple(trades),
             warnings=tuple(warnings),
+            input_candle_count=len(ordered),
+            warmup_candle_count=evaluation_index,
+            evaluated_candle_count=len(evaluation_candles),
+            input_start_time=ordered[0].open_time,
+            requested_evaluation_start_time=requested_evaluation_start,
+            evaluation_start_time=evaluation_candles[0].open_time,
+            evaluation_end_time=evaluation_candles[-1].close_time
+            or evaluation_candles[-1].open_time,
+            equity_curve=tuple(equity_curve),
+            exposure_curve=tuple(exposure_curve),
         )
 
     def _validate_candles(self, candles: tuple[Candle, ...]) -> None:

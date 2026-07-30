@@ -8,6 +8,8 @@ Núcleo determinístico para pesquisa, coleta pública, backtest e paper trading
 
 No backtest, a série completa fica no motor, mas a estratégia recebe apenas `candles[:T]`. A decisão no fechamento de `T` é executada na abertura futura `T + latency_candles`; execução no mesmo candle é rejeitada pela configuração. Stops e alvos usam os níveis antigos durante o OHLC corrente. Trailing e break-even só são calculados após o fechamento e valem para o candle seguinte. O executor aplica taxas, spread e slippage configurados em basis points; o caixa é validado pelo custo efetivo antes da compra. Stops e alvos têm política intrabar conservadora `STOP_FIRST`; posições abertas podem ser fechadas explicitamente no último candle.
 
+O `BacktestEngine.run` aceita `evaluation_start_time`. Candles anteriores são input de warmup somente para indicadores: não criam snapshots, ordens, posições, equity curve ou métricas. `BacktestResult` separa `input_candle_count`, `warmup_candle_count` e `evaluated_candle_count`; `start_time` e `end_time` são sempre do período efetivamente avaliado. Sem esse argumento, o backtest simples preserva o comportamento anterior e considera todos os candles avaliados.
+
 Dados permanentes são candles, decisões, ordens simuladas, fills, posições e snapshots. O `MarketContext` é recriado para cada análise e não mantém estado entre barras. Snapshots mantêm `day_start_equity`, `entries_today`, `orders_today` e `closed_trades_today`; o dia de negociação é UTC, com reset dos contadores na troca de data. O limite diário de entradas e a perda diária bloqueiam apenas novas compras; saídas protetivas continuam permitidas.
 
 ## Instalação
@@ -60,7 +62,7 @@ O backtest não modela livro de ofertas, liquidez detalhada, fills parciais, imp
 
 ## Laboratório de research
 
-A camada `adaptive_trader.research` organiza experimentos sem duplicar o `BacktestEngine`. Ela valida datasets imutáveis com SHA-256, cria holdout temporal e walk-forward rolling/expanding, aplica warmup sem permitir trades durante o warmup e registra hashes em manifests.
+A camada `adaptive_trader.research` organiza experimentos sem duplicar o `BacktestEngine`. Ela valida datasets imutáveis com SHA-256, cria holdout temporal e walk-forward rolling/expanding, aplica warmup sem permitir trades durante o warmup e registra hashes em manifests. Cada segmento informa início solicitado e início efetivo: quando o primeiro segmento não possui histórico anterior suficiente, os primeiros candles do próprio segmento maturam os indicadores e `WARMUP_REDUCED_EVALUATION_PERIOD` documenta a redução do período avaliado. Folds de validação sobrepostos, quando `step_days` é menor que a janela, permanecem contados individualmente.
 
 Benchmarks `BUY_AND_HOLD` e `CASH`, cenários de custos, sensibilidade local, análise aproximada por regime e diagnósticos de concentração/overfitting são comparativos. Nenhum resultado é escolhido automaticamente para produção; o teste final não participa da seleção.
 

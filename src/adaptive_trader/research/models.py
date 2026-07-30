@@ -74,12 +74,23 @@ class DatasetSegment:
     content_hash: str
     warmup_start_time: datetime
     evaluation_start_time: datetime
+    requested_evaluation_start_time: datetime
+    effective_evaluation_start_time: datetime
     candles: tuple[Candle, ...]
     evaluation_candles: tuple[Candle, ...]
+    warnings: tuple[str, ...] = ()
 
     @property
     def warmup_candle_count(self) -> int:
         return len(self.candles) - len(self.evaluation_candles)
+
+    @property
+    def input_candle_count(self) -> int:
+        return len(self.candles)
+
+    @property
+    def evaluated_candle_count(self) -> int:
+        return len(self.evaluation_candles)
 
     def __post_init__(self) -> None:
         if self.candle_count != len(self.evaluation_candles):
@@ -90,6 +101,10 @@ class DatasetSegment:
             raise ValueError("segment requires warmup or evaluation candles")
         if self.warmup_candle_count < 0:
             raise ValueError("segment warmup cannot be negative")
+        if self.evaluation_start_time != self.effective_evaluation_start_time:
+            raise ValueError("evaluation_start_time must remain the effective start alias")
+        if self.effective_evaluation_start_time < self.requested_evaluation_start_time:
+            raise ValueError("effective evaluation start cannot precede requested start")
 
 
 @dataclass(frozen=True, slots=True)

@@ -53,9 +53,19 @@ def _fold_rows(runs: tuple[SegmentRun, ...]) -> list[dict[str, object]]:
                 "segment": run.segment.name,
                 "start_time": run.segment.start_time.isoformat(),
                 "end_time": run.segment.end_time.isoformat(),
+                "input_start_time": run.segment.candles[0].open_time.isoformat(),
+                "requested_evaluation_start_time": (
+                    run.segment.requested_evaluation_start_time.isoformat()
+                ),
+                "effective_evaluation_start_time": (
+                    run.segment.effective_evaluation_start_time.isoformat()
+                ),
+                "input_candle_count": run.segment.input_candle_count,
                 "candle_count": run.segment.candle_count,
                 "warmup_candle_count": run.segment.warmup_candle_count,
+                "evaluated_candle_count": run.segment.evaluated_candle_count,
                 "segment_hash": run.segment.content_hash,
+                "warnings": ";".join(run.segment.warnings),
                 "failed": run.failed,
                 "error": run.error or "",
                 "entry_count": result.metrics.entry_count if result else "",
@@ -104,9 +114,15 @@ class ResearchReportWriter:
                 "segment",
                 "start_time",
                 "end_time",
+                "input_start_time",
+                "requested_evaluation_start_time",
+                "effective_evaluation_start_time",
+                "input_candle_count",
                 "candle_count",
                 "warmup_candle_count",
+                "evaluated_candle_count",
                 "segment_hash",
+                "warnings",
                 "failed",
                 "error",
                 "entry_count",
@@ -188,7 +204,10 @@ class ResearchReportWriter:
 - Candles: {dataset.candle_count}
 - Period: {dataset.start_time.isoformat()} -> {dataset.end_time.isoformat()}
 - Gap policy: {manifest.gap_policy}
-- Warmup is available for indicators but does not generate trades.
+- Each segment reports input, warmup, requested evaluation, and effective evaluation candles.
+- Warmup is used only for indicators; it creates no trades, snapshots, or evaluated metrics.
+- Equity curves, exposure, and benchmarks start at the effective evaluation start.
+- A reduced first segment can shift its effective start when prior history is unavailable.
 - The time series is never shuffled; this is a backtest, not a production approval.
 
 ## Results

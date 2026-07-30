@@ -82,7 +82,12 @@ def build_manifest(
     except PackageNotFoundError:
         project_version = "unknown"
     git_commit, git_dirty, git_warnings = _git_metadata()
-    all_warnings = tuple(dict.fromkeys((*dataset.warnings, *git_warnings, *warnings)))
+    segment_warnings = tuple(
+        warning for segment in segments for warning in segment.warnings
+    )
+    all_warnings = tuple(
+        dict.fromkeys((*dataset.warnings, *git_warnings, *segment_warnings, *warnings))
+    )
     configuration = config.as_dict()
     segment_hashes = {segment.name: segment.content_hash for segment in segments}
     stable_hash = reproducibility_hash(

@@ -2,6 +2,9 @@
 
 - A fonte prevista é a API pública de klines da Binance Spot; nenhum endpoint autenticado é usado.
 - Apenas candles fechados entram no contexto e no backtest por padrão.
+- `evaluation_start_time` define o início solicitado por `open_time >= evaluation_start_time`; o início efetivo pode ser deslocado quando não há candles suficientes para maturar os indicadores.
+- Candles de input anteriores ao início efetivo são warmup apenas para indicadores; não geram operações, snapshots financeiros ou pontos avaliados de equity/exposição.
+- `BacktestResult.candle_count` é o número de candles avaliados; `input_candle_count` e `warmup_candle_count` registram o restante explicitamente.
 - A estratégia recebe somente candles com abertura menor ou igual ao instante analisado.
 - Uma decisão no fechamento do candle `T` é executada na abertura de `T + latency_candles`; `latency_candles >= 1` e execução no mesmo candle é inválida.
 - O dia de negociação usa UTC. Na troca de data, `day_start_equity` recebe o patrimônio marcado no fechamento anterior e `entries_today`, `orders_today` e `closed_trades_today` são zerados.

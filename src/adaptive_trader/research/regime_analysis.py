@@ -11,6 +11,16 @@ from adaptive_trader.research.models import DatasetSegment, RegimeMetric
 from adaptive_trader.strategy.regime import DeterministicRegimeClassifier
 
 
+def _drawdown_percent(values: tuple[Decimal, ...]) -> Decimal:
+    peak = Decimal("0")
+    maximum = Decimal("0")
+    for value in values:
+        peak = max(peak, value)
+        if peak:
+            maximum = max(maximum, (peak - value) / peak * Decimal("100"))
+    return maximum
+
+
 def analyze_regimes(
     segment: DatasetSegment,
     result: BacktestResult,
@@ -31,6 +41,8 @@ def analyze_regimes(
         regime = classifier.classify(segment.candles[: index + 1]).regime
         by_regime[regime].append(index)
     metrics: list[RegimeMetric] = []
+    evaluated_exposure = result.exposure_curve[1:]
+    evaluated_equity = result.equity_curve[1:]
     for regime, indexes in sorted(by_regime.items(), key=lambda item: item[0].value):
         times = {
             segment.candles[index].open_time
@@ -42,6 +54,16 @@ def analyze_regimes(
         losses = tuple(trade.net_pnl for trade in trades if trade.net_pnl < 0)
         wins = tuple(trade.net_pnl for trade in trades if trade.net_pnl > 0)
         total = len(trades)
+        exposure = tuple(
+            evaluated_exposure[index - segment.warmup_candle_count]
+            for index in indexes
+            if index - segment.warmup_candle_count < len(evaluated_exposure)
+        )
+        equity = tuple(
+            evaluated_equity[index - segment.warmup_candle_count]
+            for index in indexes
+            if index - segment.warmup_candle_count < len(evaluated_equity)
+        )
         metrics.append(
             RegimeMetric(
                 regime=regime,
@@ -54,8 +76,12 @@ def analyze_regimes(
                 if losses
                 else None,
                 expectancy=pnl / Decimal(total) if total else None,
-                maximum_drawdown_percent=Decimal("0"),
-                exposure_percent=Decimal("0"),
+                maximum_drawdown_percent=_drawdown_percent(equity),
+                exposure_percent=(
+                    sum(exposure, Decimal("0")) / Decimal(len(exposure))
+                    if exposure
+                    else Decimal("0")
+                ),
                 total_costs=sum((trade.fees for trade in trades), Decimal("0")),
             )
         )

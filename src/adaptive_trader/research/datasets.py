@@ -161,27 +161,54 @@ def _segment(
     evaluation_end: datetime,
     warmup_candles: int,
 ) -> DatasetSegment:
-    evaluation = tuple(
+    requested_evaluation = tuple(
         candle
         for candle in dataset.candles
         if evaluation_start <= candle.open_time < evaluation_end
     )
-    if not evaluation:
+    if not requested_evaluation:
         raise DatasetValidationError(f"segment {name} has no evaluation candles")
-    first_index = dataset.candles.index(evaluation[0])
-    last_index = dataset.candles.index(evaluation[-1])
+    first_index = dataset.candles.index(requested_evaluation[0])
+    last_index = dataset.candles.index(requested_evaluation[-1])
     warmup_start_index = max(0, first_index - warmup_candles)
     selected = dataset.candles[warmup_start_index : last_index + 1]
+    available_warmup = first_index - warmup_start_index
+    effective_index = first_index + max(0, warmup_candles - available_warmup)
+    if effective_index > last_index:
+        raise DatasetValidationError(
+            f"segment {name} has no candles after the required indicator warmup"
+        )
+    evaluation = dataset.candles[effective_index : last_index + 1]
+    effective_start = evaluation[0].open_time
+    warnings: tuple[str, ...] = ()
+    if effective_index > first_index:
+        warnings = (
+            "WARMUP_REDUCED_EVALUATION_PERIOD: "
+            f"requested={requested_evaluation[0].open_time.isoformat()} "
+            f"effective={effective_start.isoformat()}",
+        )
+    segment_hash = canonical_hash(
+        {
+            "candles": [canonical_candle(candle) for candle in selected],
+            "requested_evaluation_start_time": requested_evaluation[0].open_time,
+            "effective_evaluation_start_time": effective_start,
+            "warmup_candle_count": effective_index - warmup_start_index,
+            "evaluated_candle_count": len(evaluation),
+        }
+    )
     return DatasetSegment(
         name=name,
-        start_time=evaluation[0].open_time,
+        start_time=effective_start,
         end_time=evaluation[-1].close_time or evaluation[-1].open_time,
         candle_count=len(evaluation),
-        content_hash=candles_hash(selected),
+        content_hash=segment_hash,
         warmup_start_time=selected[0].open_time,
-        evaluation_start_time=evaluation[0].open_time,
+        evaluation_start_time=effective_start,
+        requested_evaluation_start_time=requested_evaluation[0].open_time,
+        effective_evaluation_start_time=effective_start,
         candles=selected,
         evaluation_candles=evaluation,
+        warnings=warnings,
     )
 
 
@@ -218,7 +245,7 @@ def holdout_split(
             name="train",
             evaluation_start=boundaries[0],
             evaluation_end=boundaries[1],
-            warmup_candles=0,
+            warmup_candles=warmup_candles,
         ),
         validation=_segment(
             dataset,
@@ -268,7 +295,7 @@ def explicit_split(
             name="train",
             evaluation_start=train_start,
             evaluation_end=train_end,
-            warmup_candles=0,
+            warmup_candles=warmup_candles,
         ),
         validation=_segment(
             dataset,

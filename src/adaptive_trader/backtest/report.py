@@ -59,7 +59,10 @@ def render_summary(result: BacktestResult) -> str:
             "BACKTEST ONLY — no real orders were sent",
             f"{result.symbol} {result.interval}: "
             f"{result.start_time.isoformat()} -> {result.end_time.isoformat()}",
-            f"candles={result.candle_count} entries={metrics.entry_count} "
+            f"input_candles={result.input_candle_count} "
+            f"warmup_candles={result.warmup_candle_count} "
+            f"evaluated_candles={result.evaluated_candle_count or result.candle_count} "
+            f"entries={metrics.entry_count} "
             f"orders={metrics.order_count} closed_trades={metrics.closed_trade_count} "
             f"partial_exits={metrics.partial_exit_count}",
             f"initial={metrics.initial_capital} final={metrics.final_capital} "

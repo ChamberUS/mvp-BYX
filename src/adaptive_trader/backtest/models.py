@@ -81,3 +81,12 @@ class BacktestResult:
     metrics: BacktestMetrics
     trades: tuple[TradeRecord, ...]
     warnings: tuple[str, ...]
+    input_candle_count: int = 0
+    warmup_candle_count: int = 0
+    evaluated_candle_count: int = 0
+    input_start_time: datetime | None = None
+    requested_evaluation_start_time: datetime | None = None
+    evaluation_start_time: datetime | None = None
+    evaluation_end_time: datetime | None = None
+    equity_curve: tuple[Decimal, ...] = ()
+    exposure_curve: tuple[Decimal, ...] = ()

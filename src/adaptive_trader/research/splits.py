@@ -46,7 +46,7 @@ def build_walk_forward_plan(
             name=f"fold-{fold_number}-train",
             evaluation_start=train_start,
             evaluation_end=validation_start,
-            warmup_candles=0,
+            warmup_candles=warmup_candles,
         )
         validation = _segment(
             dataset,
@@ -83,8 +83,13 @@ def segment_to_dict(segment: DatasetSegment) -> dict[str, object]:
         "start_time": segment.start_time.isoformat(),
         "end_time": segment.end_time.isoformat(),
         "candle_count": segment.candle_count,
+        "input_candle_count": segment.input_candle_count,
+        "warmup_candle_count": segment.warmup_candle_count,
+        "evaluated_candle_count": segment.evaluated_candle_count,
         "content_hash": segment.content_hash,
         "warmup_start_time": segment.warmup_start_time.isoformat(),
         "evaluation_start_time": segment.evaluation_start_time.isoformat(),
-        "warmup_candle_count": segment.warmup_candle_count,
+        "requested_evaluation_start_time": segment.requested_evaluation_start_time.isoformat(),
+        "effective_evaluation_start_time": segment.effective_evaluation_start_time.isoformat(),
+        "warnings": list(segment.warnings),
     }

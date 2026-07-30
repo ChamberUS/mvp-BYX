@@ -59,7 +59,7 @@ class ResearchExperimentRunner:
     def run_segment(self, segment: DatasetSegment, config: TradingConfig) -> SegmentRun:
         run_config = replace(
             config,
-            warmup_candles=max(config.warmup_candles, segment.warmup_candle_count + 1),
+            warmup_candles=max(config.warmup_candles, segment.warmup_candle_count),
         )
         try:
             strategy, risk_manager, executor = self._component_factory(run_config)
@@ -69,13 +69,16 @@ class ResearchExperimentRunner:
                 executor=executor,
                 config=run_config,
                 clock=self._clock,
-            ).run(segment.candles)
+            ).run(
+                segment.candles,
+                evaluation_start_time=segment.evaluation_start_time,
+            )
             return SegmentRun(
                 segment=segment,
                 result=result,
                 benchmarks=calculate_benchmarks(segment, run_config),
                 parameters=run_config.as_dict(),
-                warnings=tuple(result.warnings),
+                warnings=tuple(dict.fromkeys((*segment.warnings, *result.warnings))),
             )
         except (ValueError, RuntimeError, OSError) as exc:
             return SegmentRun(
@@ -85,7 +88,11 @@ class ResearchExperimentRunner:
                 parameters=run_config.as_dict(),
                 failed=True,
                 error=str(exc),
-                warnings=(f"SEGMENT_FAILED: {segment.name}: {exc}",),
+                warnings=tuple(
+                    dict.fromkeys(
+                        (*segment.warnings, f"SEGMENT_FAILED: {segment.name}: {exc}")
+                    )
+                ),
             )
 
     def run_segments(
