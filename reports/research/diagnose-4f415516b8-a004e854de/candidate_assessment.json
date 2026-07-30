@@ -1,0 +1,22 @@
+{
+  "checks": {
+    "maximum_best_trade_concentration_percent": true,
+    "maximum_worst_drawdown_percent": true,
+    "maximum_zero_trade_fold_percent": true,
+    "minimum_closed_trades": true,
+    "minimum_cost_stress_positive_fold_percent": false,
+    "minimum_median_net_return": false,
+    "minimum_positive_fold_percent": false
+  },
+  "observed": {
+    "best_trade_concentration_percent": "13.04639243511951089474158309",
+    "closed_trades": 33,
+    "median_net_return": "-0.26358328848444569141900",
+    "positive_fold_percent": "0",
+    "stress_positive_fold_percent": "0",
+    "worst_drawdown_percent": "1.270470357127358153094159219",
+    "zero_trade_fold_percent": "0"
+  },
+  "status": "NOT_CANDIDATE",
+  "uses_consumed_test_period": false
+}

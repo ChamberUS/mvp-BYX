@@ -35,7 +35,11 @@ class DeterministicAnalyzer:
         indicators = context.indicators
         required = ("ema_short", "ema_long", "volume_ratio", "atr")
         if any(name not in indicators for name in required):
-            return self._hold_signal(context, "insufficient indicators for deterministic analysis")
+            return self._hold_signal(
+                context,
+                "insufficient indicators for deterministic analysis",
+                "INSUFFICIENT_DATA",
+            )
         regime_result = self._classifier.classify(context.candles)
         short = indicators["ema_short"]
         long = indicators["ema_long"]
@@ -45,19 +49,39 @@ class DeterministicAnalyzer:
         atr_relative = atr_value / close
         if regime_result.regime is not MarketRegime.TRENDING_UP:
             return self._hold_signal(
-                context, f"regime={regime_result.regime}; {regime_result.rationale}"
+                context,
+                f"regime={regime_result.regime}; {regime_result.rationale}",
+                "REGIME_NOT_UP",
+                regime_result.regime,
             )
         if short <= long:
-            return self._hold_signal(context, "EMA relationship is not bullish")
+            return self._hold_signal(
+                context,
+                "EMA relationship is not bullish",
+                "EMA_NOT_CONFIRMED",
+                regime_result.regime,
+            )
         if volume < self._minimum_volume_ratio:
-            return self._hold_signal(context, "relative volume is below configured minimum")
+            return self._hold_signal(
+                context,
+                "relative volume is below configured minimum",
+                "VOLUME_TOO_LOW",
+                regime_result.regime,
+            )
         if atr_relative > self._maximum_atr_relative:
-            return self._hold_signal(context, "relative ATR is above configured extreme threshold")
+            return self._hold_signal(
+                context,
+                "relative ATR is above configured extreme threshold",
+                "VOLATILITY_TOO_HIGH",
+                regime_result.regime,
+            )
         stop_loss = close - atr_value * self._stop_atr_multiple
         risk_per_unit = close - stop_loss
         take_profit = close + risk_per_unit * self._target_r_multiple
         if stop_loss <= 0 or risk_per_unit <= 0:
-            return self._hold_signal(context, "calculated stop is invalid")
+            return self._hold_signal(
+                context, "calculated stop is invalid", "INVALID_STOP", regime_result.regime
+            )
         rationale = (
             f"regime={regime_result.regime}; ema_short={short}; ema_long={long}; "
             f"volume_ratio={volume}; atr={atr_value}; stop={stop_loss}; "
@@ -76,15 +100,22 @@ class DeterministicAnalyzer:
             suggested_quantity=indicators.get("suggested_quantity", Decimal("0")),
             rationale=rationale,
             analyzer_name="deterministic-ema-atr-volume",
+            reason_code="BUY_APPROVED",
         )
 
-    def _hold_signal(self, context: MarketContext, rationale: str) -> MarketSignal:
+    def _hold_signal(
+        self,
+        context: MarketContext,
+        rationale: str,
+        reason_code: str,
+        regime: MarketRegime = MarketRegime.UNKNOWN,
+    ) -> MarketSignal:
         return MarketSignal(
             signal_id=f"{context.symbol}-{context.latest_candle.timestamp.isoformat()}-HOLD",
             symbol=context.symbol,
             generated_at=context.created_at,
             direction=SignalDirection.HOLD,
-            regime=MarketRegime.UNKNOWN,
+            regime=regime,
             confidence=Decimal("0"),
             entry_price=context.latest_candle.close,
             stop_loss=Decimal("0"),
@@ -92,4 +123,5 @@ class DeterministicAnalyzer:
             suggested_quantity=Decimal("0"),
             rationale=rationale,
             analyzer_name="deterministic-ema-atr-volume",
+            reason_code=reason_code,
         )

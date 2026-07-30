@@ -3,7 +3,6 @@
 from decimal import Decimal
 
 from adaptive_trader.domain.models import Candle
-from adaptive_trader.indicators.moving_average import sma
 
 
 def true_ranges(candles: tuple[Candle, ...]) -> tuple[Decimal, ...]:
@@ -31,7 +30,24 @@ def true_range(candles: tuple[Candle, ...]) -> Decimal:
 
 
 def atr(candles: tuple[Candle, ...], period: int) -> Decimal:
-    return sma(true_ranges(candles), period)
+    if period < 1 or len(candles) < period:
+        raise ValueError("not enough candles for requested ATR period")
+    start = len(candles) - period
+    previous_close = candles[start - 1].close if start else None
+    ranges: list[Decimal] = []
+    for candle in candles[start:]:
+        if previous_close is None:
+            ranges.append(candle.high - candle.low)
+        else:
+            ranges.append(
+                max(
+                    candle.high - candle.low,
+                    abs(candle.high - previous_close),
+                    abs(candle.low - previous_close),
+                )
+            )
+        previous_close = candle.close
+    return sum(ranges, Decimal("0")) / Decimal(period)
 
 
 def historical_volatility(candles: tuple[Candle, ...], period: int) -> Decimal:

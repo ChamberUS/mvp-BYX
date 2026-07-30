@@ -1,0 +1,48 @@
+{
+  "diagnostics": {
+    "benchmark_win_percent": "50.0",
+    "best_day_profit_percent": "27.39692403299900455940572882",
+    "best_trade_profit_percent": "13.04639243511951089474158309",
+    "longest_period_without_new_top_days": 1188,
+    "negative_month_count": 13,
+    "positive_fold_percent": "0",
+    "positive_month_count": 6,
+    "result_without_best_trade": "-92.9200894228981060650",
+    "result_without_top_five_trades": "-235.4668582357022311532",
+    "top_five_day_profit_percent": "77.17184328271723436351361662",
+    "top_five_trade_profit_percent": "59.30416214404166538289440370",
+    "train_validation_expectancy_gap": "-1.142534306349006902971428571",
+    "train_validation_profit_factor_gap": "-0.1053039065112254122540164210",
+    "train_validation_return_gap": "-0.31826885141572779504600",
+    "warnings": [
+      "OUT_OF_SAMPLE_DEGRADATION"
+    ]
+  },
+  "summary": {
+    "benchmark_loss_count": 1,
+    "benchmark_tie_count": 0,
+    "benchmark_win_count": 1,
+    "benchmark_win_percent": "50.0",
+    "best_net_return": "-0.10444886277658179389600",
+    "completed_fold_count": 2,
+    "failed_fold_count": 0,
+    "flat_fold_count": 0,
+    "fold_count": 2,
+    "mean_expectancy": "-1.441674342979351733952380952",
+    "mean_max_drawdown": "1.086830485019799302692114946",
+    "mean_net_return": "-0.26358328848444569141900",
+    "mean_profit_factor": "0.8681080580465161541457182615",
+    "median_net_return": "-0.26358328848444569141900",
+    "median_profit_factor": "0.8681080580465161541457182615",
+    "negative_fold_count": 2,
+    "parameter_selection_frequency": {},
+    "positive_fold_count": 0,
+    "positive_fold_percent": "0",
+    "total_closed_trades": 33,
+    "total_entries": 33,
+    "total_evaluated_candles": 34963,
+    "warnings": [],
+    "worst_max_drawdown": "1.270470357127358153094159219",
+    "worst_net_return": "-0.42271771419230958894200"
+  }
+}

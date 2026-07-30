@@ -9,6 +9,7 @@ from adaptive_trader.research.models import (
     WalkForwardFold,
     WalkForwardPlan,
 )
+from adaptive_trader.research.periods import ConsumedTestError, ResearchPeriods
 
 __all__ = [
     "DatasetSegment",
@@ -18,4 +19,6 @@ __all__ = [
     "TemporalSplit",
     "WalkForwardFold",
     "WalkForwardPlan",
+    "ConsumedTestError",
+    "ResearchPeriods",
 ]

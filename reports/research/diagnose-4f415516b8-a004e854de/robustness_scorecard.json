@@ -1,0 +1,49 @@
+{
+  "scorecard": [
+    {
+      "classification": "POOR",
+      "dimension": "net_return",
+      "justification": "net return across completed segments"
+    },
+    {
+      "classification": "GOOD",
+      "dimension": "drawdown",
+      "justification": "worst drawdown=1.270470357127358153094159219%"
+    },
+    {
+      "classification": "GOOD",
+      "dimension": "trade_sample",
+      "justification": "closed trades=33"
+    },
+    {
+      "classification": "POOR",
+      "dimension": "fold_consistency",
+      "justification": "positive folds=0/2"
+    },
+    {
+      "classification": "INCONCLUSIVE",
+      "dimension": "cost_resilience",
+      "justification": "cost scenarios must be inspected separately"
+    },
+    {
+      "classification": "INCONCLUSIVE",
+      "dimension": "parameter_stability",
+      "justification": "no parameter selection was performed"
+    },
+    {
+      "classification": "INCONCLUSIVE",
+      "dimension": "regime_dependence",
+      "justification": "regime sample is diagnostic, not causal"
+    },
+    {
+      "classification": "MIXED",
+      "dimension": "benchmark_comparison",
+      "justification": "BUY_AND_HOLD is a reference only"
+    },
+    {
+      "classification": "MIXED",
+      "dimension": "out_of_sample_degradation",
+      "justification": "compare train and later validation explicitly"
+    }
+  ]
+}

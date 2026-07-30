@@ -112,13 +112,17 @@ def _trade_concentration(
     if not trades:
         return None, None, None
     total = sum((trade.net_pnl for trade in trades), Decimal("0"))
-    ordered = sorted((trade.net_pnl for trade in trades), reverse=True)
-    if total == 0:
-        return Decimal("0"), Decimal("0"), total - ordered[0]
+    profitable = sorted(
+        (trade.net_pnl for trade in trades if trade.net_pnl > 0),
+        reverse=True,
+    )
+    gross_profit = sum(profitable, Decimal("0"))
+    if not profitable or gross_profit == 0:
+        return Decimal("0"), Decimal("0"), total
     return (
-        ordered[0] / total * Decimal("100"),
-        sum(ordered[:5], Decimal("0")) / total * Decimal("100"),
-        total - ordered[0],
+        profitable[0] / gross_profit * Decimal("100"),
+        sum(profitable[:5], Decimal("0")) / gross_profit * Decimal("100"),
+        total - profitable[0],
     )
 
 
@@ -135,13 +139,13 @@ def _period_concentration(
         grouped[key] += trade.net_pnl
     if not grouped:
         return None, None
-    total = sum(grouped.values(), Decimal("0"))
-    if total == 0:
+    profitable = sorted((value for value in grouped.values() if value > 0), reverse=True)
+    gross_profit = sum(profitable, Decimal("0"))
+    if not profitable or gross_profit == 0:
         return Decimal("0"), Decimal("0")
-    ordered = sorted(grouped.values(), reverse=True)
     return (
-        ordered[0] / total * Decimal("100"),
-        sum(ordered[:5], Decimal("0")) / total * Decimal("100"),
+        profitable[0] / gross_profit * Decimal("100"),
+        sum(profitable[:5], Decimal("0")) / gross_profit * Decimal("100"),
     )
 
 
@@ -205,13 +209,17 @@ def diagnose(
     best_day, top_five_days = _period_concentration(all_trades, "day")
     positive_months, negative_months = _month_counts(all_trades)
     total_pnl = sum((trade.net_pnl for trade in all_trades), Decimal("0"))
-    top_five_values = sorted((trade.net_pnl for trade in all_trades), reverse=True)[:5]
-    if best is not None and best > concentration_single_percent:
-        warnings.append("RESULTS_CONCENTRATED")
-    if top_five is not None and top_five > concentration_top_five_percent:
-        warnings.append("RESULTS_CONCENTRATED")
-    if without_best is not None and without_best < 0:
-        warnings.append("RESULTS_CONCENTRATED")
+    top_five_values = sorted(
+        (trade.net_pnl for trade in all_trades if trade.net_pnl > 0),
+        reverse=True,
+    )[:5]
+    if total_pnl > 0:
+        if best is not None and best > concentration_single_percent:
+            warnings.append("RESULTS_CONCENTRATED")
+        if top_five is not None and top_five > concentration_top_five_percent:
+            warnings.append("RESULTS_CONCENTRATED")
+        if without_best is not None and without_best < 0:
+            warnings.append("RESULTS_CONCENTRATED")
     summary = consolidate_runs(runs)
     if summary.benchmark_loss_count > summary.benchmark_win_count:
         warnings.append("BENCHMARK_UNDERPERFORMANCE")

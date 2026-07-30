@@ -10,7 +10,7 @@ from typing import Any
 from adaptive_trader.backtest.models import BacktestResult
 from adaptive_trader.config.settings import ConfigError, TradingConfig
 from adaptive_trader.domain.models import SerializedValue
-from adaptive_trader.research.models import SelectionCriterion
+from adaptive_trader.research.models import DatasetSegment, SegmentRun, SelectionCriterion
 
 
 class ParameterGridError(ValueError):
@@ -180,3 +180,64 @@ def parameters_to_dict(config: TradingConfig) -> dict[str, SerializedValue]:
             "maximum_atr_relative",
         )
     }
+
+
+_OFAT_VALUES: dict[str, tuple[Any, ...]] = {
+    "short_ema_period": (15, 20, 25),
+    "long_ema_period": (40, 50, 60),
+    "minimum_volume_ratio": (Decimal("0.8"), Decimal("1.0"), Decimal("1.2")),
+    "maximum_atr_relative": (Decimal("0.03"), Decimal("0.05"), Decimal("0.07")),
+    "stop_atr_multiple": (Decimal("1.5"), Decimal("2.0"), Decimal("2.5")),
+    "target_r_multiple": (Decimal("1.5"), Decimal("2.0"), Decimal("2.5")),
+}
+
+
+def ofat_variations(config: TradingConfig) -> tuple[tuple[str, Any, TradingConfig], ...]:
+    """Return the bounded, one-factor-at-a-time research neighborhood."""
+
+    variations: list[tuple[str, Any, TradingConfig]] = [("BASE", "BASE", config)]
+    for parameter, values in _OFAT_VALUES.items():
+        for value in values:
+            try:
+                candidate = apply_parameters(config, {parameter: value})
+            except ParameterGridError:
+                continue
+            variations.append((parameter, value, candidate))
+    return tuple(variations)
+
+
+def run_ofat(
+    segments: tuple[DatasetSegment, ...],
+    config: TradingConfig,
+    runner: Any,
+    *,
+    maximum_parameter_combinations: int = 60,
+) -> tuple[dict[str, object], ...]:
+    variations = ofat_variations(config)
+    if len(variations) > maximum_parameter_combinations:
+        raise ParameterGridError("OFAT exceeds maximum_parameter_combinations")
+    rows: list[dict[str, object]] = []
+    for parameter, value, candidate in variations:
+        for segment in segments:
+            run: SegmentRun = runner.run_segment(segment, candidate)
+            result = run.result
+            rows.append(
+                {
+                    "segment": segment.name,
+                    "parameter": parameter,
+                    "value": value,
+                    "is_base": parameter == "BASE",
+                    "net_return": (
+                        result.metrics.net_return / result.metrics.initial_capital * Decimal("100")
+                        if result
+                        else None
+                    ),
+                    "closed_trades": result.metrics.closed_trade_count if result else 0,
+                    "maximum_drawdown_percent": (
+                        result.metrics.maximum_drawdown_percent if result else None
+                    ),
+                    "warning": "" if result else run.error or "failed",
+                    "uses_consumed_test_period": False,
+                }
+            )
+    return tuple(rows)

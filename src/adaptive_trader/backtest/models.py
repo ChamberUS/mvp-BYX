@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
 
-from adaptive_trader.domain.models import SerializedValue
+from adaptive_trader.domain.models import SerializedValue, StrategyDecisionTrace
 
 
 @dataclass(frozen=True, slots=True)
@@ -90,3 +90,4 @@ class BacktestResult:
     evaluation_end_time: datetime | None = None
     equity_curve: tuple[Decimal, ...] = ()
     exposure_curve: tuple[Decimal, ...] = ()
+    decision_traces: tuple[StrategyDecisionTrace, ...] = ()

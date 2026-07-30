@@ -2,7 +2,11 @@ from pathlib import Path
 
 import pytest
 
-from adaptive_trader.research.config import ResearchConfigError, load_experiment_toml
+from adaptive_trader.research.config import (
+    ResearchConfigError,
+    load_diagnostics_toml,
+    load_experiment_toml,
+)
 
 
 def test_research_toml_loader_is_standard_library_and_timezone_aware(tmp_path: Path) -> None:
@@ -44,3 +48,11 @@ end = "2026-01-02T00:00:00Z"
 
     with pytest.raises(ResearchConfigError, match="secret"):
         load_experiment_toml(path)
+
+
+def test_diagnostics_example_toml_is_valid() -> None:
+    config = load_diagnostics_toml(Path("diagnostics.example.toml"))
+
+    assert config.periods.consumed_test_start.year == 2026
+    assert config.future_return_horizons == (1, 3, 6, 12, 24)
+    assert config.maximum_parameter_combinations == 60

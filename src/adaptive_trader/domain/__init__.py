@@ -14,6 +14,7 @@ from adaptive_trader.domain.models import (
     SignalDirection,
     SimulatedOrder,
     StrategyDecisionRecord,
+    StrategyDecisionTrace,
     serialize_model,
 )
 
@@ -31,5 +32,6 @@ __all__ = [
     "SignalDirection",
     "SimulatedOrder",
     "StrategyDecisionRecord",
+    "StrategyDecisionTrace",
     "serialize_model",
 ]

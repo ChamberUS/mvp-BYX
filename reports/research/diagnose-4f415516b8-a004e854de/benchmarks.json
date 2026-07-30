@@ -1,0 +1,50 @@
+[
+  {
+    "exposure_percent": "99.99999963240379975341305084",
+    "final_capital": "5052.18364614482240224",
+    "gross_return_percent": "-49.20460750136503003066067453",
+    "initial_capital": "10000",
+    "maximum_drawdown_percent": "76.43150721667534205358346603",
+    "name": "BUY_AND_HOLD",
+    "net_return_percent": "-49.478163538551775977600",
+    "total_costs": "40.61193545677759776",
+    "volatility_percent": "0.7349778249527970810330741868",
+    "warnings": []
+  },
+  {
+    "exposure_percent": "0",
+    "final_capital": "10000",
+    "gross_return_percent": "0",
+    "initial_capital": "10000",
+    "maximum_drawdown_percent": "0",
+    "name": "CASH",
+    "net_return_percent": "0",
+    "total_costs": "0",
+    "volatility_percent": "0",
+    "warnings": []
+  },
+  {
+    "exposure_percent": "99.99999995231579812841753543",
+    "final_capital": "15274.44871619566187836",
+    "gross_return_percent": "53.57153931225517048919391010",
+    "initial_capital": "10000",
+    "maximum_drawdown_percent": "45.66524821449463421643018864",
+    "name": "BUY_AND_HOLD",
+    "net_return_percent": "52.744487161956618783600",
+    "total_costs": "68.27238453173812164",
+    "volatility_percent": "0.7248455065722364789847844412",
+    "warnings": []
+  },
+  {
+    "exposure_percent": "0",
+    "final_capital": "10000",
+    "gross_return_percent": "0",
+    "initial_capital": "10000",
+    "maximum_drawdown_percent": "0",
+    "name": "CASH",
+    "net_return_percent": "0",
+    "total_costs": "0",
+    "volatility_percent": "0",
+    "warnings": []
+  }
+]

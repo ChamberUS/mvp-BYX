@@ -82,4 +82,64 @@ adaptive-trader research walk-forward run --symbol ETHUSDT --interval 1m \
 adaptive-trader research report show --experiment reports/research/<experiment-id>
 ```
 
-O método e suas limitações estão em `docs/RESEARCH_METHODOLOGY.md`; `research.example.toml` é apenas um exemplo e não contém credenciais.
+Consultas de período ao SQLite tratam `--start` e `--end` como inclusivos para
+`open_time`. Os limites efetivos de cada segmento e o hash do dataset ficam registrados nos
+artefatos, evitando interpretações diferentes entre experimentos.
+
+## Diagnósticos da Sprint 3A.2
+
+Cada análise do `BacktestEngine` registra um `StrategyDecisionTrace` imutável com indicadores
+disponíveis naquele instante, regime, direção, `reason_code`, decisão de risco e estado de
+execução. O funil agrega candles elegíveis, filtros, sinais BUY, aprovações e ordens executadas.
+Retornos futuros de sinais HOLD, MFE e MAE são calculados somente depois do backtest; esses
+valores pós-evento nunca entram no `MarketContext` nem são vistos pela estratégia.
+
+O período já consumido de `2026-01-01T00:00:00Z` a `2026-07-01T00:00:00Z` não pode participar
+de seleção, ranking, OFAT ou escolha de timeframe. Os comandos de diagnóstico exigem a exclusão
+explícita; a comparação de timeframe rejeita sobreposição. Intervalos ausentes são reportados e
+nunca baixados automaticamente.
+
+```bash
+adaptive-trader research diagnose run \
+  --symbol ETHUSDT --interval 1h \
+  --start 2022-01-01T00:00:00Z --end 2025-12-31T23:00:00Z \
+  --exclude-start 2026-01-01T00:00:00Z \
+  --exclude-end 2026-07-01T00:00:00Z \
+  --output-dir reports/research --yes
+
+adaptive-trader research exits compare \
+  --symbol ETHUSDT --interval 1h \
+  --start 2022-01-01T00:00:00Z --end 2025-12-31T23:00:00Z \
+  --output-dir reports/research/exits-compare --yes
+
+adaptive-trader research costs walk-forward \
+  --experiment reports/research/<walk-forward-experiment>
+
+adaptive-trader research sensitivity ofat \
+  --symbol ETHUSDT --interval 1h \
+  --start 2022-01-01T00:00:00Z --end 2025-12-31T23:00:00Z \
+  --exclude-start 2026-01-01T00:00:00Z \
+  --exclude-end 2026-07-01T00:00:00Z \
+  --output-dir reports/research --yes
+
+adaptive-trader research timeframe compare \
+  --symbol ETHUSDT --intervals 15m,1h,4h,1d \
+  --start 2022-01-01T00:00:00Z --end 2025-12-31T23:00:00Z \
+  --output-dir reports/research
+
+adaptive-trader research diagnostics show \
+  --experiment reports/research/<diagnostic-experiment>
+```
+
+O diagnóstico produz `decision_funnel.json/csv`, `hold_reason_analysis.csv`,
+`entry_diagnostics.csv`, `exit_diagnostics.csv`, `entry_exit_decomposition.csv`,
+`cost_scenarios_by_fold.csv`, `detailed_regime_metrics.csv`, `sensitivity_ofat.csv`,
+`robustness_scorecard.json`, `candidate_assessment.json` e `diagnostics_report.md`. Arquivos não
+aplicáveis ao comando mantêm cabeçalho válido e são explicados no relatório. OFAT altera apenas
+um parâmetro permitido por vez; custos são avaliados por fold e consolidados. O assessment
+`CANDIDATE`, `NOT_CANDIDATE` ou `INCONCLUSIVE` é somente uma classificação de pesquisa e nunca
+habilita produção.
+
+`diagnostics.example.toml` documenta períodos, horizontes e limiares sem credenciais. O método e
+suas limitações estão em `docs/RESEARCH_METHODOLOGY.md`; `research.example.toml` também é apenas
+um exemplo sem segredos.

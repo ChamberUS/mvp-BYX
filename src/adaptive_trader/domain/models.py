@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, fields, is_dataclass
 from datetime import datetime
 from decimal import Decimal
@@ -112,7 +112,7 @@ class Candle:
 class MarketContext:
     symbol: str
     created_at: datetime
-    candles: tuple[Candle, ...]
+    candles: Sequence[Candle]
     latest_candle: Candle
     indicators: Mapping[str, Decimal]
     interval: str = "1m"
@@ -144,6 +144,7 @@ class MarketSignal:
     suggested_quantity: Decimal
     rationale: str
     analyzer_name: str
+    reason_code: str = "UNSPECIFIED"
 
     def __post_init__(self) -> None:
         _require_decimal(self.confidence, "confidence")
@@ -183,6 +184,7 @@ class RiskDecision:
     approved: bool
     reason: str
     order_intent: OrderIntent | None
+    reason_code: str = "UNSPECIFIED"
 
     def __post_init__(self) -> None:
         if self.approved and self.order_intent is None:
@@ -324,6 +326,56 @@ class StrategyDecisionRecord:
             raise ValueError("context_candle_count must be positive")
         for name, value in self.indicators.items():
             _require_decimal(value, f"indicator {name}")
+
+
+@dataclass(frozen=True, slots=True)
+class StrategyDecisionTrace:
+    timestamp: datetime
+    symbol: str
+    interval: str
+    candle_index: int
+    close_price: Decimal
+    regime: MarketRegime
+    short_ema: Decimal | None
+    long_ema: Decimal | None
+    ema_distance: Decimal | None
+    atr: Decimal | None
+    atr_relative: Decimal | None
+    volume: Decimal | None
+    average_volume: Decimal | None
+    volume_ratio: Decimal | None
+    risk_reward: Decimal | None
+    signal_direction: SignalDirection
+    strategy_reason_code: str
+    risk_approved: bool | None
+    risk_rejection_code: str | None
+    execution_status: str
+    execution_rejection_code: str | None
+    position_open: bool
+    pending_order: bool
+    evaluation_segment: str | None = None
+    fold_id: str | None = None
+    parameter_set_id: str | None = None
+
+    def __post_init__(self) -> None:
+        _require_aware(self.timestamp, "timestamp")
+        _require_positive(self.close_price, "close_price")
+        if self.candle_index < 0:
+            raise ValueError("candle_index must not be negative")
+        for name in (
+            "short_ema",
+            "long_ema",
+            "ema_distance",
+            "atr",
+            "atr_relative",
+            "volume",
+            "average_volume",
+            "volume_ratio",
+            "risk_reward",
+        ):
+            value = getattr(self, name)
+            if value is not None:
+                _require_decimal(value, name)
 
 
 def _encode(value: object) -> SerializedValue:

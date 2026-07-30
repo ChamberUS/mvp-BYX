@@ -1,0 +1,18 @@
+{
+  "candle_count": 4344,
+  "content_hash": "d3e3653ff3f0deac8b592133c138662fd69b15927f5adaf7136ac29b68c2adae",
+  "created_at": "2026-07-30T17:25:24.730461+00:00",
+  "dataset_id": "BINANCE-ETHUSDT-1h-d3e3653ff3f0deac",
+  "duplicate_count": 0,
+  "end_time": "2025-06-30T23:59:59.999000+00:00",
+  "exchange": "BINANCE",
+  "first_open_time": "2025-01-01T00:00:00+00:00",
+  "gap_count": 0,
+  "interval": "1h",
+  "last_close_time": "2025-06-30T23:59:59.999000+00:00",
+  "missing_candle_count": 0,
+  "source": "sqlite",
+  "start_time": "2025-01-01T00:00:00+00:00",
+  "symbol": "ETHUSDT",
+  "warnings": []
+}

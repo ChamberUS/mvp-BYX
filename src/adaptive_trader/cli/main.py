@@ -4,30 +4,46 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import csv
 import json
 import logging
 import os
+import re
 import sqlite3
 import sys
 from collections.abc import Sequence
 from dataclasses import replace
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
 from adaptive_trader.backtest.cli import build_engine
 from adaptive_trader.backtest.report import read_json, render_summary, write_json, write_trades_csv
 from adaptive_trader.config.settings import ConfigError, TradingConfig, load_config
-from adaptive_trader.domain.models import Candle, serialize_model
+from adaptive_trader.domain.models import Candle, SignalDirection, serialize_model
 from adaptive_trader.market_data.binance_public import BinancePublicClient
 from adaptive_trader.market_data.exceptions import MarketDataError
 from adaptive_trader.market_data.history import HistoricalCandleDownloader
 from adaptive_trader.observability.logging import configure_logging
 from adaptive_trader.research.config import ResearchFileConfig, load_experiment_toml
-from adaptive_trader.research.datasets import dataset_to_dict, holdout_split, validate_dataset
-from adaptive_trader.research.models import GapPolicy, WalkForwardMode
-from adaptive_trader.research.service import run_holdout_experiment, run_walk_forward_experiment
+from adaptive_trader.research.costs import run_cost_scenarios_by_fold
+from adaptive_trader.research.datasets import (
+    _segment,
+    dataset_to_dict,
+    holdout_split,
+    validate_dataset,
+)
+from adaptive_trader.research.diagnostics import entry_exit_decomposition_rows
+from adaptive_trader.research.experiment import ResearchExperimentRunner
+from adaptive_trader.research.models import GapPolicy, SelectionMode, WalkForwardMode
+from adaptive_trader.research.periods import ResearchPeriods
+from adaptive_trader.research.service import (
+    run_diagnostics_experiment,
+    run_holdout_experiment,
+    run_walk_forward_experiment,
+)
 from adaptive_trader.research.splits import build_walk_forward_plan
+from adaptive_trader.research.walk_forward import WalkForwardRunner
 from adaptive_trader.storage.sqlite import (
     SCHEMA_VERSION,
     DatabaseRepository,
@@ -116,6 +132,63 @@ def _parser() -> argparse.ArgumentParser:
     )
     sensitivity_run.add_argument("--output-dir", type=Path, required=True)
     sensitivity_run.add_argument("--config", dest="config_file", type=Path, default=None)
+    sensitivity_ofat_run = sensitivity_commands.add_parser("ofat")
+    _add_market_range_args(sensitivity_ofat_run, required_dates=True)
+    sensitivity_ofat_run.add_argument("--exclude-start", required=True)
+    sensitivity_ofat_run.add_argument("--exclude-end", required=True)
+    sensitivity_ofat_run.add_argument("--warmup-candles", type=int, default=None)
+    sensitivity_ofat_run.add_argument(
+        "--gap-policy", choices=[item.value for item in GapPolicy], default="WARN"
+    )
+    sensitivity_ofat_run.add_argument("--output-dir", type=Path, required=True)
+    sensitivity_ofat_run.add_argument("--maximum-parameter-combinations", type=int, default=60)
+    sensitivity_ofat_run.add_argument("--yes", action="store_true")
+    diagnose = research_commands.add_parser("diagnose")
+    diagnose_commands = diagnose.add_subparsers(dest="diagnose_command", required=True)
+    diagnose_run = diagnose_commands.add_parser("run")
+    _add_market_range_args(diagnose_run, required_dates=True)
+    diagnose_run.add_argument("--exclude-start", required=True)
+    diagnose_run.add_argument("--exclude-end", required=True)
+    diagnose_run.add_argument("--warmup-candles", type=int, default=None)
+    diagnose_run.add_argument(
+        "--gap-policy", choices=[item.value for item in GapPolicy], default="WARN"
+    )
+    diagnose_run.add_argument("--output-dir", type=Path, required=True)
+    diagnose_run.add_argument("--maximum-parameter-combinations", type=int, default=60)
+    diagnose_run.add_argument("--yes", action="store_true")
+    exits = research_commands.add_parser("exits")
+    exits_commands = exits.add_subparsers(dest="exits_command", required=True)
+    exits_compare = exits_commands.add_parser("compare")
+    _add_market_range_args(exits_compare, required_dates=True)
+    exits_compare.add_argument("--exclude-start", default="2026-01-01T00:00:00Z")
+    exits_compare.add_argument("--exclude-end", default="2026-07-01T00:00:00Z")
+    exits_compare.add_argument("--warmup-candles", type=int, default=None)
+    exits_compare.add_argument(
+        "--gap-policy", choices=[item.value for item in GapPolicy], default="WARN"
+    )
+    exits_compare.add_argument("--output-dir", type=Path, required=True)
+    exits_compare.add_argument("--yes", action="store_true")
+    costs = research_commands.add_parser("costs")
+    costs_commands = costs.add_subparsers(dest="costs_command", required=True)
+    costs_walk = costs_commands.add_parser("walk-forward")
+    costs_walk.add_argument("--experiment", type=Path, required=True)
+    timeframe = research_commands.add_parser("timeframe")
+    timeframe_commands = timeframe.add_subparsers(dest="timeframe_command", required=True)
+    timeframe_compare = timeframe_commands.add_parser("compare")
+    timeframe_compare.add_argument("--symbol", required=True)
+    timeframe_compare.add_argument("--intervals", required=True)
+    timeframe_compare.add_argument("--start", required=True)
+    timeframe_compare.add_argument("--end", required=True)
+    timeframe_compare.add_argument("--exclude-start", default="2026-01-01T00:00:00Z")
+    timeframe_compare.add_argument("--exclude-end", default="2026-07-01T00:00:00Z")
+    timeframe_compare.add_argument("--warmup-candles", type=int, default=None)
+    timeframe_compare.add_argument("--output-dir", type=Path, required=True)
+    diagnostics = research_commands.add_parser("diagnostics")
+    diagnostics_commands = diagnostics.add_subparsers(
+        dest="diagnostics_command", required=True
+    )
+    diagnostics_show = diagnostics_commands.add_parser("show")
+    diagnostics_show.add_argument("--experiment", type=Path, required=True)
     report = research_commands.add_parser("report")
     report_commands = report.add_subparsers(dest="report_command", required=True)
     report_show = report_commands.add_parser("show")
@@ -340,6 +413,14 @@ def _research_config(config: TradingConfig, args: argparse.Namespace) -> Trading
 
 
 def _research_holdout(config: TradingConfig, args: argparse.Namespace) -> int:
+    if (
+        getattr(args, "research_command", None) == "sensitivity"
+        and getattr(args, "sensitivity_command", None) == "run"
+    ):
+        raise ValueError(
+            "legacy sensitivity cannot use a consumed test period; "
+            "use research sensitivity ofat with --exclude-start and --exclude-end"
+        )
     run_config = _research_config(config, args)
     file_config = _research_file_config(args)
     gap_policy = file_config.gap_policy if file_config else GapPolicy(args.gap_policy)
@@ -375,6 +456,7 @@ def _research_holdout(config: TradingConfig, args: argparse.Namespace) -> int:
         experiment_name=file_config.experiment_name if file_config else "holdout",
         output_root=file_config.output_dir if file_config else args.output_dir,
         gap_policy=gap_policy.value,
+        include_sensitivity=args.research_command == "sensitivity",
     )
     print(
         json.dumps(
@@ -415,6 +497,302 @@ def _research_walk_forward(config: TradingConfig, args: argparse.Namespace) -> i
             {"fold_count": len(results), "plan_id": plan.plan_id},
             indent=2,
             sort_keys=True,
+        )
+    )
+    return 0
+
+
+def _csv_value(value: object) -> str | int | bool:
+    if value is None:
+        return ""
+    if isinstance(value, Decimal):
+        return str(value)
+    if isinstance(value, datetime):
+        return value.isoformat()
+    if isinstance(value, (dict, list, tuple)):
+        return json.dumps(value, default=str, sort_keys=True)
+    return value if isinstance(value, (str, int, bool)) else str(value)
+
+
+def _write_rows_csv(path: Path, rows: tuple[dict[str, object], ...]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fields: list[str] = []
+    for row in rows:
+        for key in row:
+            if key not in fields:
+                fields.append(key)
+    with path.open("w", newline="", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=fields or ["status"])
+        writer.writeheader()
+        for row in rows:
+            writer.writerow({key: _csv_value(value) for key, value in row.items()})
+
+
+def _research_diagnose(config: TradingConfig, args: argparse.Namespace) -> int:
+    run_config = _research_config(config, args)
+    start = _parse_datetime(args.start)
+    end = _parse_datetime(args.end)
+    exclude_start = _parse_datetime(args.exclude_start)
+    exclude_end = _parse_datetime(args.exclude_end)
+    if end < start:
+        raise ValueError("end must not precede start")
+    if exclude_end < exclude_start:
+        raise ValueError("exclude-end must not precede exclude-start")
+    raw = _research_candles(run_config, args)
+    safe_candles = tuple(candle for candle in raw if candle.open_time < exclude_start)
+    if len(safe_candles) < 4:
+        raise ValueError("diagnostic period has too few candles after consumed-test exclusion")
+    dataset = validate_dataset(
+        safe_candles,
+        source="sqlite",
+        gap_policy=GapPolicy(args.gap_policy),
+    )
+    split_index = max(1, min(len(safe_candles) - 1, len(safe_candles) * 80 // 100))
+    validation_start = safe_candles[split_index].open_time
+    validation_end = dataset.end_time
+    periods = ResearchPeriods(
+        development_start=dataset.start_time,
+        development_end=validation_start - timedelta(microseconds=1),
+        validation_start=validation_start,
+        validation_end=validation_end,
+        consumed_test_start=exclude_start,
+        consumed_test_end=exclude_end,
+    )
+    periods.assert_not_consumed(
+        dataset.start_time,
+        validation_end,
+        "diagnostic selection",
+    )
+    result = run_diagnostics_experiment(
+        dataset=dataset,
+        development_start=periods.development_start,
+        development_end=validation_start,
+        validation_start=periods.validation_start,
+        validation_end=periods.validation_end + timedelta(microseconds=1),
+        config=run_config,
+        experiment_name="diagnose",
+        output_root=args.output_dir,
+        gap_policy=args.gap_policy,
+        excluded_period=(exclude_start, exclude_end),
+        maximum_parameter_combinations=args.maximum_parameter_combinations,
+    )
+    print(
+        json.dumps(
+            {
+                "experiment_id": result.experiment_id,
+                "consumed_test_used": False,
+                "periods": periods.as_dict(),
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return 0
+
+
+def _research_timeframe_compare(config: TradingConfig, args: argparse.Namespace) -> int:
+    start = _parse_datetime(args.start)
+    end = _parse_datetime(args.end)
+    exclude_start = _parse_datetime(args.exclude_start)
+    exclude_end = _parse_datetime(args.exclude_end)
+    if end < start:
+        raise ValueError("end must not precede start")
+    if exclude_end < exclude_start:
+        raise ValueError("exclude-end must not precede exclude-start")
+    if start <= exclude_end and end >= exclude_start:
+        raise ValueError("timeframe comparison cannot use the consumed test period")
+    warmup = args.warmup_candles or config.warmup_candles
+    repository = DatabaseRepository(config.database_path)
+    rows: list[dict[str, object]] = []
+    try:
+        for interval in tuple(item.strip() for item in args.intervals.split(",") if item.strip()):
+            candles = repository.get_candles(
+                args.symbol,
+                interval,
+                start_time=start,
+                end_time=end,
+            )
+            if not candles:
+                rows.append(
+                    {
+                        "symbol": args.symbol,
+                        "interval": interval,
+                        "available": False,
+                        "warning": "INTERVAL_NOT_AVAILABLE_IN_DATABASE",
+                    }
+                )
+                continue
+            dataset = validate_dataset(candles, source="sqlite", gap_policy=GapPolicy.WARN)
+            if len(candles) <= warmup:
+                rows.append(
+                    {
+                        "symbol": args.symbol,
+                        "interval": interval,
+                        "available": True,
+                        "warning": "INSUFFICIENT_CANDLES_FOR_WARMUP",
+                    }
+                )
+                continue
+            segment = _segment(
+                dataset,
+                name=interval,
+                evaluation_start=dataset.start_time,
+                evaluation_end=dataset.end_time + timedelta(microseconds=1),
+                warmup_candles=warmup,
+            )
+            run_config = replace(
+                config, symbol=args.symbol, interval=interval, warmup_candles=warmup
+            )
+            run = ResearchExperimentRunner().run_segment(segment, run_config)
+            result = run.result
+            benchmark = next(
+                (item for item in run.benchmarks if item.name == "BUY_AND_HOLD"), None
+            )
+            duration_years = Decimal(
+                str((segment.end_time - segment.start_time).total_seconds())
+            ) / Decimal("31557600")
+            rows.append(
+                {
+                    "symbol": args.symbol,
+                    "interval": interval,
+                    "available": True,
+                    "candle_count": dataset.candle_count,
+                    "trades": result.metrics.closed_trade_count if result else 0,
+                    "trades_per_year": (
+                        Decimal(result.metrics.closed_trade_count) / duration_years
+                        if result and duration_years > 0
+                        else None
+                    ),
+                    "net_return": (
+                        result.metrics.net_return / result.metrics.initial_capital * Decimal("100")
+                        if result
+                        else None
+                    ),
+                    "drawdown": result.metrics.maximum_drawdown_percent if result else None,
+                    "costs": (
+                        result.metrics.total_fees
+                        + result.metrics.estimated_slippage
+                        + result.metrics.total_spread_cost
+                        if result
+                        else None
+                    ),
+                    "buy_and_hold": benchmark.net_return_percent if benchmark else None,
+                    "positive_folds": None,
+                    "signals": (
+                        sum(
+                            trace.signal_direction is SignalDirection.BUY
+                            for trace in result.decision_traces
+                        )
+                        if result
+                        else 0
+                    ),
+                    "warning": "" if result else run.error or "BACKTEST_FAILED",
+                }
+            )
+    finally:
+        repository.close()
+    output = args.output_dir / "timeframe_comparison.csv"
+    _write_rows_csv(output, tuple(rows))
+    print(
+        json.dumps(
+            {"output": str(output), "intervals": rows},
+            indent=2,
+            sort_keys=True,
+            default=str,
+        )
+    )
+    return 0
+
+
+def _research_exits_compare(config: TradingConfig, args: argparse.Namespace) -> int:
+    run_config = _research_config(config, args)
+    start = _parse_datetime(args.start)
+    end = _parse_datetime(args.end)
+    exclude_start = _parse_datetime(args.exclude_start)
+    exclude_end = _parse_datetime(args.exclude_end)
+    if end < start or exclude_end < exclude_start:
+        raise ValueError("exit comparison dates are invalid")
+    raw = _research_candles(run_config, args)
+    candles = tuple(candle for candle in raw if candle.open_time < exclude_start)
+    dataset = validate_dataset(
+        candles,
+        source="sqlite",
+        gap_policy=GapPolicy(args.gap_policy),
+    )
+    segment = _segment(
+        dataset,
+        name="exit-comparison",
+        evaluation_start=dataset.start_time,
+        evaluation_end=dataset.end_time + timedelta(microseconds=1),
+        warmup_candles=run_config.warmup_candles,
+    )
+    rows = entry_exit_decomposition_rows(
+        segment,
+        run_config,
+        ResearchExperimentRunner(),
+    )
+    output = args.output_dir / "entry_exit_decomposition.csv"
+    _write_rows_csv(output, rows)
+    print(json.dumps({"output": str(output), "scenario_count": len(rows)}, indent=2))
+    return 0
+
+
+def _research_diagnostics_show(args: argparse.Namespace) -> int:
+    payload = read_json(args.experiment / "candidate_assessment.json")
+    print(json.dumps(payload, indent=2, sort_keys=True))
+    return 0
+
+
+def _research_costs_walk_forward(config: TradingConfig, args: argparse.Namespace) -> int:
+    experiment = args.experiment
+    manifest = read_json(experiment / "manifest.json")
+    dataset_payload = read_json(experiment / "dataset.json")
+    plan_id = str(manifest.get("split", {}).get("plan_id", ""))
+    match = re.fullmatch(r"(rolling|expanding)-(\d+)d-(\d+)d-(\d+)d", plan_id)
+    if match is None:
+        raise ValueError("experiment manifest does not contain a supported walk-forward plan")
+    mode, train_days, validation_days, step_days = match.groups()
+    symbol = str(dataset_payload["symbol"])
+    interval = str(dataset_payload["interval"])
+    start = _parse_datetime(str(dataset_payload["start_time"]))
+    end = _parse_datetime(str(dataset_payload["last_close_time"]))
+    repository = DatabaseRepository(config.database_path)
+    try:
+        candles = repository.get_candles(
+            symbol,
+            interval,
+            start_time=start,
+            end_time=end,
+        )
+    finally:
+        repository.close()
+    dataset = validate_dataset(candles, source="sqlite", gap_policy=GapPolicy.WARN)
+    plan = build_walk_forward_plan(
+        dataset,
+        train_days=int(train_days),
+        validation_days=int(validation_days),
+        step_days=int(step_days),
+        warmup_candles=config.warmup_candles,
+        mode=WalkForwardMode(mode.upper()),
+    )
+    runner = ResearchExperimentRunner()
+    results = WalkForwardRunner(runner).run(
+        plan, config, selection_mode=SelectionMode.FIXED_PARAMETERS
+    )
+    validation_runs = tuple(item.validation for item in results if item.validation is not None)
+    rows = run_cost_scenarios_by_fold(validation_runs, config, runner)
+    output = experiment / "cost_scenarios_by_fold.csv"
+    _write_rows_csv(output, rows)
+    consolidated_output = experiment / "cost_scenarios.csv"
+    _write_rows_csv(consolidated_output, rows)
+    print(
+        json.dumps(
+            {
+                "output": str(output),
+                "consolidated_output": str(consolidated_output),
+                "fold_count": len(validation_runs),
+            },
+            indent=2,
         )
     )
     return 0
@@ -484,6 +862,23 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.command == "research" and args.research_command == "sensitivity":
             if args.sensitivity_command == "run":
                 return _research_holdout(config, args)
+            if args.sensitivity_command == "ofat":
+                return _research_diagnose(config, args)
+        if args.command == "research" and args.research_command == "diagnose":
+            if args.diagnose_command == "run":
+                return _research_diagnose(config, args)
+        if args.command == "research" and args.research_command == "costs":
+            if args.costs_command == "walk-forward":
+                return _research_costs_walk_forward(config, args)
+        if args.command == "research" and args.research_command == "exits":
+            if args.exits_command == "compare":
+                return _research_exits_compare(config, args)
+        if args.command == "research" and args.research_command == "timeframe":
+            if args.timeframe_command == "compare":
+                return _research_timeframe_compare(config, args)
+        if args.command == "research" and args.research_command == "diagnostics":
+            if args.diagnostics_command == "show":
+                return _research_diagnostics_show(args)
         if args.command == "research" and args.research_command == "report":
             if args.report_command == "show":
                 return _research_report(args)

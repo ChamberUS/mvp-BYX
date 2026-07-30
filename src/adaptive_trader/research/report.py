@@ -5,7 +5,9 @@ from __future__ import annotations
 import csv
 import json
 from dataclasses import fields, is_dataclass
+from datetime import date, datetime
 from decimal import Decimal
+from enum import Enum
 from pathlib import Path
 from typing import cast
 
@@ -24,6 +26,10 @@ from adaptive_trader.research.models import (
 def _value(value: object) -> object:
     if isinstance(value, Decimal):
         return str(value)
+    if isinstance(value, (datetime, date)):
+        return value.isoformat()
+    if isinstance(value, Enum):
+        return _value(value.value)
     if is_dataclass(value) and not isinstance(value, type):
         return {field.name: _value(getattr(value, field.name)) for field in fields(value)}
     if isinstance(value, dict):
@@ -42,6 +48,21 @@ def _write_csv(path: Path, rows: list[dict[str, object]], fieldnames: tuple[str,
         writer = csv.DictWriter(file, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(rows)
+
+
+def _write_dynamic_csv(path: Path, rows: tuple[dict[str, object], ...]) -> None:
+    fieldnames: list[str] = []
+    for row in rows:
+        for field in row:
+            if field not in fieldnames:
+                fieldnames.append(field)
+    if not fieldnames:
+        fieldnames = ["status"]
+    _write_csv(
+        path,
+        [cast(dict[str, object], _value(row)) for row in rows],
+        tuple(fieldnames),
+    )
 
 
 def _fold_rows(runs: tuple[SegmentRun, ...]) -> list[dict[str, object]]:
@@ -97,6 +118,17 @@ class ResearchReportWriter:
         regime_metrics: tuple[object, ...] = (),
         sensitivity_rows: tuple[dict[str, object], ...] = (),
         cost_rows: tuple[dict[str, object], ...] = (),
+        decision_funnel_rows: tuple[dict[str, object], ...] = (),
+        hold_reason_rows: tuple[dict[str, object], ...] = (),
+        entry_diagnostic_rows: tuple[dict[str, object], ...] = (),
+        exit_diagnostic_rows: tuple[dict[str, object], ...] = (),
+        entry_exit_decomposition_rows: tuple[dict[str, object], ...] = (),
+        cost_scenarios_by_fold_rows: tuple[dict[str, object], ...] = (),
+        detailed_regime_rows: tuple[dict[str, object], ...] = (),
+        timeframe_rows: tuple[dict[str, object], ...] = (),
+        sensitivity_ofat_rows: tuple[dict[str, object], ...] = (),
+        scorecard: tuple[dict[str, object], ...] = (),
+        candidate: dict[str, object] | None = None,
     ) -> tuple[str, ...]:
         output_dir.mkdir(parents=True, exist_ok=True)
         _write_json(output_dir / "manifest.json", manifest_to_dict(manifest))
@@ -159,6 +191,22 @@ class ResearchReportWriter:
                 "total_costs",
             ),
         )
+        _write_json(output_dir / "decision_funnel.json", decision_funnel_rows)
+        _write_dynamic_csv(output_dir / "decision_funnel.csv", decision_funnel_rows)
+        _write_dynamic_csv(output_dir / "hold_reason_analysis.csv", hold_reason_rows)
+        _write_dynamic_csv(output_dir / "entry_diagnostics.csv", entry_diagnostic_rows)
+        _write_dynamic_csv(output_dir / "exit_diagnostics.csv", exit_diagnostic_rows)
+        _write_dynamic_csv(
+            output_dir / "entry_exit_decomposition.csv", entry_exit_decomposition_rows
+        )
+        _write_dynamic_csv(
+            output_dir / "cost_scenarios_by_fold.csv", cost_scenarios_by_fold_rows
+        )
+        _write_dynamic_csv(output_dir / "detailed_regime_metrics.csv", detailed_regime_rows)
+        _write_dynamic_csv(output_dir / "timeframe_comparison.csv", timeframe_rows)
+        _write_dynamic_csv(output_dir / "sensitivity_ofat.csv", sensitivity_ofat_rows)
+        _write_json(output_dir / "robustness_scorecard.json", {"scorecard": scorecard})
+        _write_json(output_dir / "candidate_assessment.json", candidate or {})
         _write_json(
             output_dir / "warnings.json",
             {"warnings": list(manifest.warnings) + list(diagnostics.warnings)},
@@ -168,12 +216,119 @@ class ResearchReportWriter:
         _write_json(output_dir / "trades.json", trades)
         report = self._markdown(manifest, dataset, summary, diagnostics, benchmarks)
         (output_dir / "report.md").write_text(report, encoding="utf-8")
+        (output_dir / "diagnostics_report.md").write_text(
+            self._diagnostics_markdown(
+                manifest,
+                dataset,
+                decision_funnel_rows,
+                hold_reason_rows,
+                entry_diagnostic_rows,
+                exit_diagnostic_rows,
+                entry_exit_decomposition_rows,
+                cost_scenarios_by_fold_rows,
+                detailed_regime_rows,
+                timeframe_rows,
+                sensitivity_ofat_rows,
+                scorecard,
+                candidate or {},
+            ),
+            encoding="utf-8",
+        )
         (output_dir / "README.txt").write_text(
             "Research-only report. No real orders were sent. "
             "Past results do not guarantee future results.\n",
             encoding="utf-8",
         )
         return tuple(path.name for path in sorted(output_dir.iterdir()) if path.is_file())
+
+    @staticmethod
+    def _diagnostics_markdown(
+        manifest: ExperimentManifest,
+        dataset: ResearchDataset,
+        funnel: tuple[dict[str, object], ...],
+        holds: tuple[dict[str, object], ...],
+        entries: tuple[dict[str, object], ...],
+        exits: tuple[dict[str, object], ...],
+        decomposition: tuple[dict[str, object], ...],
+        costs_by_fold: tuple[dict[str, object], ...],
+        regimes: tuple[dict[str, object], ...],
+        timeframes: tuple[dict[str, object], ...],
+        ofat: tuple[dict[str, object], ...],
+        scorecard: tuple[dict[str, object], ...],
+        candidate: dict[str, object],
+    ) -> str:
+        funnel_lines = "\n".join(f"- {row.get('scope')}: {row}" for row in funnel)
+        hold_lines = "\n".join(f"- {row}" for row in holds[:10]) or "- None"
+        exit_lines = "\n".join(f"- {row}" for row in exits) or "- None"
+        score_lines = "\n".join(f"- {row}" for row in scorecard) or "- None"
+        return f"""# Diagnostics report
+
+## Period and protection
+
+- Experiment: `{manifest.experiment_id}`
+- Dataset: `{dataset.dataset_id}`
+- Dataset hash: `{dataset.content_hash}`
+- Consumed test data is not used for selection, ranking, sensitivity, or interval choice.
+- This report is diagnostic and post-event; it is not a production approval.
+
+## Decision funnel
+
+{funnel_lines or '- None'}
+
+## HOLD reasons
+
+Future returns in `hold_reason_analysis.csv` are calculated offline after traces were recorded;
+they are never provided to the strategy.
+
+{hold_lines}
+
+## Entries
+
+- Entry diagnostic rows: {len(entries)}
+
+## Exits
+
+{exit_lines}
+
+## Entry and exit decomposition
+
+- Scenario rows: {len(decomposition)}
+- Artifact: `entry_exit_decomposition.csv`
+
+## Cost scenarios by fold
+
+- Rows: {len(costs_by_fold)}
+- Artifact: `cost_scenarios_by_fold.csv`
+
+## Detailed regimes
+
+- Rows: {len(regimes)}
+- Artifact: `detailed_regime_metrics.csv`
+
+## Timeframe comparison
+
+- Rows: {len(timeframes)}
+- When zero, timeframe comparison is not applicable to this command and the CSV contains
+  only its valid status header. Missing intervals are never downloaded automatically.
+
+## OFAT sensitivity
+
+- Rows: {len(ofat)}
+- Only one configured strategy parameter changes per scenario.
+
+## Robustness scorecard
+
+{score_lines}
+
+## Candidate assessment
+
+`{candidate.get('status', 'INCONCLUSIVE')}` — no automatic production approval is performed.
+
+## Limitations
+
+Results are research-only. No authenticated endpoint or real order was used. Past results do
+not guarantee future results.
+"""
 
     @staticmethod
     def _markdown(

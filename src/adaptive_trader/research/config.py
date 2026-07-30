@@ -15,6 +15,7 @@ from adaptive_trader.research.models import (
     SelectionMode,
     WalkForwardMode,
 )
+from adaptive_trader.research.periods import ResearchPeriods
 
 
 class ResearchConfigError(ValueError):
@@ -43,6 +44,15 @@ class ResearchFileConfig:
     criterion: SelectionCriterion
     maximum_parameter_combinations: int
     minimum_closed_trades: int
+
+
+@dataclass(frozen=True, slots=True)
+class DiagnosticsFileConfig:
+    periods: ResearchPeriods
+    future_return_horizons: tuple[int, ...]
+    maximum_parameter_combinations: int
+    minimum_closed_trades: int
+    candidate: dict[str, Decimal]
 
 
 def _datetime(value: object, name: str) -> datetime:
@@ -118,4 +128,47 @@ def load_experiment_toml(path: Path) -> ResearchFileConfig:
         criterion=SelectionCriterion(str(selection.get("criterion", "return_to_drawdown"))),
         maximum_parameter_combinations=int(selection.get("maximum_parameter_combinations", 100)),
         minimum_closed_trades=int(selection.get("minimum_closed_trades", 10)),
+    )
+
+
+def load_diagnostics_toml(path: Path) -> DiagnosticsFileConfig:
+    try:
+        with path.open("rb") as file:
+            raw: dict[str, Any] = tomllib.load(file)
+    except (OSError, tomllib.TOMLDecodeError) as exc:
+        raise ResearchConfigError(f"could not read diagnostics TOML: {path}") from exc
+    secret_keys = _find_secret_keys(raw)
+    if secret_keys:
+        raise ResearchConfigError(
+            f"diagnostics TOML contains forbidden secret fields: {secret_keys}"
+        )
+    periods = raw.get("periods", {})
+    diagnostics = raw.get("diagnostics", {})
+    candidate = raw.get("candidate", {})
+    if not all(isinstance(section, dict) for section in (periods, diagnostics, candidate)):
+        raise ResearchConfigError("periods, diagnostics and candidate must be tables")
+    research_periods = ResearchPeriods(
+        development_start=_datetime(periods.get("development_start"), "periods.development_start"),
+        development_end=_datetime(periods.get("development_end"), "periods.development_end"),
+        validation_start=_datetime(periods.get("validation_start"), "periods.validation_start"),
+        validation_end=_datetime(periods.get("validation_end"), "periods.validation_end"),
+        consumed_test_start=_datetime(
+            periods.get("consumed_test_start"), "periods.consumed_test_start"
+        ),
+        consumed_test_end=_datetime(periods.get("consumed_test_end"), "periods.consumed_test_end"),
+    )
+    horizons_raw = diagnostics.get("future_return_horizons", [1, 3, 6, 12, 24])
+    if not isinstance(horizons_raw, list) or not all(
+        isinstance(item, int) for item in horizons_raw
+    ):
+        raise ResearchConfigError("diagnostics.future_return_horizons must be integer values")
+    horizons = tuple(int(item) for item in horizons_raw)
+    if not horizons or any(item < 1 for item in horizons):
+        raise ResearchConfigError("future return horizons must be positive")
+    return DiagnosticsFileConfig(
+        periods=research_periods,
+        future_return_horizons=horizons,
+        maximum_parameter_combinations=int(diagnostics.get("maximum_parameter_combinations", 60)),
+        minimum_closed_trades=int(diagnostics.get("minimum_closed_trades", 30)),
+        candidate={key: _decimal(value, f"candidate.{key}") for key, value in candidate.items()},
     )

@@ -1,0 +1,48 @@
+{
+  "diagnostics": {
+    "benchmark_win_percent": "66.66666666666666666666666667",
+    "best_day_profit_percent": "-105.7152160867789940632801116",
+    "best_trade_profit_percent": "-70.10683147759620422016927368",
+    "longest_period_without_new_top_days": 0,
+    "negative_month_count": 14,
+    "positive_fold_percent": "33.33333333333333333333333333",
+    "positive_month_count": 6,
+    "result_without_best_trade": "-121.4498926732278352324",
+    "result_without_top_five_trades": "-264.0318313122842171622",
+    "top_five_day_profit_percent": "-305.3301892052076080125220262",
+    "top_five_trade_profit_percent": "-269.8119219800719156098353109",
+    "train_validation_expectancy_gap": "-4.940742515792958028249122807",
+    "train_validation_profit_factor_gap": "-0.4448755545129730824881493582",
+    "train_validation_return_gap": "-0.78823612494908179943400",
+    "warnings": [
+      "RESULTS_CONCENTRATED"
+    ]
+  },
+  "summary": {
+    "benchmark_loss_count": 1,
+    "benchmark_tie_count": 0,
+    "benchmark_win_count": 2,
+    "benchmark_win_percent": "66.66666666666666666666666667",
+    "best_net_return": "0.258008490945566101600",
+    "completed_fold_count": 3,
+    "failed_fold_count": 0,
+    "flat_fold_count": 0,
+    "fold_count": 3,
+    "mean_expectancy": "-3.158489144651116000367485380",
+    "mean_max_drawdown": "0.810583646559954669762345194",
+    "mean_net_return": "-0.2379874882513136154033333333",
+    "mean_profit_factor": "0.651359454849512980764161066",
+    "median_net_return": "-0.44174332169599124997600",
+    "median_profit_factor": "0.7546014050177829299021669198",
+    "negative_fold_count": 2,
+    "parameter_selection_frequency": {},
+    "positive_fold_count": 1,
+    "positive_fold_percent": "33.33333333333333333333333333",
+    "total_closed_trades": 36,
+    "total_entries": 36,
+    "total_evaluated_candles": 39308,
+    "warnings": [],
+    "worst_max_drawdown": "1.270470357127358153094159219",
+    "worst_net_return": "-0.53022763400351569783400"
+  }
+}

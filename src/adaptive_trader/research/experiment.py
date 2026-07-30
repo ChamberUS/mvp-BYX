@@ -13,6 +13,7 @@ from adaptive_trader.config.settings import TradingConfig
 from adaptive_trader.domain.protocols import MarketAnalyzer, RiskManager
 from adaptive_trader.execution.backtest import BacktestExecutionConfig, BacktestOrderExecutor
 from adaptive_trader.research.benchmarks import calculate_benchmarks
+from adaptive_trader.research.diagnostics import annotate_traces
 from adaptive_trader.research.models import DatasetSegment, SegmentRun
 from adaptive_trader.risk.manager import DefaultRiskManager
 from adaptive_trader.strategy.deterministic import DeterministicAnalyzer
@@ -55,12 +56,31 @@ class ResearchExperimentRunner:
     ) -> None:
         self._component_factory = component_factory
         self._clock = clock or (lambda: datetime.now(tz=UTC))
+        self._cache: dict[
+            tuple[str, str, TradingConfig, int | None],
+            SegmentRun,
+        ] = {}
 
-    def run_segment(self, segment: DatasetSegment, config: TradingConfig) -> SegmentRun:
+    def run_segment(
+        self,
+        segment: DatasetSegment,
+        config: TradingConfig,
+        *,
+        time_exit_candles: int | None = None,
+    ) -> SegmentRun:
         run_config = replace(
             config,
             warmup_candles=max(config.warmup_candles, segment.warmup_candle_count),
         )
+        cache_key = (
+            segment.name,
+            segment.content_hash,
+            run_config,
+            time_exit_candles,
+        )
+        cached = self._cache.get(cache_key)
+        if cached is not None:
+            return cached
         try:
             strategy, risk_manager, executor = self._component_factory(run_config)
             result = BacktestEngine(
@@ -69,19 +89,23 @@ class ResearchExperimentRunner:
                 executor=executor,
                 config=run_config,
                 clock=self._clock,
+                time_exit_candles=time_exit_candles,
             ).run(
                 segment.candles,
                 evaluation_start_time=segment.evaluation_start_time,
             )
-            return SegmentRun(
+            result = annotate_traces(result, segment.name)
+            run = SegmentRun(
                 segment=segment,
                 result=result,
                 benchmarks=calculate_benchmarks(segment, run_config),
                 parameters=run_config.as_dict(),
                 warnings=tuple(dict.fromkeys((*segment.warnings, *result.warnings))),
             )
+            self._cache[cache_key] = run
+            return run
         except (ValueError, RuntimeError, OSError) as exc:
-            return SegmentRun(
+            run = SegmentRun(
                 segment=segment,
                 result=None,
                 benchmarks=(),
@@ -94,6 +118,8 @@ class ResearchExperimentRunner:
                     )
                 ),
             )
+            self._cache[cache_key] = run
+            return run
 
     def run_segments(
         self, segments: Sequence[DatasetSegment], config: TradingConfig
