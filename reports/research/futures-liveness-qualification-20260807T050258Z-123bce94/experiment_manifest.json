@@ -1,0 +1,86 @@
+{
+  "artifacts": [
+    "experiment_manifest.json",
+    "previous_stale_incident_analysis.json",
+    "liveness_config.json",
+    "stream_interarrival_statistics.json",
+    "stream_interarrival_samples.csv",
+    "transport_latency_summary.json",
+    "local_processing_latency.json",
+    "recorder_runtime_health.json",
+    "liveness_incidents.csv",
+    "cross_stream_consistency.json",
+    "qualification_smoke_summary.json",
+    "long_capture_summary.json",
+    "replay_determinism.json",
+    "readiness_assessment.json",
+    "futures_liveness_qualification_report.md",
+    "long_capture_manifest.json"
+  ],
+  "authentication_used": false,
+  "created_at": "2026-08-07T05:02:58.241734+00:00",
+  "experiment_id": "futures-liveness-qualification-20260807T050258Z-123bce94",
+  "final_4a3_decision": "READY_FOR_4A3",
+  "final_readiness": "READY_FOR_LONG_CAPTURE",
+  "leverage": "1",
+  "long_session": "data/microstructure/futures/ETHUSDT/2026-08-07/microstructure-20260807T042149Z-usd_m_futures",
+  "official_documentation": {
+    "legacy_route_allowed": false,
+    "market_base_url": "wss://fstream.binance.com/market",
+    "observed_on": "2026-08-07",
+    "official_sources": [
+      "https://developers.binance.com/en/docs/products/derivatives-trading-usds-futures/websocket-market-streams/Important-WebSocket-Change-Notice",
+      "https://developers.binance.com/en/docs/products/derivatives-trading-usds-futures/websocket-market-streams/Connect",
+      "https://developers.binance.com/en/docs/products/derivatives-trading-usds-futures/websocket-market-streams/How-to-manage-a-local-order-book-correctly"
+    ],
+    "private_route_used": false,
+    "public_base_url": "wss://fstream.binance.com/public",
+    "stream_mapping": {
+      "aggTrade": {
+        "canonical_suffix": "aggTrade",
+        "route": "MARKET"
+      },
+      "bookTicker": {
+        "canonical_suffix": "bookTicker",
+        "route": "PUBLIC"
+      },
+      "depth": {
+        "canonical_suffix": "depth@100ms",
+        "route": "PUBLIC"
+      },
+      "depth@100ms": {
+        "canonical_suffix": "depth@100ms",
+        "route": "PUBLIC"
+      },
+      "markPrice": {
+        "canonical_suffix": "markPrice@1s",
+        "route": "MARKET"
+      },
+      "markPrice@1s": {
+        "canonical_suffix": "markPrice@1s",
+        "route": "MARKET"
+      }
+    }
+  },
+  "official_documentation_observed_on": "2026-08-07",
+  "orders_sent": false,
+  "paper_trading_used": false,
+  "private_streams_used": false,
+  "profitability_analyzed": false,
+  "qualification_session": "data/microstructure/futures/ETHUSDT/2026-08-07/microstructure-20260807T041445Z-usd_m_futures",
+  "qualification_session_manifest_hash": "123bce94fdfb6e0c606df026d2895744df947d1a61188490c7cabd53f1c312fa",
+  "quality_budgets": {
+    "maximum_book_invalid_duration_ms": 0,
+    "maximum_dropped_events": 0,
+    "maximum_parser_errors": 0,
+    "maximum_processing_backlog": 5000,
+    "maximum_real_sequence_gaps": 0,
+    "maximum_recovered_stale_duration_ms": 10000,
+    "maximum_unresolved_incidents": 0,
+    "source": "ENGINEERING_ASSUMPTION"
+  },
+  "research_only": true,
+  "smoke_readiness": "READY_FOR_LONG_CAPTURE",
+  "sprint": "4A.2.2",
+  "testnet_used": false
+}

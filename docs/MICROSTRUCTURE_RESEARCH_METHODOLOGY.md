@@ -20,7 +20,14 @@ implementação. Para `ETHUSDT`, a captura combinada usa:
 | Mercado | WebSocket base | Streams | Snapshot público |
 | --- | --- | --- | --- |
 | Spot | `wss://stream.binance.com:9443/stream` | `ethusdt@aggTrade`, `ethusdt@bookTicker`, `ethusdt@depth@100ms` | `GET /api/v3/depth` |
-| USD-M Futures | `wss://fstream.binance.com/stream` | `ethusdt@aggTrade`, `ethusdt@bookTicker`, `ethusdt@depth@100ms`, `ethusdt@markPrice@1s` | `GET /fapi/v1/depth` |
+| USD-M Futures PUBLIC | `wss://fstream.binance.com/public/stream?streams=...` | `ethusdt@bookTicker`, `ethusdt@depth@100ms` | `GET /fapi/v1/depth` |
+| USD-M Futures MARKET | `wss://fstream.binance.com/market/stream?streams=...` | `ethusdt@aggTrade`, `ethusdt@markPrice@1s` | — |
+
+O mapeamento USD-M foi observado na documentação oficial em `2026-08-07`. O roteador tipado
+rejeita `/private`, listen keys, URL legada sem rota e qualquer stream no agrupamento errado.
+PUBLIC e MARKET usam sockets independentes. O merge persistido desempata por event time,
+transaction time, connection ID, sequência monotônica da conexão, receive monotonic e event ID.
+Detalhes e fontes oficiais estão em `docs/FUTURES_MARKET_DATA_ROUTING.md`.
 
 Somente dados públicos são persistidos. O payload original recebe representação JSON canônica
 lossless e SHA-256. Para `aggTrade`, `buyer_is_maker=false` significa agressor comprador e
@@ -29,7 +36,7 @@ lossless e SHA-256. Para `aggTrade`, `buyer_is_maker=false` significa agressor c
 ## Eventos, relógios e armazenamento
 
 `MicrostructureEvent` é imutável e separa horário do evento e da transação na exchange, horário
-de recebimento na parede e contador monotônico local. Os tipos são `AGG_TRADE`, `BOOK_TICKER`,
+de recebimento na parede, contador monotônico local, connection ID e sequência por conexão. Os tipos são `AGG_TRADE`, `BOOK_TICKER`,
 `DEPTH_UPDATE`, `MARK_PRICE`, `SNAPSHOT` e `CONNECTION_STATE`. Preços e quantidades usam
 `Decimal`.
 
@@ -39,23 +46,37 @@ contagens, primeiro/último evento, SHA-256 por arquivo, tamanho bruto/comprimid
 disconnects, resyncs e completude. Restos `.part` de uma interrupção podem ser validados e
 recuperados sem transformar uma sessão incompleta em completa.
 
-`MicrostructureReplayEngine` valida hashes, ordena por event time, sequence, receive monotonic e
-ID estável. `VirtualClock` nunca retrocede. Os modos `1x`, `max` e `step` preservam as mesmas
+`MicrostructureReplayEngine` valida hashes e aplica a mesma chave de merge cross-connection.
+`VirtualClock` nunca retrocede. Os modos `1x`, `max` e `step` preservam as mesmas
 decisões e não usam `sleep` real para timers estratégicos; a velocidade é uma política do
 consumidor, não uma fonte de tempo para o alpha.
 
 ## Livro local e integridade
 
-Cada `LocalOrderBook` pertence a um único par mercado/símbolo. O bootstrap abre o stream,
-bufferiza diff updates, obtém o snapshot REST, descarta updates cobertos por `lastUpdateId` e
-exige que o primeiro update aplicável contenha `lastUpdateId + 1`. Spot valida `U/u`; Futures
-também valida o elo `pu`. Updates duplicados e antigos não são reaplicados. Jump, out-of-order
-incompatível, gap ou livro cruzado tornam o livro `INVALID`, produzem `ORDER_BOOK_DESYNC`,
-bloqueiam alpha e exigem resync com novo snapshot.
+Cada `LocalOrderBook` pertence a um único par mercado/símbolo. As políticas não são
+intercambiáveis. Spot exige a continuidade documentada via `U/u` contendo o update anterior
+mais um. USD-M Futures descarta apenas eventos com `u < lastUpdateId`, alinha o primeiro evento
+por `U <= lastUpdateId <= u` e, daí em diante, exige exclusivamente
+`event.pu == previous_event.u`. A regra Spot de `previous + 1` não é aplicada após o bootstrap
+Futures.
+
+Falhas recebem uma classificação explícita: `REAL_SEQUENCE_GAP`,
+`SNAPSHOT_ALIGNMENT_RETRY`, `OLD_EVENT`, `DUPLICATE_EVENT`, `OUT_OF_ORDER_EVENT`,
+`STALE_EVENT`, `CONNECTION_RESTART` ou `PARSER_ERROR`. Somente gaps reais incrementam o contador
+de sequence gap; retry de alinhamento pede novo snapshot sem transformar um artefato de
+bootstrap em gap da exchange. Todo resync registra sequências anterior/observada, conexão,
+horário, resultado e classificação.
 
 A conexão responde a ping/pong, tem timeout, limite de frame, reconexões limitadas e backoff
-exponencial limitado. Contadores separam conexões, reconnects, snapshots, sequence gaps, resyncs
-e downtime. Não existe retry infinito.
+exponencial limitado. `StreamLivenessMonitor` acompanha cada stream em `REQUESTED`, `CONNECTED`,
+`WAITING_FIRST_EVENT`, `LIVE`, `STALE` ou `FAILED`, com cadência/timeout próprio e recuperação
+registrada. Contadores separam conexões, reconnects, snapshots, sequence gaps, resyncs e
+downtime. Não existe retry infinito.
+
+`MicrostructureFeedHealth` decide `READY`, `DEGRADED` ou `NOT_READY`. O scorecard decide
+`CAPTURE_VALID`, `CAPTURE_VALID_WITH_WARNINGS` ou `CAPTURE_INVALID`. Em Futures, ausência de
+qualquer um dos quatro streams, parse inválido, hash/completude inválidos ou livro sem sync
+produz `NOT_READY`; `alpha-diagnose` recusa esse input.
 
 ## Liquidez e features point-in-time
 
@@ -118,26 +139,49 @@ separando long/short, maker/taker e mid/preço executável. Essas medidas são
 adaptive-trader market microstructure doctor
 adaptive-trader market microstructure record --market spot --symbol ETHUSDT \
   --streams aggTrade,bookTicker,depth --depth-speed 100ms \
-  --output-dir data/microstructure --duration-seconds 60
+  --output-dir data/microstructure --duration 60
 adaptive-trader market microstructure record --market futures --symbol ETHUSDT \
   --streams aggTrade,bookTicker,depth,markPrice --depth-speed 100ms \
-  --output-dir data/microstructure --duration-seconds 60
+  --output-dir data/microstructure --duration 3600
 adaptive-trader market microstructure inspect --session <session>
+adaptive-trader market microstructure health --session <session>
 adaptive-trader research microstructure replay --session <session> --speed max \
   --output-dir reports/research
 adaptive-trader research microstructure alpha-diagnose --session <session> \
   --models long,short --output-dir reports/research
+adaptive-trader research microstructure futures-feed-harden --session <session> \
+  --previous-session <previous-30s-session> --output-dir reports/research
+adaptive-trader research microstructure futures-liveness-qualify --session <session-300s> \
+  --previous-session <previous-300s-session> --long-session <session-1800s> \
+  --output-dir reports/research
 ```
 
 O replay cria exatamente os 11 artefatos da Sprint 4A.1 com integridade da captura/livro,
 liquidez, features, alpha, `NO_TRADE`, contrato Elastic sintético e determinismo. Não cria
 candidate assessment financeiro.
 
+O hardening Futures cria exatamente 13 artefatos de transporte, liveness, sequência,
+alinhamento bookTicker, resync, qualidade e replay. Uma captura curta nunca recebe
+`READY_FOR_LONG_CAPTURE`: primeiro é obrigatório validar 300 segundos e todos os quatro streams;
+somente então a captura de 1.800 segundos pode ser iniciada.
+
+A qualificação 4A.2.2 não equipara update speed a heartbeat. Ela separa receive cadence de
+exchange cadence, transport latency de processamento local, e `DEPTH_SILENCE` de
+`DEPTH_SEQUENCE_GAP`. Current health pode voltar a `READY` após um incidente `RECOVERED`, enquanto
+a session quality preserva `VALID_WITH_WARNINGS`. Fila limitada, drops, backlog, event-loop,
+consistência cross-stream e cinco hashes do replay participam do gate objetivo descrito em
+`docs/MICROSTRUCTURE_LIVENESS_AND_QUALITY.md`.
+
+`--duration 0` mantém a captura até SIGINT/SIGTERM e ainda fecha o arquivo corrente e o manifest.
+`--duration-seconds` permanece como alias compatível. A camada posterior de execução, incluindo
+arrival time, fila aproximada, partial fill, cancel race, fees, PnL executável e determinismo,
+está documentada em `docs/INTRADAY_EXECUTION_SIMULATION.md`.
+
 ## Limites
 
 Isto não é HFT institucional. Python, o scheduler do sistema, TLS, Internet pública, relógios
-locais, frames agregados de 100 ms e ausência de colocação em fila impedem garantias de latência
-submilissegundo. O livro é uma reconstrução de feeds públicos, não uma visão co-localizada. Smoke
-captures curtas validam engenharia e não desempenho financeiro. Custos, fills parciais, impacto
-e adverse selection ainda precisam de simulador e validação pré-registrada antes de qualquer
-conclusão econômica.
+locais e frames agregados de 100 ms impedem garantias de latência submilissegundo. O livro é uma
+reconstrução pública, não uma visão co-localizada. A Sprint 4A.2 adiciona um simulador mecânico,
+mas posição de fila continua sendo aproximação conservadora e impacto além do depth visível não
+é inventado. Smoke captures e cenários sintéticos validam engenharia, não desempenho financeiro;
+qualquer conclusão econômica ainda exige pesquisa de alpha e validação pré-registrada posterior.

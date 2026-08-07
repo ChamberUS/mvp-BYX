@@ -1,0 +1,15 @@
+{
+  "average_fill_notification_ms": "12",
+  "components": {
+    "cancel_outbound_latency_ms": 12,
+    "cancel_processing_latency_ms": 3,
+    "decision_latency_ms": 8,
+    "exchange_processing_latency_ms": 3,
+    "fill_notification_latency_ms": 12,
+    "inbound_ack_latency_ms": 12,
+    "outbound_order_latency_ms": 12,
+    "profile": "NORMAL"
+  },
+  "fill_count": 1,
+  "profile": "NORMAL"
+}

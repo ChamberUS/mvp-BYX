@@ -1,0 +1,22 @@
+{
+  "fee_config": {
+    "fee_asset": "USDT",
+    "futures": {
+      "maker_fee_rate": "0.0002",
+      "taker_fee_rate": "0.0005"
+    },
+    "research_defaults_only": true,
+    "spot": {
+      "maker_fee_rate": "0.0010",
+      "taker_fee_rate": "0.0010"
+    }
+  },
+  "latency_profile": "NORMAL",
+  "leverage": "1",
+  "maker_wait_ms": 250,
+  "policy": "MAKER_FIRST_V0",
+  "remainder_policy": "PARTIAL_FILL",
+  "research_only": true,
+  "residual_slippage_bps": "0",
+  "seed": 42
+}

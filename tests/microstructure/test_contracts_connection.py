@@ -34,7 +34,9 @@ def test_official_spot_and_futures_capabilities_are_public_only() -> None:
     assert spot.diff_depth_stream == "ethusdt@depth@100ms"
     assert spot.depth_snapshot_path == "/api/v3/depth"
     assert spot.mark_price_stream is None
-    assert futures.websocket_base_url == "wss://fstream.binance.com/stream"
+    assert futures.websocket_base_url == "wss://fstream.binance.com/public/stream"
+    assert futures.market_websocket_base_url == "wss://fstream.binance.com/market/stream"
+    assert futures.routed_connections_required
     assert futures.depth_snapshot_path == "/fapi/v1/depth"
     assert futures.mark_price_stream == "ethusdt@markPrice@1s"
     assert spot.public_only and futures.public_only

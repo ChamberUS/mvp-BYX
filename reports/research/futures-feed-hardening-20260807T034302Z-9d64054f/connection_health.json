@@ -1,0 +1,67 @@
+{
+  "connections": {
+    "futures-market-1": {
+      "CONNECTED": 1,
+      "events": 2084
+    },
+    "futures-public-1": {
+      "CONNECTED": 1,
+      "events": 64435
+    },
+    "futures-rest-snapshot-1": {
+      "events": 1
+    }
+  },
+  "disconnects": 0,
+  "separate_public_market_connections": true,
+  "stream_liveness": {
+    "aggTrade": {
+      "connection_id": "futures-market-1",
+      "event_count": 1784,
+      "expected_cadence_ms": null,
+      "failure_reason": null,
+      "first_event_timeout_ms": 20000,
+      "recovery_count": 0,
+      "restart_count": 0,
+      "stale_after_ms": 30000,
+      "stale_count": 0,
+      "state": "LIVE"
+    },
+    "bookTicker": {
+      "connection_id": "futures-public-1",
+      "event_count": 61517,
+      "expected_cadence_ms": null,
+      "failure_reason": null,
+      "first_event_timeout_ms": 20000,
+      "recovery_count": 0,
+      "restart_count": 0,
+      "stale_after_ms": 30000,
+      "stale_count": 0,
+      "state": "LIVE"
+    },
+    "depth": {
+      "connection_id": "futures-public-1",
+      "event_count": 2917,
+      "expected_cadence_ms": 100,
+      "failure_reason": null,
+      "first_event_timeout_ms": 5000,
+      "recovery_count": 1,
+      "restart_count": 0,
+      "stale_after_ms": 2000,
+      "stale_count": 1,
+      "state": "LIVE"
+    },
+    "markPrice": {
+      "connection_id": "futures-market-1",
+      "event_count": 299,
+      "expected_cadence_ms": 1000,
+      "failure_reason": null,
+      "first_event_timeout_ms": 5000,
+      "recovery_count": 0,
+      "restart_count": 0,
+      "stale_after_ms": 3500,
+      "stale_count": 0,
+      "state": "LIVE"
+    }
+  }
+}

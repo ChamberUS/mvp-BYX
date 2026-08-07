@@ -66,7 +66,8 @@ def test_duplicate_stale_gap_cross_and_stale_book_fail_closed() -> None:
     gap = gap_book.apply_update(depth_event(first=103, last=103))
     assert gap.reason is OrderBookReason.ORDER_BOOK_DESYNC
     assert gap_book.status is OrderBookStatus.INVALID
-    assert gap_book.sequence_gap_count == 1
+    assert gap.gap_classification.value == "SNAPSHOT_ALIGNMENT_RETRY"
+    assert gap_book.sequence_gap_count == 0
     assert gap_book.apply_update(depth_event(first=101, last=101)).applied is False
 
     crossed = LocalOrderBook(MarketType.SPOT, "ETHUSDT")
@@ -99,7 +100,7 @@ def test_futures_previous_sequence_link_and_resync_are_strict() -> None:
     assert book.update_id is None and book.best_bid is None
     update = depth_event(
         market=MarketType.USD_M_FUTURES,
-        first=201,
+        first=200,
         last=201,
         previous=200,
     )

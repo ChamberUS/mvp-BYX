@@ -18,6 +18,7 @@ from adaptive_trader.microstructure.live import (
     PublicWebSocketConnection,
 )
 from adaptive_trader.microstructure.models import MicrostructureStreamType
+from adaptive_trader.microstructure.routing import FuturesStreamRouter
 from tests.microstructure.helpers import at, snapshot_event, write_session
 
 
@@ -267,13 +268,13 @@ def test_public_recorder_lifecycle_with_fake_transport_has_no_auth_or_orders(
 
 
 def test_public_transport_and_recorder_validate_public_contracts() -> None:
-    with pytest.raises(ValueError, match="positive"):
+    with pytest.raises(ValueError, match="non-negative"):
         PublicMicrostructureRecorder(
             market_type=MarketType.SPOT,
             symbol="ETHUSDT",
             streams=("depth",),
             output_dir=Path("data"),
-            duration_seconds=0,
+            duration_seconds=-1,
         )
     with pytest.raises(ValueError, match="Futures-only"):
         PublicMicrostructureRecorder(
@@ -295,8 +296,11 @@ def test_public_transport_and_recorder_validate_public_contracts() -> None:
         streams=("depth", "markPrice"),
         output_dir=Path("data"),
     )
-    assert "ethusdt@markPrice@1s" in recorder._stream_url()
-    assert "ethusdt@depth@100ms" in recorder._stream_url()
+    plans = recorder._subscription_metadata(
+        FuturesStreamRouter().plans("ETHUSDT", ("depth", "markPrice"))
+    )
+    assert any("/public/stream" in item.url for item in plans)
+    assert any("/market/stream" in item.url for item in plans)
     assert snapshot_event().stream_type is MicrostructureStreamType.SNAPSHOT
 
     async def invalid_scheme() -> None:

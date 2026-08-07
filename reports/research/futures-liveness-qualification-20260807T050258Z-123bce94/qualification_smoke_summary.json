@@ -1,0 +1,62 @@
+{
+  "book_status": "SYNCHRONIZED",
+  "compressed_bytes_per_second": "22946.99231550681504735531990",
+  "compression_ratio": "7.847278792595377794877624365",
+  "current_health": "READY",
+  "disconnects": 0,
+  "dropped_events": 0,
+  "duration_seconds": "299.022194528",
+  "events_per_second": "126.1143844507127287348566482",
+  "executed": true,
+  "file_rotations": 1,
+  "parser_errors": 0,
+  "per_stream_counts": {
+    "aggTrade": 1039,
+    "bookTicker": 33455,
+    "depth": 2915,
+    "markPrice": 299
+  },
+  "queue_high_watermark": 799,
+  "raw_bytes_per_second": "180071.4461513257321364581167",
+  "readiness": {
+    "all_required_streams_active": true,
+    "current_health": "READY",
+    "duration_requirement_met": true,
+    "reasons": [
+      "OBJECTIVE_QUALITY_BUDGETS_SATISFIED"
+    ],
+    "replay_deterministic": true,
+    "runtime_queue_healthy": true,
+    "session_quality": "CLEAN",
+    "status": "READY_FOR_LONG_CAPTURE",
+    "warning_count": 0
+  },
+  "real_sequence_gaps": 0,
+  "reconnects": 0,
+  "recovered_incidents": 0,
+  "resyncs": 0,
+  "runtime_health": {
+    "backlog_unrecovered": false,
+    "dropped_events": 0,
+    "events_pending": 0,
+    "events_processed": 37708,
+    "events_received": 37708,
+    "loop_stall_count": 0,
+    "loop_stall_max_ms": "0",
+    "maximum_processing_backlog": 5000,
+    "persistence_lag_ms": "0.057505",
+    "processing_lag_ms": "10.363355",
+    "queue_capacity": 100000,
+    "queue_depth": 0,
+    "queue_high_watermark": 799,
+    "status": "READY",
+    "threshold_source": "ENGINEERING_ASSUMPTION"
+  },
+  "session": "data/microstructure/futures/ETHUSDT/2026-08-07/microstructure-20260807T041445Z-usd_m_futures",
+  "session_quality": "CLEAN",
+  "stale_incidents": 0,
+  "storage_compressed_bytes": 6861660,
+  "storage_raw_bytes": 53845359,
+  "total_events": 37711,
+  "unresolved_incidents": 0
+}

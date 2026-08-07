@@ -190,10 +190,17 @@ class MicrostructureEvent:
     asks: tuple[DepthLevel, ...] = ()
     mark_price: Decimal | None = None
     connection_state: str | None = None
+    connection_id: str = "legacy-public-1"
+    connection_sequence: int = 0
+    first_trade_id: int | None = None
+    last_trade_id: int | None = None
+    index_price: Decimal | None = None
+    funding_rate: Decimal | None = None
+    next_funding_time: datetime | None = None
 
     def __post_init__(self) -> None:
-        if not self.event_id or not self.exchange or not self.symbol:
-            raise ValueError("event_id, exchange and symbol are required")
+        if not self.event_id or not self.exchange or not self.symbol or not self.connection_id:
+            raise ValueError("event_id, exchange, symbol and connection_id are required")
         if self.symbol != self.symbol.upper() or not self.symbol.isalnum():
             raise ValueError("symbol must be uppercase alphanumeric")
         _aware(self.exchange_event_time, "exchange_event_time")
@@ -202,7 +209,15 @@ class MicrostructureEvent:
             _aware(self.exchange_transaction_time, "exchange_transaction_time")
         if self.receive_monotonic_ns < 0:
             raise ValueError("receive_monotonic_ns must be non-negative")
-        for name in ("sequence_first", "sequence_last", "sequence_previous", "trade_id"):
+        for name in (
+            "sequence_first",
+            "sequence_last",
+            "sequence_previous",
+            "trade_id",
+            "first_trade_id",
+            "last_trade_id",
+            "connection_sequence",
+        ):
             value = getattr(self, name)
             if value is not None and value < 0:
                 raise ValueError(f"{name} must be non-negative")
@@ -222,10 +237,21 @@ class MicrostructureEvent:
             "best_ask",
             "best_ask_quantity",
             "mark_price",
+            "index_price",
         ):
             value = getattr(self, name)
             if value is not None:
                 _finite(value, name, positive=True)
+        if self.funding_rate is not None:
+            _finite(self.funding_rate, "funding_rate")
+        if self.next_funding_time is not None:
+            _aware(self.next_funding_time, "next_funding_time")
+        if (
+            self.first_trade_id is not None
+            and self.last_trade_id is not None
+            and self.first_trade_id > self.last_trade_id
+        ):
+            raise ValueError("first_trade_id must not exceed last_trade_id")
         if self.stream_type is MicrostructureStreamType.AGG_TRADE:
             required = (
                 self.trade_id,

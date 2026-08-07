@@ -9,6 +9,7 @@ import json
 import logging
 import os
 import re
+import signal
 import sqlite3
 import subprocess
 import sys
@@ -23,6 +24,10 @@ from adaptive_trader.backtest.report import read_json, render_summary, write_jso
 from adaptive_trader.config.settings import ConfigError, TradingConfig, load_config
 from adaptive_trader.domain.market import MarketType, TradingMode
 from adaptive_trader.domain.models import Candle, SignalDirection, serialize_model
+from adaptive_trader.execution.engine import ExecutionConfig
+from adaptive_trader.execution.latency import LatencyProfile
+from adaptive_trader.execution.models import ExecutionPolicy
+from adaptive_trader.execution.reporting import ExecutionResearchService
 from adaptive_trader.futures.datasets import FuturesDataset, validate_futures_dataset
 from adaptive_trader.futures.integrity import FuturesGapPolicy, inspect_public_dataset
 from adaptive_trader.futures.models import (
@@ -65,7 +70,12 @@ from adaptive_trader.market_data.futures_history import FuturesHistoricalDownloa
 from adaptive_trader.market_data.history import HistoricalCandleDownloader
 from adaptive_trader.microstructure.connection import stream_capabilities
 from adaptive_trader.microstructure.foundation import MicrostructureFoundationService
+from adaptive_trader.microstructure.futures_feed import FuturesFeedHardeningService
+from adaptive_trader.microstructure.health import FeedHealthAnalyzer, FeedHealthStatus
 from adaptive_trader.microstructure.live import PublicMicrostructureRecorder
+from adaptive_trader.microstructure.liveness_qualification import (
+    FuturesLivenessQualificationService,
+)
 from adaptive_trader.microstructure.replay import MicrostructureReplayEngine, ReplaySpeed
 from adaptive_trader.microstructure.storage import inspect_session
 from adaptive_trader.observability.logging import configure_logging
@@ -180,10 +190,18 @@ def _parser() -> argparse.ArgumentParser:
     microstructure_record.add_argument("--streams", required=True)
     microstructure_record.add_argument("--depth-speed", choices=("100ms",), default="100ms")
     microstructure_record.add_argument("--output-dir", type=Path, required=True)
-    microstructure_record.add_argument("--duration-seconds", type=int, default=60)
+    microstructure_record.add_argument(
+        "--duration",
+        "--duration-seconds",
+        dest="duration_seconds",
+        type=int,
+        default=60,
+    )
     microstructure_record.add_argument("--maximum-reconnects", type=int, default=3)
     microstructure_inspect = microstructure_commands.add_parser("inspect")
     microstructure_inspect.add_argument("--session", type=Path, required=True)
+    microstructure_health = microstructure_commands.add_parser("health")
+    microstructure_health.add_argument("--session", type=Path, required=True)
     backtest = commands.add_parser("backtest")
     backtest_commands = backtest.add_subparsers(dest="backtest_command", required=True)
     run = backtest_commands.add_parser("run")
@@ -211,6 +229,42 @@ def _parser() -> argparse.ArgumentParser:
     microstructure_alpha.add_argument("--session", type=Path, required=True)
     microstructure_alpha.add_argument("--models", default="long,short")
     microstructure_alpha.add_argument("--output-dir", type=Path, required=True)
+    futures_feed_harden = microstructure_research_commands.add_parser(
+        "futures-feed-harden"
+    )
+    futures_feed_harden.add_argument("--session", type=Path, required=True)
+    futures_feed_harden.add_argument("--previous-session", type=Path, default=None)
+    futures_feed_harden.add_argument("--output-dir", type=Path, required=True)
+    futures_liveness_qualify = microstructure_research_commands.add_parser(
+        "futures-liveness-qualify"
+    )
+    futures_liveness_qualify.add_argument("--session", type=Path, required=True)
+    futures_liveness_qualify.add_argument("--previous-session", type=Path, default=None)
+    futures_liveness_qualify.add_argument("--long-session", type=Path, default=None)
+    futures_liveness_qualify.add_argument("--output-dir", type=Path, required=True)
+    execution_research = research_commands.add_parser("execution")
+    execution_research_commands = execution_research.add_subparsers(
+        dest="execution_research_command",
+        required=True,
+    )
+    execution_simulate = execution_research_commands.add_parser("simulate")
+    execution_simulate.add_argument("--session", type=Path, required=True)
+    execution_simulate.add_argument(
+        "--policy",
+        choices=("maker-first", "taker-only"),
+        default="maker-first",
+    )
+    execution_simulate.add_argument(
+        "--latency-profile",
+        choices=("idealized", "fast", "normal", "stressed"),
+        default="normal",
+    )
+    execution_simulate.add_argument("--output-dir", type=Path, required=True)
+    execution_synthetic = execution_research_commands.add_parser("synthetic")
+    execution_synthetic.add_argument("--scenario", default="all")
+    execution_synthetic.add_argument("--output-dir", type=Path, required=True)
+    execution_show = execution_research_commands.add_parser("show")
+    execution_show.add_argument("--experiment", type=Path, required=True)
     dataset = research_commands.add_parser("dataset")
     dataset_commands = dataset.add_subparsers(dest="dataset_command", required=True)
     inspect = dataset_commands.add_parser("inspect")
@@ -617,7 +671,19 @@ async def _microstructure_record(args: argparse.Namespace) -> int:
         duration_seconds=args.duration_seconds,
         maximum_reconnects=args.maximum_reconnects,
     )
-    result = await recorder.run()
+    loop = asyncio.get_running_loop()
+    registered: list[signal.Signals] = []
+    for current_signal in (signal.SIGINT, signal.SIGTERM):
+        try:
+            loop.add_signal_handler(current_signal, recorder.request_stop)
+            registered.append(current_signal)
+        except (NotImplementedError, RuntimeError, ValueError):
+            continue
+    try:
+        result = await recorder.run()
+    finally:
+        for current_signal in registered:
+            loop.remove_signal_handler(current_signal)
     print(json.dumps(serialize_model(result), indent=2, sort_keys=True))
     return 0 if result.session.completeness == "COMPLETE" else 1
 
@@ -626,6 +692,23 @@ def _microstructure_inspect(args: argparse.Namespace) -> int:
     result = inspect_session(args.session)
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0 if result["hashes_valid"] else 1
+
+
+def _microstructure_health(args: argparse.Namespace) -> int:
+    health, scorecard, details = FeedHealthAnalyzer().analyze(args.session)
+    print(
+        json.dumps(
+            {
+                "feed_health": serialize_model(health),
+                "capture_quality_scorecard": serialize_model(scorecard),
+                "gap_classification": details["gap_classification"],
+                "alpha_diagnosis_allowed": health.status is not FeedHealthStatus.NOT_READY,
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return 1 if health.status is FeedHealthStatus.NOT_READY else 0
 
 
 def _microstructure_replay(args: argparse.Namespace) -> int:
@@ -655,6 +738,13 @@ def _microstructure_alpha_diagnose(args: argparse.Namespace) -> int:
     models = tuple(item.strip().lower() for item in args.models.split(",") if item.strip())
     if not models or set(models) - {"long", "short"}:
         raise ValueError("microstructure models must contain only long and/or short")
+    capture = inspect_session(args.session)
+    if capture.get("market") == MarketType.USD_M_FUTURES.value:
+        health, _, _ = FeedHealthAnalyzer().analyze(args.session)
+        if health.status is FeedHealthStatus.NOT_READY:
+            raise ValueError(
+                "alpha diagnosis refused: Futures microstructure feed is NOT_READY"
+            )
     report = MicrostructureFoundationService().run(
         session_path=args.session,
         output_dir=args.output_dir,
@@ -673,6 +763,110 @@ def _microstructure_alpha_diagnose(args: argparse.Namespace) -> int:
             sort_keys=True,
         )
     )
+    return 0
+
+
+def _microstructure_futures_feed_harden(args: argparse.Namespace) -> int:
+    report = FuturesFeedHardeningService().run(
+        session_path=args.session,
+        previous_session_path=args.previous_session,
+        output_dir=args.output_dir,
+    )
+    manifest = json.loads((report / "experiment_manifest.json").read_text(encoding="utf-8"))
+    print(
+        json.dumps(
+            {
+                "report_directory": str(report),
+                "readiness": manifest["readiness"],
+                "research_only": True,
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return 0 if manifest["readiness"] == "READY_FOR_LONG_CAPTURE" else 1
+
+
+def _microstructure_futures_liveness_qualify(args: argparse.Namespace) -> int:
+    report = FuturesLivenessQualificationService().run(
+        qualification_session_path=args.session,
+        previous_session_path=args.previous_session,
+        long_session_path=args.long_session,
+        output_dir=args.output_dir,
+    )
+    assessment = json.loads(
+        (report / "readiness_assessment.json").read_text(encoding="utf-8")
+    )
+    final = assessment["final"]
+    print(
+        json.dumps(
+            {
+                "report_directory": str(report),
+                "readiness": final["status"],
+                "ready_for_4a3": assessment["ready_for_4a3"],
+                "research_only": True,
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return 0 if final["status"] != "NOT_READY_FOR_LONG_CAPTURE" else 1
+
+
+def _execution_config(args: argparse.Namespace) -> ExecutionConfig:
+    policy = {
+        "maker-first": ExecutionPolicy.MAKER_FIRST_V0,
+        "taker-only": ExecutionPolicy.TAKER_ONLY,
+    }[args.policy]
+    return ExecutionConfig(
+        policy=policy,
+        latency_profile=LatencyProfile(args.latency_profile.upper()),
+    )
+
+
+def _research_execution_simulate(args: argparse.Namespace) -> int:
+    report = ExecutionResearchService().run_session(
+        session_path=args.session,
+        output_dir=args.output_dir,
+        config=_execution_config(args),
+    )
+    print(
+        json.dumps(
+            {
+                "experiment": str(report),
+                "research_only": True,
+                "authentication_used": False,
+                "external_orders_sent": False,
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return 0
+
+
+def _research_execution_synthetic(args: argparse.Namespace) -> int:
+    report = ExecutionResearchService().run_synthetic(
+        output_dir=args.output_dir,
+        scenario=args.scenario,
+    )
+    print(
+        json.dumps(
+            {
+                "experiment": str(report),
+                "research_only": True,
+                "profitability_evaluated": False,
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return 0
+
+
+def _research_execution_show(args: argparse.Namespace) -> int:
+    payload = ExecutionResearchService.show(args.experiment)
+    print(json.dumps(payload, indent=2, sort_keys=True))
     return 0
 
 
@@ -2363,6 +2557,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 return asyncio.run(_microstructure_record(args))
             if args.microstructure_market_command == "inspect":
                 return _microstructure_inspect(args)
+            if args.microstructure_market_command == "health":
+                return _microstructure_health(args)
         if args.command == "market" and args.market_command == "futures":
             if args.futures_market_command == "status":
                 return _futures_status(config, args)
@@ -2392,6 +2588,17 @@ def main(argv: Sequence[str] | None = None) -> int:
                 return _microstructure_replay(args)
             if args.microstructure_research_command == "alpha-diagnose":
                 return _microstructure_alpha_diagnose(args)
+            if args.microstructure_research_command == "futures-feed-harden":
+                return _microstructure_futures_feed_harden(args)
+            if args.microstructure_research_command == "futures-liveness-qualify":
+                return _microstructure_futures_liveness_qualify(args)
+        if args.command == "research" and args.research_command == "execution":
+            if args.execution_research_command == "simulate":
+                return _research_execution_simulate(args)
+            if args.execution_research_command == "synthetic":
+                return _research_execution_synthetic(args)
+            if args.execution_research_command == "show":
+                return _research_execution_show(args)
         if args.command == "research" and args.research_command == "holdout":
             if args.holdout_command == "run":
                 return _research_holdout(config, args)

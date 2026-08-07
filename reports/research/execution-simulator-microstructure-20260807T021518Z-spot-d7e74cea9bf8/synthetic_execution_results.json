@@ -1,0 +1,9 @@
+[
+  {
+    "code": "SPOT_REPLAY",
+    "deterministic": true,
+    "name": "pre-defined synthetic intent over recorded public depth",
+    "profitability_evaluated": false,
+    "status": "PASS"
+  }
+]

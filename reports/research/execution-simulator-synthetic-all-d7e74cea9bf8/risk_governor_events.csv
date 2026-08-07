@@ -1,0 +1,2 @@
+timestamp,previous_state,state,reason,critical
+2026-08-06T00:00:00+00:00,ACTIVE,DAILY_KILLED,DAILY_LOSS_LIMIT,False

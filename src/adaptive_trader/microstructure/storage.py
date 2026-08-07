@@ -12,7 +12,10 @@ from typing import TextIO
 
 from adaptive_trader.domain.market import MarketType
 from adaptive_trader.microstructure.codec import event_record_json
-from adaptive_trader.microstructure.models import MicrostructureEvent
+from adaptive_trader.microstructure.models import (
+    MicrostructureEvent,
+    MicrostructureStreamType,
+)
 
 FORBIDDEN_SECRET_MARKERS = ("apikey", "api_key", "secret", "listenkey", "listen_key")
 
@@ -44,6 +47,30 @@ class MicrostructureSessionSummary:
     files: tuple[MicrostructureFileMetadata, ...]
 
 
+@dataclass(frozen=True, slots=True)
+class StreamSubscriptionMetadata:
+    requested_stream: str
+    canonical_stream: str
+    route: str
+    connection_id: str
+    url: str
+
+    def __post_init__(self) -> None:
+        if not all(
+            (
+                self.requested_stream,
+                self.canonical_stream,
+                self.route,
+                self.connection_id,
+                self.url,
+            )
+        ):
+            raise ValueError("subscription metadata fields are required")
+        lowered = f"{self.route}|{self.url}".lower()
+        if any(marker in lowered for marker in ("/private", "listenkey", "listen_key")):
+            raise ValueError("private subscription metadata is forbidden")
+
+
 class MicrostructureSessionWriter:
     """Batch events in one gzip stream instead of one SQLite transaction per event."""
 
@@ -56,6 +83,8 @@ class MicrostructureSessionWriter:
         session_id: str,
         started_at: datetime,
         rotate_event_count: int = 100_000,
+        subscriptions: tuple[StreamSubscriptionMetadata, ...] = (),
+        requested_duration_seconds: int | None = None,
     ) -> None:
         if rotate_event_count <= 0:
             raise ValueError("rotate_event_count must be positive")
@@ -63,6 +92,8 @@ class MicrostructureSessionWriter:
             raise ValueError("started_at must be timezone-aware")
         if not session_id or any(part in session_id for part in ("/", "\\", "..")):
             raise ValueError("session_id must be a safe path component")
+        if requested_duration_seconds is not None and requested_duration_seconds < 0:
+            raise ValueError("requested duration must be non-negative")
         self.market_type = market_type
         self.symbol = symbol.upper()
         self.session_id = session_id
@@ -77,6 +108,8 @@ class MicrostructureSessionWriter:
         )
         self.session_path.mkdir(parents=True, exist_ok=False)
         self.rotate_event_count = rotate_event_count
+        self.subscriptions = subscriptions
+        self.requested_duration_seconds = requested_duration_seconds
         self._handle: TextIO | None = None
         self._part_path: Path | None = None
         self._part_index = 0
@@ -89,6 +122,30 @@ class MicrostructureSessionWriter:
         self._first_event: str | None = None
         self._last_event: str | None = None
         self._closed = False
+        self._parser_errors = 0
+        self._liveness_summary: dict[str, object] = {}
+        self._liveness_config: dict[str, object] = {}
+        self._liveness_incidents: tuple[dict[str, object], ...] = ()
+        self._runtime_health: dict[str, object] = {}
+        self._processing_latency: dict[str, object] = {}
+        self._resync_events: tuple[dict[str, object], ...] = ()
+        self._delivery: dict[str, dict[str, object]] = {
+            item.requested_stream: {
+                "requested_stream": item.requested_stream,
+                "canonical_stream": item.canonical_stream,
+                "route": item.route,
+                "connection_id": item.connection_id,
+                "url": item.url,
+                "event_count": 0,
+                "first_exchange_event_time": None,
+                "last_exchange_event_time": None,
+                "first_receive_wall_time": None,
+                "last_receive_wall_time": None,
+                "first_connection_sequence": None,
+                "last_connection_sequence": None,
+            }
+            for item in subscriptions
+        }
         self._open_part()
 
     def append(self, event: MicrostructureEvent) -> None:
@@ -110,9 +167,31 @@ class MicrostructureSessionWriter:
         self._part_last = timestamp
         self._first_event = self._first_event or timestamp
         self._last_event = timestamp
+        self._record_delivery(event)
         if self._part_events >= self.rotate_event_count:
             self._finalize_part()
             self._open_part()
+
+    def set_capture_metadata(
+        self,
+        *,
+        parser_errors: int,
+        liveness_summary: dict[str, object],
+        resync_events: tuple[dict[str, object], ...] = (),
+        liveness_config: dict[str, object] | None = None,
+        liveness_incidents: tuple[dict[str, object], ...] = (),
+        runtime_health: dict[str, object] | None = None,
+        processing_latency: dict[str, object] | None = None,
+    ) -> None:
+        if parser_errors < 0:
+            raise ValueError("parser error count must be non-negative")
+        self._parser_errors = parser_errors
+        self._liveness_summary = liveness_summary
+        self._resync_events = resync_events
+        self._liveness_config = liveness_config or {}
+        self._liveness_incidents = liveness_incidents
+        self._runtime_health = runtime_health or {}
+        self._processing_latency = processing_latency or {}
 
     def close(
         self,
@@ -195,6 +274,27 @@ class MicrostructureSessionWriter:
             "resyncs": summary.resyncs,
             "completeness": summary.completeness,
             "credentials_persisted": False,
+            "requested_duration_seconds": self.requested_duration_seconds,
+            "parser_errors": self._parser_errors,
+            "subscription_manifest": [
+                {
+                    "requested_stream": item.requested_stream,
+                    "canonical_stream": item.canonical_stream,
+                    "route": item.route,
+                    "connection_id": item.connection_id,
+                    "url": item.url,
+                }
+                for item in self.subscriptions
+            ],
+            "stream_delivery": [
+                self._delivery[name] for name in sorted(self._delivery)
+            ],
+            "stream_liveness": self._liveness_summary,
+            "liveness_config": self._liveness_config,
+            "liveness_incidents": self._liveness_incidents,
+            "recorder_runtime_health": self._runtime_health,
+            "local_processing_latency": self._processing_latency,
+            "resync_events": self._resync_events,
             "files": [
                 {
                     "path": item.path,
@@ -212,6 +312,47 @@ class MicrostructureSessionWriter:
             json.dumps(payload, indent=2, sort_keys=True) + "\n",
             encoding="utf-8",
         )
+
+    def _record_delivery(self, event: MicrostructureEvent) -> None:
+        event_names = {
+            MicrostructureStreamType.AGG_TRADE: "aggTrade",
+            MicrostructureStreamType.BOOK_TICKER: "bookTicker",
+            MicrostructureStreamType.DEPTH_UPDATE: "depth",
+            MicrostructureStreamType.MARK_PRICE: "markPrice",
+        }
+        event_name = event_names.get(event.stream_type)
+        if event_name is None:
+            return
+        candidates = (
+            item
+            for item in self.subscriptions
+            if item.requested_stream == event_name
+            or item.requested_stream.startswith(f"{event_name}@")
+        )
+        subscription = next(candidates, None)
+        if subscription is None:
+            return
+        delivery = self._delivery[subscription.requested_stream]
+        current_count = delivery["event_count"]
+        if not isinstance(current_count, int):
+            raise RuntimeError("stream delivery count lost integer type")
+        delivery["event_count"] = current_count + 1
+        exchange_time = event.exchange_event_time.isoformat()
+        receive_time = event.receive_wall_time.isoformat()
+        delivery["first_exchange_event_time"] = (
+            delivery["first_exchange_event_time"] or exchange_time
+        )
+        delivery["last_exchange_event_time"] = exchange_time
+        delivery["first_receive_wall_time"] = (
+            delivery["first_receive_wall_time"] or receive_time
+        )
+        delivery["last_receive_wall_time"] = receive_time
+        delivery["first_connection_sequence"] = (
+            delivery["first_connection_sequence"]
+            if delivery["first_connection_sequence"] is not None
+            else event.connection_sequence
+        )
+        delivery["last_connection_sequence"] = event.connection_sequence
 
 
 def inspect_session(session_path: Path) -> dict[str, object]:

@@ -1,0 +1,112 @@
+{
+  "current_health": "READY",
+  "dataset_hash": "28411d38fa3cb4caced8feff6c796a7b913f66fb8565e65c77a083fdac2ea6e9",
+  "duration_seconds": "1798.662933932",
+  "end": "2026-08-07T05:00:31.871000+00:00",
+  "event_counts": {
+    "aggTrade": 9063,
+    "bookTicker": 281973,
+    "depth": 17555,
+    "markPrice": 1799
+  },
+  "hashes": [
+    "37603ea4fd32a0de0867eb40113965a60d505c5e66c53deb6e0f5e7ea6b42717",
+    "f5461272fa789bbd83d466025f7c1db242f9d9f1f33ad2963e8a0163bb57346f",
+    "233f61b2d98e7eced2585989db5c1b853e71884b7df77dd0be0224d1a52b0cc3",
+    "d542b61e4e1e34ded8f76da9da89e1c2cc806b63ffe978e5933e4e218c7929d1"
+  ],
+  "market": "USD_M_FUTURES",
+  "quality": "CLEAN",
+  "replay_hashes": {
+    "deterministic": true,
+    "first": {
+      "book_state_hash": "74a34c8ceeaae240ee03a961701187fbbab6557d4383a0dca3ecf411a2771a1b",
+      "event_count": 310393,
+      "event_hash": "97a4bdd57dceefb4018635e6a83b156ad9b06a561ae4954910a89e9acbaf5768",
+      "feature_hash": "08bd0674ff6d945c2a674b8c2169622a29e39f9d2f654cbee53d3e7f9f456f1e",
+      "health_event_hash": "6330d6c02c3f56fcef405771394058e4063dd78657ab3b846c35f3d85271d98b"
+    },
+    "real_sleep_used": false,
+    "same_book_state_hash": true,
+    "same_event_count": true,
+    "same_event_hash": true,
+    "same_feature_hash": true,
+    "same_health_event_hash": true,
+    "second": {
+      "book_state_hash": "74a34c8ceeaae240ee03a961701187fbbab6557d4383a0dca3ecf411a2771a1b",
+      "event_count": 310393,
+      "event_hash": "97a4bdd57dceefb4018635e6a83b156ad9b06a561ae4954910a89e9acbaf5768",
+      "feature_hash": "08bd0674ff6d945c2a674b8c2169622a29e39f9d2f654cbee53d3e7f9f456f1e",
+      "health_event_hash": "6330d6c02c3f56fcef405771394058e4063dd78657ab3b846c35f3d85271d98b"
+    },
+    "session": "data/microstructure/futures/ETHUSDT/2026-08-07/microstructure-20260807T042149Z-usd_m_futures"
+  },
+  "routes": [
+    "MARKET",
+    "PUBLIC"
+  ],
+  "sequence_integrity": true,
+  "session_id": "microstructure-20260807T042149Z-usd_m_futures",
+  "software_commit": "970d1e4+SPRINT_4A_2_WORKTREE",
+  "start": "2026-08-07T04:21:50.457732+00:00",
+  "streams": [
+    {
+      "canonical_stream": "ethusdt@aggTrade",
+      "connection_id": "futures-market-1",
+      "event_count": 9063,
+      "first_connection_sequence": 3,
+      "first_exchange_event_time": "2026-08-07T04:30:33.334000+00:00",
+      "first_receive_wall_time": "2026-08-07T04:21:50.582071+00:00",
+      "last_connection_sequence": 10863,
+      "last_exchange_event_time": "2026-08-07T05:00:31.651000+00:00",
+      "last_receive_wall_time": "2026-08-07T05:00:31.740406+00:00",
+      "requested_stream": "aggTrade",
+      "route": "MARKET",
+      "url": "wss://fstream.binance.com/market/stream?streams=ethusdt@aggTrade/ethusdt@markPrice@1s"
+    },
+    {
+      "canonical_stream": "ethusdt@bookTicker",
+      "connection_id": "futures-public-1",
+      "event_count": 281973,
+      "first_connection_sequence": 2,
+      "first_exchange_event_time": "2026-08-07T04:30:32.933000+00:00",
+      "first_receive_wall_time": "2026-08-07T04:21:50.458002+00:00",
+      "last_connection_sequence": 299529,
+      "last_exchange_event_time": "2026-08-07T05:00:31.871000+00:00",
+      "last_receive_wall_time": "2026-08-07T05:00:32.067262+00:00",
+      "requested_stream": "bookTicker",
+      "route": "PUBLIC",
+      "url": "wss://fstream.binance.com/public/stream?streams=ethusdt@bookTicker/ethusdt@depth@100ms"
+    },
+    {
+      "canonical_stream": "ethusdt@depth@100ms",
+      "connection_id": "futures-public-1",
+      "event_count": 17555,
+      "first_connection_sequence": 3,
+      "first_exchange_event_time": "2026-08-07T04:30:33.013000+00:00",
+      "first_receive_wall_time": "2026-08-07T04:21:50.458308+00:00",
+      "last_connection_sequence": 299528,
+      "last_exchange_event_time": "2026-08-07T05:00:31.803000+00:00",
+      "last_receive_wall_time": "2026-08-07T05:00:31.892298+00:00",
+      "requested_stream": "depth",
+      "route": "PUBLIC",
+      "url": "wss://fstream.binance.com/public/stream?streams=ethusdt@bookTicker/ethusdt@depth@100ms"
+    },
+    {
+      "canonical_stream": "ethusdt@markPrice@1s",
+      "connection_id": "futures-market-1",
+      "event_count": 1799,
+      "first_connection_sequence": 2,
+      "first_exchange_event_time": "2026-08-07T04:30:33.002000+00:00",
+      "first_receive_wall_time": "2026-08-07T04:21:50.581942+00:00",
+      "last_connection_sequence": 10861,
+      "last_exchange_event_time": "2026-08-07T05:00:31+00:00",
+      "last_receive_wall_time": "2026-08-07T05:00:31.143193+00:00",
+      "requested_stream": "markPrice",
+      "route": "MARKET",
+      "url": "wss://fstream.binance.com/market/stream?streams=ethusdt@aggTrade/ethusdt@markPrice@1s"
+    }
+  ],
+  "symbol": "ETHUSDT",
+  "warnings": 0
+}

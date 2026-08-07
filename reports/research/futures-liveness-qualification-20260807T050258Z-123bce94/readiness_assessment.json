@@ -1,0 +1,40 @@
+{
+  "final": {
+    "all_required_streams_active": true,
+    "current_health": "READY",
+    "duration_requirement_met": true,
+    "reasons": [
+      "OBJECTIVE_QUALITY_BUDGETS_SATISFIED"
+    ],
+    "replay_deterministic": true,
+    "runtime_queue_healthy": true,
+    "session_quality": "CLEAN",
+    "status": "READY_FOR_LONG_CAPTURE",
+    "warning_count": 0
+  },
+  "historical_recovered_incidents_are_not_permanent_failures": true,
+  "quality_budgets": {
+    "maximum_book_invalid_duration_ms": 0,
+    "maximum_dropped_events": 0,
+    "maximum_parser_errors": 0,
+    "maximum_processing_backlog": 5000,
+    "maximum_real_sequence_gaps": 0,
+    "maximum_recovered_stale_duration_ms": 10000,
+    "maximum_unresolved_incidents": 0,
+    "source": "ENGINEERING_ASSUMPTION"
+  },
+  "ready_for_4a3": "READY_FOR_4A3",
+  "smoke": {
+    "all_required_streams_active": true,
+    "current_health": "READY",
+    "duration_requirement_met": true,
+    "reasons": [
+      "OBJECTIVE_QUALITY_BUDGETS_SATISFIED"
+    ],
+    "replay_deterministic": true,
+    "runtime_queue_healthy": true,
+    "session_quality": "CLEAN",
+    "status": "READY_FOR_LONG_CAPTURE",
+    "warning_count": 0
+  }
+}

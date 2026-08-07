@@ -1,0 +1,14 @@
+{
+  "all_required_streams_delivered": true,
+  "book_synchronized": true,
+  "complete": true,
+  "hashes_valid": true,
+  "liveness_stable": false,
+  "parser_clean": true,
+  "reasons": [
+    "STALE_INCIDENTS:1",
+    "LIVENESS_RECOVERIES:1"
+  ],
+  "sequence_clean": true,
+  "status": "CAPTURE_VALID_WITH_WARNINGS"
+}

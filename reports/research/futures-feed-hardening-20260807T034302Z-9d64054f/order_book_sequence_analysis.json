@@ -1,0 +1,21 @@
+{
+  "accepted_depth_update_count": 2911,
+  "bootstrap_rule": "U <= lastUpdateId <= u",
+  "classifications": {
+    "CONNECTION_RESTART": 0,
+    "DUPLICATE_EVENT": 0,
+    "OLD_EVENT": 0,
+    "OUT_OF_ORDER_EVENT": 0,
+    "PARSER_ERROR": 0,
+    "REAL_SEQUENCE_GAP": 0,
+    "SNAPSHOT_ALIGNMENT_RETRY": 0,
+    "STALE_EVENT": 0
+  },
+  "final_status": "SYNCHRONIZED",
+  "final_update_id": 11231743996857,
+  "market": "USD_M_FUTURES",
+  "policy": "USD_M_FUTURES_PU_CHAIN",
+  "snapshot_count": 1,
+  "spot_previous_plus_one_rule_used_after_bootstrap": false,
+  "steady_state_rule": "event.pu == previous_event.u"
+}

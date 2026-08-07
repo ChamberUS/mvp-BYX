@@ -1,0 +1,23 @@
+{
+  "adverse_selection_bps": null,
+  "average_fill_latency_ms": "12",
+  "average_time_working_ms": null,
+  "cancel_rate": "0.3333333333333333333333333333",
+  "depth_slippage_bps": "0",
+  "expiry_rate": "0",
+  "fill_rate": "1",
+  "maker_rate": "0.2",
+  "order_count": 3,
+  "p50_fill_latency_ms": "12",
+  "p95_fill_latency_ms": "12",
+  "partial_fill_rate": "0.6666666666666666666666666667",
+  "queue_model": "CONSERVATIVE_FIFO_APPROXIMATION",
+  "queue_position_exact": false,
+  "reject_rate": "0",
+  "spread_captured_bps": "0",
+  "spread_paid_bps": "0",
+  "taker_rate": "0.8",
+  "total_slippage_bps": "0",
+  "unfilled_quantity": "8",
+  "vwap": "2000.142857142857142857142857"
+}

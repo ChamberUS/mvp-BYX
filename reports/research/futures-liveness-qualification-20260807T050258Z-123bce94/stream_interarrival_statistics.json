@@ -1,0 +1,134 @@
+{
+  "receive_and_exchange_cadence_are_separate": true,
+  "streams": {
+    "aggTrade": {
+      "event_count": 9063,
+      "exchange_event_time_interarrival": {
+        "count": 9062,
+        "max_ms": "5255.000",
+        "mean_ms": "198.4459280512028249834473626",
+        "median_ms": "49.0000",
+        "min_ms": "0.0",
+        "p90_ms": "588.8000",
+        "p95_ms": "892.95000",
+        "p99_9_ms": "2581.024000",
+        "p99_ms": "1579.78000",
+        "stddev_ms": "336.3394474374542"
+      },
+      "expected_cadence_ms": null,
+      "fixed_periodicity_assumed": false,
+      "liveness_mode": "EVENT_DRIVEN",
+      "missing_expected_intervals": null,
+      "receive_time_interarrival": {
+        "count": 9062,
+        "max_ms": "5239.834107",
+        "mean_ms": "198.4343077632972853674685500",
+        "median_ms": "38.3073865",
+        "min_ms": "0.066261",
+        "p90_ms": "592.5578066",
+        "p95_ms": "907.92752530",
+        "p99_9_ms": "2594.504519928",
+        "p99_ms": "1579.51053110",
+        "stddev_ms": "340.3678739941006"
+      },
+      "trade_rate_events_per_second": "5.040007255745795738493377174"
+    },
+    "bookTicker": {
+      "event_count": 281973,
+      "exchange_event_time_interarrival": {
+        "count": 281972,
+        "max_ms": "796.000",
+        "mean_ms": "6.379846225866398082079071681",
+        "median_ms": "0.00",
+        "min_ms": "0.0",
+        "p90_ms": "10.000",
+        "p95_ms": "35.00000",
+        "p99_9_ms": "317.000000",
+        "p99_ms": "131.00000",
+        "stddev_ms": "26.593011897493305"
+      },
+      "expected_cadence_ms": null,
+      "fixed_periodicity_assumed": false,
+      "liveness_mode": "CHANGE_DRIVEN",
+      "missing_expected_intervals": null,
+      "receive_time_interarrival": {
+        "count": 281972,
+        "max_ms": "855.199683",
+        "mean_ms": "6.378869600885903564892968096",
+        "median_ms": "0.1022485",
+        "min_ms": "0.060683",
+        "p90_ms": "4.8503437",
+        "p95_ms": "32.26190525",
+        "p99_9_ms": "365.606647535",
+        "p99_ms": "140.88058270",
+        "stddev_ms": "29.60764662794248"
+      },
+      "trade_rate_events_per_second": null
+    },
+    "depth": {
+      "event_count": 17555,
+      "exchange_event_time_interarrival": {
+        "count": 17554,
+        "max_ms": "114.000",
+        "mean_ms": "102.4718012988492651247578899",
+        "median_ms": "102.0000",
+        "min_ms": "102.000",
+        "p90_ms": "104.0000",
+        "p95_ms": "104.00000",
+        "p99_9_ms": "106.000000",
+        "p99_ms": "104.00000",
+        "stddev_ms": "0.8802176145957795"
+      },
+      "expected_cadence_ms": 100,
+      "fixed_periodicity_assumed": false,
+      "liveness_mode": "CHANGE_DRIVEN",
+      "missing_expected_intervals": null,
+      "receive_time_interarrival": {
+        "count": 17554,
+        "max_ms": "1045.772016",
+        "mean_ms": "102.4545602287797652956591090",
+        "median_ms": "102.1944175",
+        "min_ms": "0.175175",
+        "p90_ms": "150.2871153",
+        "p95_ms": "174.34945125",
+        "p99_9_ms": "556.575476322",
+        "p99_ms": "316.02629853",
+        "stddev_ms": "56.47839006053166"
+      },
+      "trade_rate_events_per_second": null
+    },
+    "markPrice": {
+      "event_count": 1799,
+      "exchange_event_time_interarrival": {
+        "count": 1798,
+        "max_ms": "1010.00",
+        "mean_ms": "999.9988876529477196885428254",
+        "median_ms": "1000.00",
+        "min_ms": "989.000",
+        "p90_ms": "1003.0000",
+        "p95_ms": "1005.00000",
+        "p99_9_ms": "1010.00000",
+        "p99_ms": "1008.03000",
+        "stddev_ms": "2.761163787067564"
+      },
+      "expected_cadence_ms": 1000,
+      "fixed_periodicity_assumed": true,
+      "liveness_mode": "PERIODIC",
+      "missing_expected_intervals": 0,
+      "receive_time_interarrival": {
+        "count": 1798,
+        "max_ms": "1990.216703",
+        "mean_ms": "999.7856548364849833147942158",
+        "median_ms": "1002.2538315",
+        "min_ms": "0.659272",
+        "p90_ms": "1046.8733265",
+        "p95_ms": "1054.60512875",
+        "p99_9_ms": "1633.898735995",
+        "p99_ms": "1180.07712799",
+        "stddev_ms": "76.75973822529436"
+      },
+      "trade_rate_events_per_second": null
+    }
+  },
+  "update_speed_is_not_assumed_to_be_a_heartbeat": true
+}

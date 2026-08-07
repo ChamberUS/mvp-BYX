@@ -1,0 +1,40 @@
+{
+  "artifacts": [
+    "experiment_manifest.json",
+    "official_stream_mapping.json",
+    "previous_futures_smoke_diagnosis.json",
+    "stream_delivery_summary.json",
+    "connection_health.json",
+    "order_book_sequence_analysis.json",
+    "gap_classification.json",
+    "resync_events.csv",
+    "book_ticker_alignment.csv",
+    "feed_health.json",
+    "capture_quality_scorecard.json",
+    "replay_determinism.json",
+    "futures_feed_hardening_report.md"
+  ],
+  "authentication_used": false,
+  "completed_at": "2026-08-07T03:43:30.541506+00:00",
+  "experiment_id": "futures-feed-hardening-20260807T034302Z-9d64054f",
+  "leverage": "1",
+  "official_documentation_observed_on": "2026-08-07",
+  "orders_sent": false,
+  "paper_trading_used": false,
+  "previous_session": "data/microstructure/futures/ETHUSDT/2026-08-07/microstructure-20260807T025547Z-usd_m_futures",
+  "private_streams_used": false,
+  "profitability_claimed": false,
+  "readiness": "NOT_READY",
+  "readiness_criteria": {
+    "capture_valid": false,
+    "feed_health_ready": false,
+    "replay_twice_identical": true,
+    "requested_duration_at_least_300_seconds": true
+  },
+  "research_only": true,
+  "session": "data/microstructure/futures/ETHUSDT/2026-08-07/microstructure-20260807T033329Z-usd_m_futures",
+  "session_manifest_hash": "9d64054f9a28ec2dd365713f28ab7d6e7e1191b996e483e89926e665b396b69c",
+  "sprint": "4A.2.1",
+  "started_at": "2026-08-07T03:43:02.486155+00:00",
+  "testnet_used": false
+}

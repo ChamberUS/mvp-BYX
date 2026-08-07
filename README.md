@@ -60,17 +60,40 @@ point-in-time, `NO_TRADE` e alphas long/short realmente separados. Short existe 
 Futures `1x`. A frequência de 5–20 trades em dias ativos é diagnóstico, nunca quota ou objetivo
 de calibração.
 
+A Sprint 4A.2.1 endurece o feed USD-M conforme as rotas oficiais observadas em `2026-08-07`:
+`bookTicker`/`depth@100ms` usam uma conexão `/public`, enquanto
+`aggTrade`/`markPrice@1s` usam outra conexão `/market`. A URL legada e streams privadas são
+rejeitadas. Futures alinha snapshot por `U <= lastUpdateId <= u` e depois encadeia apenas por
+`pu == u anterior`; a regra Spot não é reutilizada.
+
 ```bash
 adaptive-trader market microstructure doctor
 adaptive-trader market microstructure record --market spot --symbol ETHUSDT \
   --streams aggTrade,bookTicker,depth --depth-speed 100ms \
   --output-dir data/microstructure --duration-seconds 60
 adaptive-trader market microstructure inspect --session <session>
+adaptive-trader market microstructure health --session <session>
 adaptive-trader research microstructure replay --session <session> --speed max \
   --output-dir reports/research
 adaptive-trader research microstructure alpha-diagnose --session <session> \
   --models long,short --output-dir reports/research
+adaptive-trader research microstructure futures-feed-harden --session <session> \
+  --previous-session <previous-30s-session> --output-dir reports/research
+adaptive-trader research microstructure futures-liveness-qualify \
+  --session <qualification-300s-session> --previous-session <previous-300s-session> \
+  --long-session <long-1800s-session> --output-dir reports/research
 ```
+
+O hardening Futures exige os quatro streams com parse válido, book sincronizado, liveness,
+scorecard e replay idêntico duas vezes. O smoke inicial dura 300 s; somente um relatório
+`READY_FOR_LONG_CAPTURE` autoriza a tentativa de 1.800 s. `NOT_READY` bloqueia alpha-diagnose.
+
+A Sprint 4A.2.2 separa current health de qualidade histórica: um silêncio recuperado pode deixar
+o feed atual `READY` e a sessão `VALID_WITH_WARNINGS`. Update speed não é presumido heartbeat;
+depth/bookTicker são change-driven, aggTrade é execution-driven e markPrice@1s é aproximadamente
+periódico. A fila do recorder agora é limitada e registra backlog, drops, event-loop stall,
+parse, book update e persistência. Critérios, budgets e diagnóstico do stale anterior estão em
+[`docs/MICROSTRUCTURE_LIVENESS_AND_QUALITY.md`](docs/MICROSTRUCTURE_LIVENESS_AND_QUALITY.md).
 
 O `ElasticProfitExitController` é somente uma hipótese sintética 300/150 não selecionada. Ele usa
 VWAP executável nos bids para fechar long e nos asks para recomprar short; mark price não realiza
@@ -393,3 +416,28 @@ somente em `1x`, com funding e mark `1h` preservados.
 O contrato completo de agregação UTC, regras point-in-time, execução no dia seguinte, catálogo,
 seleção, artefatos e limites de segurança está em
 [`docs/TREND_FOLLOWING_METHODOLOGY.md`](docs/TREND_FOLLOWING_METHODOLOGY.md).
+
+## Simulação realista de execução intraday
+
+A Sprint 4A.2 adiciona uma venue local, determinística e research-only para ordens market,
+marketable limit e passive limit. Ela modela arrival time, perfis explícitos de latência, consumo
+multinível, partial fills, maker/taker, fees por fill, aproximação FIFO conservadora, cancel-fill
+race, expiry, posições Spot/Futures, mark PnL separado de executable PnL e governor de risco.
+Spot short e leverage diferente de `1x` são rejeitados; não existe autenticação ou envio externo.
+
+```bash
+adaptive-trader research execution synthetic \
+  --scenario all --output-dir reports/research
+
+adaptive-trader research execution simulate \
+  --session <microstructure-session> --policy maker-first \
+  --latency-profile normal --output-dir reports/research
+
+adaptive-trader research execution show \
+  --experiment reports/research/<execution-simulator-id>
+```
+
+Capturas públicas mais longas usam `--duration 3600`; `--duration 0` permanece ativo até
+SIGINT/SIGTERM e finaliza gzip e manifest de forma limpa. O desenho completo, defaults de fee,
+invariantes, 17 cenários e limitações estão em
+[`docs/INTRADAY_EXECUTION_SIMULATION.md`](docs/INTRADAY_EXECUTION_SIMULATION.md).

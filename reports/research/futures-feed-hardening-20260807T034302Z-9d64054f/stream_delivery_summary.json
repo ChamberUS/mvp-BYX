@@ -1,0 +1,101 @@
+{
+  "all_four_required_streams_delivered": true,
+  "event_counts_by_type": {
+    "AGG_TRADE": 1784,
+    "BOOK_TICKER": 61517,
+    "CONNECTION_STATE": 2,
+    "DEPTH_UPDATE": 2917,
+    "MARK_PRICE": 299,
+    "SNAPSHOT": 1
+  },
+  "parser_errors": 0,
+  "recorded_delivery": [
+    {
+      "canonical_stream": "ethusdt@aggTrade",
+      "connection_id": "futures-market-1",
+      "event_count": 1784,
+      "first_connection_sequence": 4,
+      "first_exchange_event_time": "2026-08-07T03:33:31.502000+00:00",
+      "first_receive_wall_time": "2026-08-07T03:33:31.641341+00:00",
+      "last_connection_sequence": 2084,
+      "last_exchange_event_time": "2026-08-07T03:38:28.865000+00:00",
+      "last_receive_wall_time": "2026-08-07T03:38:29.029190+00:00",
+      "requested_stream": "aggTrade",
+      "route": "MARKET",
+      "url": "wss://fstream.binance.com/market/stream?streams=ethusdt@aggTrade/ethusdt@markPrice@1s"
+    },
+    {
+      "canonical_stream": "ethusdt@bookTicker",
+      "connection_id": "futures-public-1",
+      "event_count": 61517,
+      "first_connection_sequence": 7,
+      "first_exchange_event_time": "2026-08-07T03:33:30.449000+00:00",
+      "first_receive_wall_time": "2026-08-07T03:33:30.586238+00:00",
+      "last_connection_sequence": 64435,
+      "last_exchange_event_time": "2026-08-07T03:38:28.970000+00:00",
+      "last_receive_wall_time": "2026-08-07T03:38:29.087426+00:00",
+      "requested_stream": "bookTicker",
+      "route": "PUBLIC",
+      "url": "wss://fstream.binance.com/public/stream?streams=ethusdt@bookTicker/ethusdt@depth@100ms"
+    },
+    {
+      "canonical_stream": "ethusdt@depth@100ms",
+      "connection_id": "futures-public-1",
+      "event_count": 2917,
+      "first_connection_sequence": 2,
+      "first_exchange_event_time": "2026-08-07T03:33:29.943000+00:00",
+      "first_receive_wall_time": "2026-08-07T03:33:30.071335+00:00",
+      "last_connection_sequence": 64394,
+      "last_exchange_event_time": "2026-08-07T03:38:28.895000+00:00",
+      "last_receive_wall_time": "2026-08-07T03:38:29.034654+00:00",
+      "requested_stream": "depth",
+      "route": "PUBLIC",
+      "url": "wss://fstream.binance.com/public/stream?streams=ethusdt@bookTicker/ethusdt@depth@100ms"
+    },
+    {
+      "canonical_stream": "ethusdt@markPrice@1s",
+      "connection_id": "futures-market-1",
+      "event_count": 299,
+      "first_connection_sequence": 2,
+      "first_exchange_event_time": "2026-08-07T03:33:30+00:00",
+      "first_receive_wall_time": "2026-08-07T03:33:30.153046+00:00",
+      "last_connection_sequence": 2082,
+      "last_exchange_event_time": "2026-08-07T03:38:28+00:00",
+      "last_receive_wall_time": "2026-08-07T03:38:28.162585+00:00",
+      "requested_stream": "markPrice",
+      "route": "MARKET",
+      "url": "wss://fstream.binance.com/market/stream?streams=ethusdt@aggTrade/ethusdt@markPrice@1s"
+    }
+  ],
+  "subscription_manifest": [
+    {
+      "canonical_stream": "ethusdt@bookTicker",
+      "connection_id": "futures-public-1",
+      "requested_stream": "bookTicker",
+      "route": "PUBLIC",
+      "url": "wss://fstream.binance.com/public/stream?streams=ethusdt@bookTicker/ethusdt@depth@100ms"
+    },
+    {
+      "canonical_stream": "ethusdt@depth@100ms",
+      "connection_id": "futures-public-1",
+      "requested_stream": "depth",
+      "route": "PUBLIC",
+      "url": "wss://fstream.binance.com/public/stream?streams=ethusdt@bookTicker/ethusdt@depth@100ms"
+    },
+    {
+      "canonical_stream": "ethusdt@aggTrade",
+      "connection_id": "futures-market-1",
+      "requested_stream": "aggTrade",
+      "route": "MARKET",
+      "url": "wss://fstream.binance.com/market/stream?streams=ethusdt@aggTrade/ethusdt@markPrice@1s"
+    },
+    {
+      "canonical_stream": "ethusdt@markPrice@1s",
+      "connection_id": "futures-market-1",
+      "requested_stream": "markPrice",
+      "route": "MARKET",
+      "url": "wss://fstream.binance.com/market/stream?streams=ethusdt@aggTrade/ethusdt@markPrice@1s"
+    }
+  ],
+  "valid_parse_required": true
+}

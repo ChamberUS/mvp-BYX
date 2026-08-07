@@ -1,0 +1,19 @@
+{
+  "activation_source": "NET_EXECUTABLE_PNL",
+  "continuation_ms": 300,
+  "diagnostics": [
+    "price_reversal_detected",
+    "ofi_reversal_detected",
+    "trade_flow_reversal_detected",
+    "depth_reversal_detected",
+    "microprice_reversal_detected"
+  ],
+  "hard_floor_immediate": true,
+  "liquidity_exit_failsafe": true,
+  "profiles": [
+    "IMMEDIATE_PROFIT_EXIT",
+    "ELASTIC_300_150_V0"
+  ],
+  "profitability_evaluated": false,
+  "reversal_confirmation_ms": 150
+}

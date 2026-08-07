@@ -1,0 +1,35 @@
+{
+  "capture_duration_seconds": "298.996447849",
+  "connection_restarts": 0,
+  "delivered_streams": [
+    "aggTrade",
+    "bookTicker",
+    "depth",
+    "markPrice"
+  ],
+  "event_counts": {
+    "aggTrade": 1784,
+    "bookTicker": 61517,
+    "depth": 2917,
+    "markPrice": 299
+  },
+  "final_order_book_status": "SYNCHRONIZED",
+  "liveness_recoveries": 1,
+  "market": "USD_M_FUTURES",
+  "missing_streams": [],
+  "parser_errors": 0,
+  "real_sequence_gaps": 0,
+  "reasons": [
+    "STALE_INCIDENTS:1",
+    "LIVENESS_RECOVERIES:1"
+  ],
+  "required_streams": [
+    "aggTrade",
+    "bookTicker",
+    "depth",
+    "markPrice"
+  ],
+  "stale_incidents": 1,
+  "status": "DEGRADED",
+  "symbol": "ETHUSDT"
+}

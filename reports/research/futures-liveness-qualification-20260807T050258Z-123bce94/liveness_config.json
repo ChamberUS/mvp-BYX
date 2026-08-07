@@ -1,0 +1,60 @@
+{
+  "policy": {
+    "cross_stream_evidence_used": true,
+    "depth_silence_is_sequence_gap": false,
+    "recovered_incident_is_permanent_failure": false,
+    "update_speed_is_heartbeat": false
+  },
+  "quality_budgets": {
+    "maximum_book_invalid_duration_ms": 0,
+    "maximum_dropped_events": 0,
+    "maximum_parser_errors": 0,
+    "maximum_processing_backlog": 5000,
+    "maximum_real_sequence_gaps": 0,
+    "maximum_recovered_stale_duration_ms": 10000,
+    "maximum_unresolved_incidents": 0,
+    "source": "ENGINEERING_ASSUMPTION"
+  },
+  "streams": {
+    "aggTrade": {
+      "expected_cadence_ms": null,
+      "first_event_timeout_ms": 30000,
+      "maximum_recovered_incident_ms": 10000,
+      "mode": "EVENT_DRIVEN",
+      "silence_observation_ms": 30000,
+      "source": "ENGINEERING_ASSUMPTION",
+      "unresolved_after_ms": 60000,
+      "update_speed_is_heartbeat": false
+    },
+    "bookTicker": {
+      "expected_cadence_ms": null,
+      "first_event_timeout_ms": 30000,
+      "maximum_recovered_incident_ms": 10000,
+      "mode": "CHANGE_DRIVEN",
+      "silence_observation_ms": 10000,
+      "source": "ENGINEERING_ASSUMPTION",
+      "unresolved_after_ms": 30000,
+      "update_speed_is_heartbeat": false
+    },
+    "depth": {
+      "expected_cadence_ms": 100,
+      "first_event_timeout_ms": 10000,
+      "maximum_recovered_incident_ms": 10000,
+      "mode": "CHANGE_DRIVEN",
+      "silence_observation_ms": 2000,
+      "source": "ENGINEERING_ASSUMPTION",
+      "unresolved_after_ms": 10000,
+      "update_speed_is_heartbeat": false
+    },
+    "markPrice": {
+      "expected_cadence_ms": 1000,
+      "first_event_timeout_ms": 5000,
+      "maximum_recovered_incident_ms": 10000,
+      "mode": "PERIODIC",
+      "silence_observation_ms": 2500,
+      "source": "ENGINEERING_ASSUMPTION",
+      "unresolved_after_ms": 5000,
+      "update_speed_is_heartbeat": false
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "authentication_used": false,
+  "available": true,
+  "conclusion": "LEGACY_ROUTING_AND_CROSS_MARKET_SEQUENCE_POLICY_EXPLAIN_THE_SMOKE",
+  "depth_transition_count": 278,
+  "event_count": 5660,
+  "false_gap_evidence": true,
+  "gap_root_cause": "SPOT_U_CONTAINS_PREVIOUS_PLUS_ONE_RULE_APPLIED_AFTER_FUTURES_BOOTSTRAP",
+  "legacy_unrouted_url_in_baseline": "wss://fstream.binance.com/stream",
+  "market_stream_delivery_failure_cause": "MARKET_STREAMS_REQUESTED_ON_LEGACY_UNROUTED_CONNECTION",
+  "missing_market_route_streams": true,
+  "orders_sent": false,
+  "pu_chain_match_count": 278,
+  "reported_gap_count": 66,
+  "reported_resync_count": 66,
+  "session": "data/microstructure/futures/ETHUSDT/2026-08-07/microstructure-20260807T025547Z-usd_m_futures",
+  "spot_contiguity_false_gap_count": 278,
+  "stream_event_counts": {
+    "BOOK_TICKER": 5313,
+    "CONNECTION_STATE": 1,
+    "DEPTH_UPDATE": 279,
+    "SNAPSHOT": 67
+  }
+}

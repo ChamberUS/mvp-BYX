@@ -1,0 +1,2 @@
+market,symbol,side,quantity,average_entry,realized_pnl,unrealized_mark_pnl,unrealized_executable_pnl,fees,funding,entry_time,holding_time_ms
+SPOT,ETHUSDT,LONG,0.01,1903.50000000,0,0,0,0.01903500000000,0,2026-08-07T02:15:19.815000+00:00,0

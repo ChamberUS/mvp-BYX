@@ -1,0 +1,31 @@
+{
+  "deterministic_merge_key": "exchange_event_time,exchange_transaction_time,connection_id,connection_sequence,receive_monotonic_ns,event_id",
+  "first": {
+    "deterministic": true,
+    "event_count": 66520,
+    "first_event": "2026-08-07T03:33:29.943000+00:00",
+    "input_hash": "9344dc38138c36b9a3f2f32b9aec85b06c89987a384c2e1ac034c118a84aaad9",
+    "last_event": "2026-08-07T03:38:28.970000+00:00",
+    "output_hash": "9344dc38138c36b9a3f2f32b9aec85b06c89987a384c2e1ac034c118a84aaad9",
+    "real_sleep_used": false,
+    "seed": 42,
+    "session_path": "data/microstructure/futures/ETHUSDT/2026-08-07/microstructure-20260807T033329Z-usd_m_futures",
+    "speed": "max"
+  },
+  "real_sleep_used": false,
+  "same_event_count": true,
+  "same_input_hash": true,
+  "same_output_hash": true,
+  "second": {
+    "deterministic": true,
+    "event_count": 66520,
+    "first_event": "2026-08-07T03:33:29.943000+00:00",
+    "input_hash": "9344dc38138c36b9a3f2f32b9aec85b06c89987a384c2e1ac034c118a84aaad9",
+    "last_event": "2026-08-07T03:38:28.970000+00:00",
+    "output_hash": "9344dc38138c36b9a3f2f32b9aec85b06c89987a384c2e1ac034c118a84aaad9",
+    "real_sleep_used": false,
+    "seed": 42,
+    "session_path": "data/microstructure/futures/ETHUSDT/2026-08-07/microstructure-20260807T033329Z-usd_m_futures",
+    "speed": "max"
+  }
+}

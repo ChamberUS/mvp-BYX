@@ -1,0 +1,16 @@
+{
+  "all_passed": true,
+  "checks": {
+    "duplicate_fill_absent": true,
+    "fees_non_negative": true,
+    "filled_quantity_not_above_requested": true,
+    "futures_margin_consistent": true,
+    "leverage_locked_to_one": true,
+    "position_quantity_consistent": true,
+    "realized_pnl_reconciles_fills": true,
+    "remaining_quantity_non_negative": true,
+    "spot_cash_non_negative": true,
+    "spot_short_absent": true,
+    "terminal_state_immutable": true
+  }
+}

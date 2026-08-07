@@ -1,0 +1,12 @@
+{
+  "fill_ledger_hash": "6c4caeb7a3d080175d841ee430460622d6bb176ff9278aacd6b581bb3aebcd57",
+  "first_execution_hash": "702b3acf088d11d7082bc91f219b88c7419475bf9402d7183a4e284223bbb74f",
+  "order_lifecycle_hash": "a97f6cb88c66ed896c163c89d1851a4edc084cee14598ee9e2b441e7686dff9d",
+  "orders_fills_positions_pnl_risk_deterministic": true,
+  "position_ledger_hash": "4b97611633bb38d852056efaaa86f54ce5f52bbf97a4babbc00c382aa96cb503",
+  "real_sleep_used": false,
+  "realized_pnl_hash": "a37bbbb0764cc5bf8d8c251cb1c95e3d2e142934792916ccb362ceb5902d9f0b",
+  "risk_events_hash": "d10ac111815f2315d36a13b31652d83383544ddcc6e034b026b17adc577d857b",
+  "second_execution_hash": "702b3acf088d11d7082bc91f219b88c7419475bf9402d7183a4e284223bbb74f",
+  "seed": 42
+}

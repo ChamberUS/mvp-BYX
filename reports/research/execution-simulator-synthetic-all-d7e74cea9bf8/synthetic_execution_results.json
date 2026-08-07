@@ -1,0 +1,121 @@
+[
+  {
+    "code": "A",
+    "deterministic": true,
+    "name": "perfect maker fill",
+    "profitability_evaluated": false,
+    "status": "PASS"
+  },
+  {
+    "code": "B",
+    "deterministic": true,
+    "name": "maker never fills",
+    "profitability_evaluated": false,
+    "status": "PASS"
+  },
+  {
+    "code": "C",
+    "deterministic": true,
+    "name": "partial maker fill",
+    "profitability_evaluated": false,
+    "status": "PASS"
+  },
+  {
+    "code": "D",
+    "deterministic": true,
+    "name": "cancel-before-fill",
+    "profitability_evaluated": false,
+    "status": "PASS"
+  },
+  {
+    "code": "E",
+    "deterministic": true,
+    "name": "fill-during-cancel",
+    "profitability_evaluated": false,
+    "status": "PASS"
+  },
+  {
+    "code": "F",
+    "deterministic": true,
+    "name": "taker walks book",
+    "profitability_evaluated": false,
+    "status": "PASS"
+  },
+  {
+    "code": "G",
+    "deterministic": true,
+    "name": "insufficient depth",
+    "profitability_evaluated": false,
+    "status": "PASS"
+  },
+  {
+    "code": "H",
+    "deterministic": true,
+    "name": "price gaps through levels",
+    "profitability_evaluated": false,
+    "status": "PASS"
+  },
+  {
+    "code": "I",
+    "deterministic": true,
+    "name": "favorable long extension",
+    "profitability_evaluated": false,
+    "status": "PASS"
+  },
+  {
+    "code": "J",
+    "deterministic": true,
+    "name": "long reversal after 150ms",
+    "profitability_evaluated": false,
+    "status": "PASS"
+  },
+  {
+    "code": "K",
+    "deterministic": true,
+    "name": "favorable short extension",
+    "profitability_evaluated": false,
+    "status": "PASS"
+  },
+  {
+    "code": "L",
+    "deterministic": true,
+    "name": "short reversal",
+    "profitability_evaluated": false,
+    "status": "PASS"
+  },
+  {
+    "code": "M",
+    "deterministic": true,
+    "name": "hard profit floor",
+    "profitability_evaluated": false,
+    "status": "PASS"
+  },
+  {
+    "code": "N",
+    "deterministic": true,
+    "name": "liquidity collapse",
+    "profitability_evaluated": false,
+    "status": "PASS"
+  },
+  {
+    "code": "O",
+    "deterministic": true,
+    "name": "order book desync",
+    "profitability_evaluated": false,
+    "status": "PASS"
+  },
+  {
+    "code": "P",
+    "deterministic": true,
+    "name": "stale market",
+    "profitability_evaluated": false,
+    "status": "PASS"
+  },
+  {
+    "code": "Q",
+    "deterministic": true,
+    "name": "daily kill switch",
+    "profitability_evaluated": false,
+    "status": "PASS"
+  }
+]

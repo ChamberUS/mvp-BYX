@@ -1,0 +1,24 @@
+{
+  "deterministic": true,
+  "first": {
+    "book_state_hash": "74a34c8ceeaae240ee03a961701187fbbab6557d4383a0dca3ecf411a2771a1b",
+    "event_count": 310393,
+    "event_hash": "97a4bdd57dceefb4018635e6a83b156ad9b06a561ae4954910a89e9acbaf5768",
+    "feature_hash": "08bd0674ff6d945c2a674b8c2169622a29e39f9d2f654cbee53d3e7f9f456f1e",
+    "health_event_hash": "6330d6c02c3f56fcef405771394058e4063dd78657ab3b846c35f3d85271d98b"
+  },
+  "real_sleep_used": false,
+  "same_book_state_hash": true,
+  "same_event_count": true,
+  "same_event_hash": true,
+  "same_feature_hash": true,
+  "same_health_event_hash": true,
+  "second": {
+    "book_state_hash": "74a34c8ceeaae240ee03a961701187fbbab6557d4383a0dca3ecf411a2771a1b",
+    "event_count": 310393,
+    "event_hash": "97a4bdd57dceefb4018635e6a83b156ad9b06a561ae4954910a89e9acbaf5768",
+    "feature_hash": "08bd0674ff6d945c2a674b8c2169622a29e39f9d2f654cbee53d3e7f9f456f1e",
+    "health_event_hash": "6330d6c02c3f56fcef405771394058e4063dd78657ab3b846c35f3d85271d98b"
+  },
+  "session": "data/microstructure/futures/ETHUSDT/2026-08-07/microstructure-20260807T042149Z-usd_m_futures"
+}

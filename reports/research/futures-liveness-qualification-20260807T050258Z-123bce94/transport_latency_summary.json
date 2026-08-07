@@ -1,0 +1,65 @@
+{
+  "clock_alignment_valid": false,
+  "clock_caveat": "Apparent one-way latency includes exchange/client clock offset.",
+  "definition": "receive_wall_time - exchange_event_time",
+  "invalid_measurement_reason": "CLIENT_WALL_CLOCK_PRECEDED_EXCHANGE_EVENT_TIME",
+  "negative_sample_count": 112146,
+  "not_event_loop_lag": true,
+  "not_order_latency": true,
+  "not_strategy_latency": true,
+  "one_way_latency_measurement_valid": false,
+  "streams": {
+    "aggTrade": {
+      "count": 9063,
+      "max_ms": "1111.885000",
+      "mean_ms": "-167988.3604014123358711243518",
+      "median_ms": "96.986000",
+      "min_ms": "-522845.475000",
+      "negative_sample_count": 2914,
+      "p90_ms": "192.9572000",
+      "p95_ms": "291.1327000",
+      "p99_9_ms": "720.980746000",
+      "p99_ms": "614.87916000",
+      "stddev_ms": "244245.70557517098"
+    },
+    "bookTicker": {
+      "count": 281973,
+      "max_ms": "1217.797000",
+      "mean_ms": "-187734.0968431197313217932213",
+      "median_ms": "98.514000",
+      "min_ms": "-522846.111000",
+      "negative_sample_count": 101328,
+      "p90_ms": "262.1916000",
+      "p95_ms": "418.9276000",
+      "p99_9_ms": "1065.245764000",
+      "p99_ms": "713.92356000",
+      "stddev_ms": "250905.35486574646"
+    },
+    "depth": {
+      "count": 17555,
+      "max_ms": "1178.968000",
+      "mean_ms": "-213428.8566471660495585303332",
+      "median_ms": "91.681000",
+      "min_ms": "-522846.063000",
+      "negative_sample_count": 7169,
+      "p90_ms": "145.6192000",
+      "p95_ms": "174.0156000",
+      "p99_9_ms": "748.402196000",
+      "p99_ms": "378.26432000",
+      "stddev_ms": "257036.46850875963"
+    },
+    "markPrice": {
+      "count": 1799,
+      "max_ms": "921.298000",
+      "mean_ms": "-213475.8804619232907170650361",
+      "median_ms": "149.067000",
+      "min_ms": "-522796.669000",
+      "negative_sample_count": 735,
+      "p90_ms": "195.4588000",
+      "p95_ms": "221.9569000",
+      "p99_9_ms": "753.663286000",
+      "p99_ms": "263.71130000",
+      "stddev_ms": "257055.5315688657"
+    }
+  }
+}

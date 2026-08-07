@@ -35,6 +35,8 @@ def parse_public_event(
     receive_wall_time: datetime,
     receive_monotonic_ns: int,
     expected_symbol: str | None = None,
+    connection_id: str = "legacy-public-1",
+    connection_sequence: int = 0,
 ) -> MicrostructureEvent:
     """Parse one raw or combined public-stream message using Decimal values."""
 
@@ -57,7 +59,11 @@ def parse_public_event(
     stream_type = _stream_type(event_name, stream_name, payload)
     symbol = _symbol(payload, stream_name, expected_symbol)
     event_ms = _integer(payload.get("E"), "E", default=_milliseconds(receive_wall_time))
-    transaction_ms = _optional_integer(payload.get("T"), "T")
+    transaction_ms = (
+        None
+        if stream_type is MicrostructureStreamType.MARK_PRICE
+        else _optional_integer(payload.get("T"), "T")
+    )
     common: dict[str, Any] = {
         "event_id": hashlib.sha256(
             f"{market_type.value}|{raw_hash}|{receive_monotonic_ns}".encode()
@@ -72,6 +78,8 @@ def parse_public_event(
         ),
         "receive_wall_time": receive_wall_time.astimezone(UTC),
         "receive_monotonic_ns": receive_monotonic_ns,
+        "connection_id": connection_id,
+        "connection_sequence": connection_sequence,
         "raw_payload_hash": raw_hash,
         "raw_payload_json": raw_json,
     }
@@ -83,6 +91,8 @@ def parse_public_event(
             sequence_last=None,
             sequence_previous=None,
             trade_id=_integer(payload.get("a"), "a"),
+            first_trade_id=_optional_integer(payload.get("f"), "f"),
+            last_trade_id=_optional_integer(payload.get("l"), "l"),
             price=_decimal(payload, "p"),
             quantity=_decimal(payload, "q"),
             buyer_is_maker=buyer_is_maker,
@@ -120,6 +130,14 @@ def parse_public_event(
             sequence_last=None,
             sequence_previous=None,
             mark_price=_decimal(payload, "p"),
+            index_price=_optional_decimal(payload, "i"),
+            funding_rate=_optional_decimal(payload, "r", positive=False),
+            next_funding_time=(
+                _datetime_ms(next_funding_ms, "T")
+                if (next_funding_ms := _optional_integer(payload.get("T"), "T"))
+                is not None
+                else None
+            ),
         )
     raise InvalidMicrostructurePayload(f"unsupported stream payload: {stream_type.value}")
 
@@ -131,6 +149,8 @@ def parse_depth_snapshot(
     symbol: str,
     receive_wall_time: datetime,
     receive_monotonic_ns: int,
+    connection_id: str = "legacy-public-1",
+    connection_sequence: int = 0,
 ) -> MicrostructureEvent:
     if not isinstance(payload, dict):
         raise InvalidMicrostructurePayload("depth snapshot must be an object")
@@ -150,6 +170,8 @@ def parse_depth_snapshot(
         exchange_transaction_time=None,
         receive_wall_time=receive_wall_time.astimezone(UTC),
         receive_monotonic_ns=receive_monotonic_ns,
+        connection_id=connection_id,
+        connection_sequence=connection_sequence,
         sequence_first=update_id,
         sequence_last=update_id,
         sequence_previous=None,
@@ -167,6 +189,8 @@ def connection_state_event(
     state: str,
     timestamp: datetime,
     monotonic_ns: int,
+    connection_id: str = "legacy-public-1",
+    connection_sequence: int = 0,
 ) -> MicrostructureEvent:
     payload = {"state": state, "symbol": symbol, "market": market_type.value}
     raw_json = canonical_payload(payload)
@@ -183,6 +207,8 @@ def connection_state_event(
         exchange_transaction_time=None,
         receive_wall_time=timestamp.astimezone(UTC),
         receive_monotonic_ns=monotonic_ns,
+        connection_id=connection_id,
+        connection_sequence=connection_sequence,
         sequence_first=None,
         sequence_last=None,
         sequence_previous=None,
@@ -252,14 +278,29 @@ def _levels(value: object, name: str) -> tuple[DepthLevel, ...]:
     return tuple(result)
 
 
-def _decimal(payload: dict[str, object], name: str) -> Decimal:
+def _decimal(
+    payload: dict[str, object],
+    name: str,
+    *,
+    positive: bool = True,
+) -> Decimal:
     try:
         value = Decimal(str(payload[name]))
     except (KeyError, InvalidOperation, TypeError, ValueError) as exc:
         raise InvalidMicrostructurePayload(f"{name} must be a Decimal") from exc
-    if not value.is_finite() or value <= 0:
-        raise InvalidMicrostructurePayload(f"{name} must be a positive finite Decimal")
+    if not value.is_finite() or (positive and value <= 0):
+        requirement = "positive finite" if positive else "finite"
+        raise InvalidMicrostructurePayload(f"{name} must be a {requirement} Decimal")
     return value
+
+
+def _optional_decimal(
+    payload: dict[str, object],
+    name: str,
+    *,
+    positive: bool = True,
+) -> Decimal | None:
+    return None if payload.get(name) is None else _decimal(payload, name, positive=positive)
 
 
 def _integer(value: object, name: str, *, default: int | None = None) -> int:

@@ -1,0 +1,1 @@
+incident_id,stream,route,connection_id,state,start,recovery,duration_ms,classification,caused_gap,caused_resync,caused_book_invalid,unresolved,evidence

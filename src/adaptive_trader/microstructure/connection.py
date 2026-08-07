@@ -18,6 +18,8 @@ class StreamCapabilities:
     mark_price_stream: str | None
     depth_snapshot_url: str
     depth_snapshot_path: str
+    market_websocket_base_url: str | None = None
+    routed_connections_required: bool = False
     public_only: bool = True
     authenticated: bool = False
     order_capable: bool = False
@@ -40,13 +42,15 @@ def stream_capabilities(market_type: MarketType, symbol: str) -> StreamCapabilit
         )
     return StreamCapabilities(
         market_type=market_type,
-        websocket_base_url="wss://fstream.binance.com/stream",
+        websocket_base_url="wss://fstream.binance.com/public/stream",
         aggregate_trade_stream=f"{normalized}@aggTrade",
         book_ticker_stream=f"{normalized}@bookTicker",
         diff_depth_stream=f"{normalized}@depth@100ms",
         mark_price_stream=f"{normalized}@markPrice@1s",
         depth_snapshot_url="https://fapi.binance.com",
         depth_snapshot_path="/fapi/v1/depth",
+        market_websocket_base_url="wss://fstream.binance.com/market/stream",
+        routed_connections_required=True,
     )
 
 

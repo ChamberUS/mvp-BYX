@@ -30,12 +30,16 @@ def event_to_record(event: MicrostructureEvent) -> dict[str, object]:
         ),
         "receive_wall_time": event.receive_wall_time.isoformat(),
         "receive_monotonic_ns": event.receive_monotonic_ns,
+        "connection_id": event.connection_id,
+        "connection_sequence": event.connection_sequence,
         "sequence_first": event.sequence_first,
         "sequence_last": event.sequence_last,
         "sequence_previous": event.sequence_previous,
         "raw_payload_hash": event.raw_payload_hash,
         "raw_payload_json": event.raw_payload_json,
         "trade_id": event.trade_id,
+        "first_trade_id": event.first_trade_id,
+        "last_trade_id": event.last_trade_id,
         "price": _decimal_text(event.price),
         "quantity": _decimal_text(event.quantity),
         "buyer_is_maker": event.buyer_is_maker,
@@ -49,6 +53,13 @@ def event_to_record(event: MicrostructureEvent) -> dict[str, object]:
         "bids": [[str(level.price), str(level.quantity)] for level in event.bids],
         "asks": [[str(level.price), str(level.quantity)] for level in event.asks],
         "mark_price": _decimal_text(event.mark_price),
+        "index_price": _decimal_text(event.index_price),
+        "funding_rate": _decimal_text(event.funding_rate),
+        "next_funding_time": (
+            event.next_funding_time.isoformat()
+            if event.next_funding_time is not None
+            else None
+        ),
         "connection_state": event.connection_state,
     }
 
@@ -70,12 +81,20 @@ def event_from_record(record: object) -> MicrostructureEvent:
         exchange_transaction_time=_optional_datetime(record, "exchange_transaction_time"),
         receive_wall_time=_datetime(record, "receive_wall_time"),
         receive_monotonic_ns=_integer(record, "receive_monotonic_ns"),
+        connection_id=_optional_string(record, "connection_id") or "legacy-public-1",
+        connection_sequence=(
+            _integer(record, "connection_sequence")
+            if record.get("connection_sequence") is not None
+            else 0
+        ),
         sequence_first=_optional_integer(record, "sequence_first"),
         sequence_last=_optional_integer(record, "sequence_last"),
         sequence_previous=_optional_integer(record, "sequence_previous"),
         raw_payload_hash=_string(record, "raw_payload_hash"),
         raw_payload_json=_string(record, "raw_payload_json"),
         trade_id=_optional_integer(record, "trade_id"),
+        first_trade_id=_optional_integer(record, "first_trade_id"),
+        last_trade_id=_optional_integer(record, "last_trade_id"),
         price=_optional_decimal(record, "price"),
         quantity=_optional_decimal(record, "quantity"),
         buyer_is_maker=_optional_boolean(record, "buyer_is_maker"),
@@ -92,6 +111,9 @@ def event_from_record(record: object) -> MicrostructureEvent:
         bids=_levels(record, "bids"),
         asks=_levels(record, "asks"),
         mark_price=_optional_decimal(record, "mark_price"),
+        index_price=_optional_decimal(record, "index_price"),
+        funding_rate=_optional_decimal(record, "funding_rate"),
+        next_funding_time=_optional_datetime(record, "next_funding_time"),
         connection_state=_optional_string(record, "connection_state"),
     )
 

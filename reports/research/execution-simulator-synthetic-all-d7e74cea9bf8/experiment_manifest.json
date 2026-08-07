@@ -1,0 +1,32 @@
+{
+  "alpha_calibrated_by_pnl": false,
+  "api_key_used": false,
+  "artifact_names": [
+    "experiment_manifest.json",
+    "execution_config.json",
+    "synthetic_execution_results.json",
+    "order_lifecycle.csv",
+    "fill_ledger.csv",
+    "position_ledger.csv",
+    "execution_quality.json",
+    "execution_markouts.csv",
+    "latency_summary.json",
+    "liquidity_consumption.csv",
+    "elastic_exit_execution_results.json",
+    "risk_governor_events.csv",
+    "accounting_invariants.json",
+    "replay_determinism.json",
+    "execution_simulator_report.md"
+  ],
+  "authentication_used": false,
+  "experiment_id": "execution-simulator-synthetic-all-d7e74cea9bf8",
+  "input_hash": "5a031e198cbeb573186f635da27c0603cb669397f6f003acd22a3276671b38e8",
+  "leverage": "1",
+  "orders_sent_externally": false,
+  "paper_trading_external": false,
+  "queue_position_exact": false,
+  "research_only": true,
+  "source_session": null,
+  "sprint": "4A.2",
+  "testnet_used": false
+}

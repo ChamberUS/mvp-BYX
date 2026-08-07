@@ -1,0 +1,23 @@
+{
+  "book_synchronized_percent": "100",
+  "byte_for_byte_simultaneity_required": false,
+  "max_mismatch_duration_ms": "1039.929951",
+  "median_mismatch_duration_ms": "71.461202",
+  "method": "Track mismatch episodes between latest bookTicker best prices and the local book; concurrent routes are not required to match byte-for-byte.",
+  "mismatch_count": 481,
+  "mismatch_duration": {
+    "count": 481,
+    "max_ms": "1039.929951",
+    "mean_ms": "129.1945619251559251559251559",
+    "median_ms": "71.461202",
+    "min_ms": "0.094816",
+    "p90_ms": "320.758665",
+    "p95_ms": "411.364879",
+    "p99_9_ms": "996.19253244",
+    "p99_ms": "653.1272100",
+    "stddev_ms": "145.55195726863425"
+  },
+  "p95_mismatch_duration_ms": "411.364879",
+  "p99_mismatch_duration_ms": "653.1272100",
+  "unresolved_mismatch_count": 0
+}

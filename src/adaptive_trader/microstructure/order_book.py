@@ -15,6 +15,13 @@ from adaptive_trader.microstructure.models import (
     OrderBookReason,
     OrderBookStatus,
 )
+from adaptive_trader.microstructure.sequence import (
+    DepthSequencePolicy,
+    FuturesSequencePolicy,
+    GapClassification,
+    SequenceDecision,
+    SpotSequencePolicy,
+)
 
 ZERO = Decimal("0")
 TEN_THOUSAND = Decimal("10000")
@@ -27,6 +34,7 @@ class OrderBookUpdateResult:
     status: OrderBookStatus
     reason: OrderBookReason
     update_id: int | None
+    gap_classification: GapClassification | None = None
 
 
 class LocalOrderBook:
@@ -46,12 +54,22 @@ class LocalOrderBook:
         self.last_event_time: datetime | None = None
         self.last_receive_time: datetime | None = None
         self.last_reason: OrderBookReason | None = None
+        self.last_sequence_decision: SequenceDecision | None = None
         self.sequence_gap_count = 0
         self.resync_count = 0
+        self.classification_counts: dict[GapClassification, int] = {
+            item: 0 for item in GapClassification
+        }
         self._bids: dict[Decimal, Decimal] = {}
         self._asks: dict[Decimal, Decimal] = {}
         self._buffer: list[MicrostructureEvent] = []
         self._seen_event_ids: set[str] = set()
+        self._awaiting_first_diff = False
+        self.sequence_policy: DepthSequencePolicy = (
+            SpotSequencePolicy()
+            if market_type is MarketType.SPOT
+            else FuturesSequencePolicy()
+        )
 
     @property
     def synchronized(self) -> bool:
@@ -111,14 +129,18 @@ class LocalOrderBook:
         self.last_event_time = event.exchange_event_time
         self.last_receive_time = event.receive_wall_time
         self.status = OrderBookStatus.BUFFERING
+        self._awaiting_first_diff = True
         pending = tuple(
             item
             for item in self._buffer
-            if item.sequence_last is not None and item.sequence_last > event.sequence_last
+            if item.sequence_last is not None and item.sequence_last >= event.sequence_last
         )
         self._buffer.clear()
         for update in pending:
-            result = self._apply_sequenced(update, bootstrap=True)
+            result = self._apply_sequenced(
+                update,
+                bootstrap=self._awaiting_first_diff,
+            )
             if result.status is OrderBookStatus.INVALID:
                 return result
         if not self._valid_uncrossed_book():
@@ -136,7 +158,10 @@ class LocalOrderBook:
         if event.event_id in self._seen_event_ids:
             return self._result(False, OrderBookReason.DUPLICATE_UPDATE)
         self._seen_event_ids.add(event.event_id)
-        return self._apply_sequenced(event, bootstrap=False)
+        return self._apply_sequenced(
+            event,
+            bootstrap=self._awaiting_first_diff,
+        )
 
     def begin_resync(self) -> None:
         self.status = OrderBookStatus.RESYNC_IN_PROGRESS
@@ -146,6 +171,7 @@ class LocalOrderBook:
         self._asks.clear()
         self._buffer.clear()
         self._seen_event_ids.clear()
+        self._awaiting_first_diff = False
 
     def mark_stale(self) -> OrderBookUpdateResult:
         return self._invalidate(OrderBookReason.ORDER_BOOK_DESYNC)
@@ -201,49 +227,75 @@ class LocalOrderBook:
         bootstrap: bool,
     ) -> OrderBookUpdateResult:
         if self.update_id is None or event.sequence_first is None or event.sequence_last is None:
-            return self._invalidate(OrderBookReason.ORDER_BOOK_DESYNC)
-        if event.sequence_last <= self.update_id:
-            reason = (
-                OrderBookReason.DUPLICATE_UPDATE
-                if event.sequence_last == self.update_id
-                else OrderBookReason.STALE_UPDATE
+            self.classification_counts[GapClassification.PARSER_ERROR] += 1
+            return self._invalidate(
+                OrderBookReason.ORDER_BOOK_DESYNC,
+                GapClassification.PARSER_ERROR,
             )
-            return self._result(False, reason)
-        expected = self.update_id + 1
-        futures_link_broken = (
-            self.market_type is MarketType.USD_M_FUTURES
-            and event.sequence_previous is not None
-            and event.sequence_previous != self.update_id
+        decision = (
+            self.sequence_policy.bootstrap(self.update_id, event)
+            if bootstrap
+            else self.sequence_policy.next_event(self.update_id, event)
         )
-        if futures_link_broken or not event.sequence_first <= expected <= event.sequence_last:
-            return self._invalidate(OrderBookReason.ORDER_BOOK_DESYNC)
+        self.last_sequence_decision = decision
+        if decision.classification is not None:
+            self.classification_counts[decision.classification] += 1
+        if not decision.accepted:
+            if decision.classification is GapClassification.DUPLICATE_EVENT:
+                return self._result(
+                    False,
+                    OrderBookReason.DUPLICATE_UPDATE,
+                    decision.classification,
+                )
+            if decision.classification in {
+                GapClassification.OLD_EVENT,
+                GapClassification.OUT_OF_ORDER_EVENT,
+            }:
+                return self._result(
+                    False,
+                    OrderBookReason.STALE_UPDATE,
+                    decision.classification,
+                )
+            return self._invalidate(
+                OrderBookReason.ORDER_BOOK_DESYNC,
+                decision.classification,
+            )
         self._apply_levels(self._bids, event.bids)
         self._apply_levels(self._asks, event.asks)
         self.update_id = event.sequence_last
         self.last_event_time = event.exchange_event_time
         self.last_receive_time = event.receive_wall_time
+        self._awaiting_first_diff = False
         if not self._valid_uncrossed_book():
             return self._invalidate(OrderBookReason.CROSSED_BOOK)
-        self.status = (
-            OrderBookStatus.BUFFERING if bootstrap else OrderBookStatus.SYNCHRONIZED
-        )
+        self.status = OrderBookStatus.SYNCHRONIZED
         self.last_reason = OrderBookReason.UPDATE_APPLIED
         return self._result(True, OrderBookReason.UPDATE_APPLIED)
 
-    def _invalidate(self, reason: OrderBookReason) -> OrderBookUpdateResult:
+    def _invalidate(
+        self,
+        reason: OrderBookReason,
+        classification: GapClassification | None = None,
+    ) -> OrderBookUpdateResult:
         self.status = OrderBookStatus.INVALID
         self.last_reason = reason
-        if reason is OrderBookReason.ORDER_BOOK_DESYNC:
+        if classification is GapClassification.REAL_SEQUENCE_GAP:
             self.sequence_gap_count += 1
-        return self._result(False, reason)
+        return self._result(False, reason, classification)
 
-    def _result(self, applied: bool, reason: OrderBookReason) -> OrderBookUpdateResult:
+    def _result(
+        self,
+        applied: bool,
+        reason: OrderBookReason,
+        classification: GapClassification | None = None,
+    ) -> OrderBookUpdateResult:
         return OrderBookUpdateResult(
             applied=applied,
             synchronized=self.synchronized,
             status=self.status,
             reason=reason,
             update_id=self.update_id,
+            gap_classification=classification,
         )
 
     def _validate_event(

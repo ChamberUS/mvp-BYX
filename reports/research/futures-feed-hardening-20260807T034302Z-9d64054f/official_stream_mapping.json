@@ -1,0 +1,38 @@
+{
+  "legacy_route_allowed": false,
+  "market_base_url": "wss://fstream.binance.com/market",
+  "observed_on": "2026-08-07",
+  "official_sources": [
+    "https://developers.binance.com/en/docs/products/derivatives-trading-usds-futures/websocket-market-streams/Important-WebSocket-Change-Notice",
+    "https://developers.binance.com/en/docs/products/derivatives-trading-usds-futures/websocket-market-streams/Connect",
+    "https://developers.binance.com/en/docs/products/derivatives-trading-usds-futures/websocket-market-streams/How-to-manage-a-local-order-book-correctly"
+  ],
+  "private_route_used": false,
+  "public_base_url": "wss://fstream.binance.com/public",
+  "stream_mapping": {
+    "aggTrade": {
+      "canonical_suffix": "aggTrade",
+      "route": "MARKET"
+    },
+    "bookTicker": {
+      "canonical_suffix": "bookTicker",
+      "route": "PUBLIC"
+    },
+    "depth": {
+      "canonical_suffix": "depth@100ms",
+      "route": "PUBLIC"
+    },
+    "depth@100ms": {
+      "canonical_suffix": "depth@100ms",
+      "route": "PUBLIC"
+    },
+    "markPrice": {
+      "canonical_suffix": "markPrice@1s",
+      "route": "MARKET"
+    },
+    "markPrice@1s": {
+      "canonical_suffix": "markPrice@1s",
+      "route": "MARKET"
+    }
+  }
+}

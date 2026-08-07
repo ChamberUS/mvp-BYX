@@ -123,10 +123,13 @@ class MicrostructureReplayEngine:
     @staticmethod
     def _event_order(
         event: MicrostructureEvent,
-    ) -> tuple[datetime, int, int, int, str]:
+    ) -> tuple[datetime, datetime, str, int, int, int, int, str]:
         maximum = 2**63 - 1
         return (
             event.exchange_event_time,
+            event.exchange_transaction_time or event.exchange_event_time,
+            event.connection_id,
+            event.connection_sequence,
             event.sequence_first if event.sequence_first is not None else maximum,
             event.sequence_last if event.sequence_last is not None else maximum,
             event.receive_monotonic_ns,

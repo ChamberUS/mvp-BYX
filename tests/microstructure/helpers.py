@@ -98,6 +98,8 @@ def trade_event(
             "T": int(at(milliseconds).timestamp() * 1000),
             "s": "ETHUSDT",
             "a": trade_id,
+            "f": trade_id * 10,
+            "l": trade_id * 10 + 2,
             "p": price,
             "q": quantity,
             "m": buyer_is_maker,
@@ -173,7 +175,14 @@ def write_session(
         started_at=at(),
         rotate_event_count=rotate_event_count,
     )
-    writer.append(depth_event(market=market, first=101, last=101, previous=100))
+    writer.append(
+        depth_event(
+            market=market,
+            first=100 if market is MarketType.USD_M_FUTURES else 101,
+            last=101,
+            previous=99 if market is MarketType.USD_M_FUTURES else None,
+        )
+    )
     writer.append(snapshot_event(market=market))
     writer.append(trade_event(market=market, milliseconds=20))
     writer.append(
