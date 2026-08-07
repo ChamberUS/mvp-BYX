@@ -1,0 +1,15 @@
+{
+  "baseline": "IMMEDIATE_PROFIT_EXIT",
+  "blocking_sleep_used": false,
+  "continuation_grace_ms": 300,
+  "hard_profit_floor_priority": true,
+  "liquidity_failsafe": "LIQUIDITY_EXIT_FAILSAFE",
+  "long_executable_reference": "SELL_VWAP_FROM_BIDS",
+  "mark_price_executes_exit": false,
+  "profile": "ELASTIC_300_150_V0",
+  "research_only": true,
+  "reversal_confirmation_ms": 150,
+  "selected": false,
+  "short_executable_reference": "BUY_VWAP_FROM_ASKS",
+  "validation": "SYNTHETIC_CONTRACT_TESTS_ONLY"
+}

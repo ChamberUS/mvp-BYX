@@ -1,0 +1,15 @@
+{
+  "future_events_used": false,
+  "microprice_formula": "(ask*bid_qty + bid*ask_qty)/(bid_qty+ask_qty)",
+  "ofi_formula": "Cont-style best bid/ask price-quantity contribution",
+  "point_in_time": true,
+  "snapshot_count": 284,
+  "windows_ms": [
+    250,
+    1000,
+    3000,
+    5000,
+    10000,
+    30000
+  ]
+}

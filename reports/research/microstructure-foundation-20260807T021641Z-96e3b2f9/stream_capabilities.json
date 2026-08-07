@@ -1,0 +1,13 @@
+{
+  "aggregate_trade_stream": "ethusdt@aggTrade",
+  "authenticated": false,
+  "book_ticker_stream": "ethusdt@bookTicker",
+  "depth_snapshot_path": "/api/v3/depth",
+  "depth_snapshot_url": "https://api.binance.com",
+  "diff_depth_stream": "ethusdt@depth@100ms",
+  "mark_price_stream": null,
+  "market_type": "SPOT",
+  "order_capable": false,
+  "public_only": true,
+  "websocket_base_url": "wss://stream.binance.com:9443/stream"
+}

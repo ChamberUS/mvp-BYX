@@ -1,0 +1,15 @@
+{
+  "best_ask": {
+    "price": "1907.17000000",
+    "quantity": "32.03800000"
+  },
+  "best_bid": {
+    "price": "1907.16000000",
+    "quantity": "5.67970000"
+  },
+  "last_update_id": 79574197997,
+  "resync_count": 0,
+  "sequence_gap_count": 0,
+  "status": "SYNCHRONIZED",
+  "synchronized": true
+}

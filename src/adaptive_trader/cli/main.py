@@ -63,6 +63,11 @@ from adaptive_trader.market_data.binance_public import BinancePublicClient
 from adaptive_trader.market_data.exceptions import MarketDataError
 from adaptive_trader.market_data.futures_history import FuturesHistoricalDownloader
 from adaptive_trader.market_data.history import HistoricalCandleDownloader
+from adaptive_trader.microstructure.connection import stream_capabilities
+from adaptive_trader.microstructure.foundation import MicrostructureFoundationService
+from adaptive_trader.microstructure.live import PublicMicrostructureRecorder
+from adaptive_trader.microstructure.replay import MicrostructureReplayEngine, ReplaySpeed
+from adaptive_trader.microstructure.storage import inspect_session
 from adaptive_trader.observability.logging import configure_logging
 from adaptive_trader.research.candidate_freeze import (
     freeze_candidate,
@@ -162,6 +167,23 @@ def _parser() -> argparse.ArgumentParser:
     futures_status = futures_market_commands.add_parser("status")
     futures_status.add_argument("--symbol", default=None)
     futures_status.add_argument("--interval", default=None)
+    microstructure = market_commands.add_parser("microstructure")
+    microstructure_commands = microstructure.add_subparsers(
+        dest="microstructure_market_command",
+        required=True,
+    )
+    microstructure_doctor = microstructure_commands.add_parser("doctor")
+    microstructure_doctor.add_argument("--symbol", default="ETHUSDT")
+    microstructure_record = microstructure_commands.add_parser("record")
+    microstructure_record.add_argument("--market", choices=("spot", "futures"), required=True)
+    microstructure_record.add_argument("--symbol", default="ETHUSDT")
+    microstructure_record.add_argument("--streams", required=True)
+    microstructure_record.add_argument("--depth-speed", choices=("100ms",), default="100ms")
+    microstructure_record.add_argument("--output-dir", type=Path, required=True)
+    microstructure_record.add_argument("--duration-seconds", type=int, default=60)
+    microstructure_record.add_argument("--maximum-reconnects", type=int, default=3)
+    microstructure_inspect = microstructure_commands.add_parser("inspect")
+    microstructure_inspect.add_argument("--session", type=Path, required=True)
     backtest = commands.add_parser("backtest")
     backtest_commands = backtest.add_subparsers(dest="backtest_command", required=True)
     run = backtest_commands.add_parser("run")
@@ -172,6 +194,23 @@ def _parser() -> argparse.ArgumentParser:
     show.add_argument("--file", type=Path, required=True)
     research = commands.add_parser("research")
     research_commands = research.add_subparsers(dest="research_command", required=True)
+    microstructure_research = research_commands.add_parser("microstructure")
+    microstructure_research_commands = microstructure_research.add_subparsers(
+        dest="microstructure_research_command",
+        required=True,
+    )
+    microstructure_replay = microstructure_research_commands.add_parser("replay")
+    microstructure_replay.add_argument("--session", type=Path, required=True)
+    microstructure_replay.add_argument(
+        "--speed",
+        choices=tuple(item.value for item in ReplaySpeed),
+        default=ReplaySpeed.MAX.value,
+    )
+    microstructure_replay.add_argument("--output-dir", type=Path, required=True)
+    microstructure_alpha = microstructure_research_commands.add_parser("alpha-diagnose")
+    microstructure_alpha.add_argument("--session", type=Path, required=True)
+    microstructure_alpha.add_argument("--models", default="long,short")
+    microstructure_alpha.add_argument("--output-dir", type=Path, required=True)
     dataset = research_commands.add_parser("dataset")
     dataset_commands = dataset.add_subparsers(dest="dataset_command", required=True)
     inspect = dataset_commands.add_parser("inspect")
@@ -533,6 +572,108 @@ def _doctor(config: TradingConfig) -> int:
         _check("credentials", no_credentials, "no authenticated Binance configuration found"),
     ]
     return 0 if all(checks) else 1
+
+
+def _microstructure_market(value: str) -> MarketType:
+    if value == "spot":
+        return MarketType.SPOT
+    if value == "futures":
+        return MarketType.USD_M_FUTURES
+    raise ValueError("microstructure market must be spot or futures")
+
+
+def _microstructure_doctor(args: argparse.Namespace) -> int:
+    capabilities = tuple(
+        stream_capabilities(market, args.symbol)
+        for market in (MarketType.SPOT, MarketType.USD_M_FUTURES)
+    )
+    print(
+        json.dumps(
+            {
+                "status": "OK",
+                "research_only": True,
+                "public_only": True,
+                "authentication_available": False,
+                "order_submission_available": False,
+                "schema_version_changed": False,
+                "capabilities": [serialize_model(item) for item in capabilities],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return 0
+
+
+async def _microstructure_record(args: argparse.Namespace) -> int:
+    streams = tuple(item.strip() for item in args.streams.split(",") if item.strip())
+    if not streams:
+        raise ValueError("at least one public stream is required")
+    recorder = PublicMicrostructureRecorder(
+        market_type=_microstructure_market(args.market),
+        symbol=args.symbol,
+        streams=streams,
+        output_dir=args.output_dir,
+        duration_seconds=args.duration_seconds,
+        maximum_reconnects=args.maximum_reconnects,
+    )
+    result = await recorder.run()
+    print(json.dumps(serialize_model(result), indent=2, sort_keys=True))
+    return 0 if result.session.completeness == "COMPLETE" else 1
+
+
+def _microstructure_inspect(args: argparse.Namespace) -> int:
+    result = inspect_session(args.session)
+    print(json.dumps(result, indent=2, sort_keys=True))
+    return 0 if result["hashes_valid"] else 1
+
+
+def _microstructure_replay(args: argparse.Namespace) -> int:
+    replay = MicrostructureReplayEngine(seed=42).run(
+        args.session,
+        speed=ReplaySpeed(args.speed),
+    )
+    report = MicrostructureFoundationService().run(
+        session_path=args.session,
+        output_dir=args.output_dir,
+    )
+    print(
+        json.dumps(
+            {
+                "replay": serialize_model(replay),
+                "report_directory": str(report),
+                "research_only": True,
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return 0
+
+
+def _microstructure_alpha_diagnose(args: argparse.Namespace) -> int:
+    models = tuple(item.strip().lower() for item in args.models.split(",") if item.strip())
+    if not models or set(models) - {"long", "short"}:
+        raise ValueError("microstructure models must contain only long and/or short")
+    report = MicrostructureFoundationService().run(
+        session_path=args.session,
+        output_dir=args.output_dir,
+        models=models,
+    )
+    summary = json.loads((report / "alpha_signal_summary.json").read_text(encoding="utf-8"))
+    print(
+        json.dumps(
+            {
+                "models": models,
+                "report_directory": str(report),
+                "summary": summary,
+                "thresholds_selected_by_pnl": False,
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return 0
 
 
 def _create_parent(path: Path) -> bool:
@@ -2215,6 +2356,13 @@ def main(argv: Sequence[str] | None = None) -> int:
             return asyncio.run(_download(config, args))
         if args.command == "market" and args.market_command == "status":
             return _market_status(config, args)
+        if args.command == "market" and args.market_command == "microstructure":
+            if args.microstructure_market_command == "doctor":
+                return _microstructure_doctor(args)
+            if args.microstructure_market_command == "record":
+                return asyncio.run(_microstructure_record(args))
+            if args.microstructure_market_command == "inspect":
+                return _microstructure_inspect(args)
         if args.command == "market" and args.market_command == "futures":
             if args.futures_market_command == "status":
                 return _futures_status(config, args)
@@ -2239,6 +2387,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.command == "research" and args.research_command == "dataset":
             if args.dataset_command == "inspect":
                 return _research_dataset(config, args)
+        if args.command == "research" and args.research_command == "microstructure":
+            if args.microstructure_research_command == "replay":
+                return _microstructure_replay(args)
+            if args.microstructure_research_command == "alpha-diagnose":
+                return _microstructure_alpha_diagnose(args)
         if args.command == "research" and args.research_command == "holdout":
             if args.holdout_command == "run":
                 return _research_holdout(config, args)

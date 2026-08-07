@@ -1,0 +1,26 @@
+{
+  "completeness": "COMPLETE",
+  "credentials_persisted": false,
+  "disconnects": 0,
+  "event_count": 5426,
+  "files": [
+    {
+      "compressed_size": 855749,
+      "event_count": 5426,
+      "file_hash": "572419a937775f17dd114494b6e882109822a41f4c60c365228f8bb65bedade3",
+      "first_event": "2026-08-07T02:15:19.200658+00:00",
+      "last_event": "2026-08-07T02:15:48.115000+00:00",
+      "path": "events-00001.jsonl.gz",
+      "raw_size": 6401216
+    }
+  ],
+  "first_event": "2026-08-07T02:15:19.200658+00:00",
+  "gaps": 0,
+  "hashes_valid": true,
+  "last_event": "2026-08-07T02:15:48.115000+00:00",
+  "market": "SPOT",
+  "resyncs": 0,
+  "session_id": "microstructure-20260807T021518Z-spot",
+  "started_at": "2026-08-07T02:15:18.214991+00:00",
+  "symbol": "ETHUSDT"
+}

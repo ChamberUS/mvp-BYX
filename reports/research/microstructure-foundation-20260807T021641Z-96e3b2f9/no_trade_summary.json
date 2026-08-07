@@ -1,0 +1,9 @@
+{
+  "by_reason": {
+    "FEATURE_WARMUP": 2,
+    "NO_TRADE_ALLOWED": 232
+  },
+  "conflict_policy": "NO_TRADE_CONFLICT",
+  "frequency_quota_enforced": false,
+  "total": 234
+}

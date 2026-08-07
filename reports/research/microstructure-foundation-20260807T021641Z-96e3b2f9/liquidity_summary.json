@@ -1,0 +1,9 @@
+{
+  "candle_volume_proxy_used": false,
+  "depth_imbalance_20_max": "0.8567144635456318278068499069",
+  "depth_imbalance_20_min": "-0.9205998786568791805285435434",
+  "snapshot_count": 284,
+  "spread_bps_max": "1.732087979571859343958555859",
+  "spread_bps_median": "0.0524861370990387163990311059",
+  "spread_bps_min": "0.05243384814633238340678441561"
+}

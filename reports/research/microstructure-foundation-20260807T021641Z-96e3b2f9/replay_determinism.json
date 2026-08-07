@@ -1,0 +1,30 @@
+{
+  "max": {
+    "deterministic": true,
+    "event_count": 5426,
+    "first_event": "2026-08-07T02:15:19.115000+00:00",
+    "input_hash": "87667cdfe1a4c878e56c5bb077c6058419e45f8d3fd1aa8e738257c8f6be054a",
+    "last_event": "2026-08-07T02:15:48.131000+00:00",
+    "output_hash": "87667cdfe1a4c878e56c5bb077c6058419e45f8d3fd1aa8e738257c8f6be054a",
+    "real_sleep_used": false,
+    "seed": 42,
+    "session_path": "data/microstructure/spot/ETHUSDT/2026-08-07/microstructure-20260807T021518Z-spot",
+    "speed": "max"
+  },
+  "real_sleep_used": false,
+  "same_input_hash": true,
+  "same_output_hash": true,
+  "step": {
+    "deterministic": true,
+    "event_count": 5426,
+    "first_event": "2026-08-07T02:15:19.115000+00:00",
+    "input_hash": "87667cdfe1a4c878e56c5bb077c6058419e45f8d3fd1aa8e738257c8f6be054a",
+    "last_event": "2026-08-07T02:15:48.131000+00:00",
+    "output_hash": "87667cdfe1a4c878e56c5bb077c6058419e45f8d3fd1aa8e738257c8f6be054a",
+    "real_sleep_used": false,
+    "seed": 42,
+    "session_path": "data/microstructure/spot/ETHUSDT/2026-08-07/microstructure-20260807T021518Z-spot",
+    "speed": "step"
+  },
+  "virtual_clock_only": true
+}

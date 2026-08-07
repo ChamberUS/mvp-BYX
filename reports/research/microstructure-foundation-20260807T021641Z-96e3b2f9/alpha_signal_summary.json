@@ -1,0 +1,30 @@
+{
+  "calibration_status": "CALIBRATION_REQUIRED",
+  "evaluation_count": 284,
+  "frequency": {
+    "alpha_signals_per_minute": "105.1431287125381603842771068",
+    "average_signal_persistence_ms": "616.3539999999999714285714286",
+    "hold": 0,
+    "long_alpha": 50,
+    "long_signals_per_hour": "6308.587722752289623056626409",
+    "median_signal_persistence_ms": "610.011",
+    "no_trade": 234,
+    "no_trade_by_conflict": 0,
+    "no_trade_by_data": 234,
+    "no_trade_by_depth": 0,
+    "no_trade_by_liquidity": 0,
+    "no_trade_by_spread": 0,
+    "no_trade_percent": "82.39436619718309859154929577",
+    "short_alpha": 0,
+    "short_signals_per_hour": "0E+6",
+    "signals_per_day": "151406.1053460549509533590338",
+    "target_is_diagnostic_only": true,
+    "total_evaluation_events": 284
+  },
+  "frequency_target": "5-20 CLOSED_TRADES_PER_ACTIVE_DAY_DIAGNOSTIC_ONLY",
+  "hold_count": 0,
+  "long_count": 50,
+  "no_trade_count": 234,
+  "short_count": 0,
+  "thresholds_selected_by_pnl": false
+}

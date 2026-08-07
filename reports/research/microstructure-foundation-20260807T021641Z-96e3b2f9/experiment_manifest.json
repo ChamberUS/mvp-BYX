@@ -1,0 +1,35 @@
+{
+  "alpha_models": [
+    "long",
+    "short"
+  ],
+  "artifacts": [
+    "experiment_manifest.json",
+    "stream_capabilities.json",
+    "capture_integrity.json",
+    "order_book_integrity.json",
+    "liquidity_summary.json",
+    "feature_summary.json",
+    "alpha_signal_summary.json",
+    "no_trade_summary.json",
+    "elastic_exit_synthetic_results.json",
+    "replay_determinism.json",
+    "microstructure_foundation_report.md"
+  ],
+  "authentication_used": false,
+  "completed_at": "2026-08-07T02:16:42.889036+00:00",
+  "duration_seconds": "1.6938197489944287",
+  "experiment_id": "microstructure-foundation-20260807T021641Z-96e3b2f9",
+  "financial_candidate_assessment_generated": false,
+  "leverage": "1",
+  "network_used_for_replay": false,
+  "orders_sent": false,
+  "paper_trading_enabled": false,
+  "profitability_claimed": false,
+  "research_only": true,
+  "session": "data/microstructure/spot/ETHUSDT/2026-08-07/microstructure-20260807T021518Z-spot",
+  "session_manifest_hash": "96e3b2f9fe42da4361cb208cc9079b2938c60904d69dfc2decf10ab1534db17c",
+  "sprint": "4A.1",
+  "started_at": "2026-08-07T02:16:41.195228+00:00",
+  "testnet_enabled": false
+}

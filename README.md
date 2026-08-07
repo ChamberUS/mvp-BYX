@@ -52,6 +52,32 @@ adaptive-trader backtest show --file reports/backtest-ethusdt.json
 
 `market download` usa o transporte público e não pede credenciais. `market update` retoma após o último candle persistido. Relatórios JSON/CSV ficam em `reports/` e não são versionados.
 
+## Fundação de microestrutura intraday
+
+A Sprint 4A.1 adiciona captura pública Spot/USD-M Futures, livro local com validação de sequência,
+storage `JSONL gzip` com SHA-256, replay por relógio virtual, liquidez top 5/10/20, features
+point-in-time, `NO_TRADE` e alphas long/short realmente separados. Short existe somente em
+Futures `1x`. A frequência de 5–20 trades em dias ativos é diagnóstico, nunca quota ou objetivo
+de calibração.
+
+```bash
+adaptive-trader market microstructure doctor
+adaptive-trader market microstructure record --market spot --symbol ETHUSDT \
+  --streams aggTrade,bookTicker,depth --depth-speed 100ms \
+  --output-dir data/microstructure --duration-seconds 60
+adaptive-trader market microstructure inspect --session <session>
+adaptive-trader research microstructure replay --session <session> --speed max \
+  --output-dir reports/research
+adaptive-trader research microstructure alpha-diagnose --session <session> \
+  --models long,short --output-dir reports/research
+```
+
+O `ElasticProfitExitController` é somente uma hipótese sintética 300/150 não selecionada. Ele usa
+VWAP executável nos bids para fechar long e nos asks para recomprar short; mark price não realiza
+lucro. Hard floor e failsafe de liquidez têm prioridade. Não há autenticação, ordem, Testnet,
+paper trading ou seleção por PnL. Metodologia e limitações completas estão em
+[`docs/MICROSTRUCTURE_RESEARCH_METHODOLOGY.md`](docs/MICROSTRUCTURE_RESEARCH_METHODOLOGY.md).
+
 ## Qualidade
 
 ```bash
