@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from decimal import Decimal
 
+import pytest
+
 from adaptive_trader.domain.market import MarketType, PositionSide
 from adaptive_trader.execution import (
     ExecutionConfig,
@@ -65,6 +67,37 @@ def test_market_buy_walks_asks_with_multilevel_vwap_and_fees() -> None:
     assert result.slippage.depth_slippage_bps > 0
     assert len(venue.execution_ledger.fills) == 2
     assert all(fill.fee > 0 for fill in result.order.fills)
+
+
+def test_taker_preview_walks_depth_is_partial_and_does_not_mutate_ledgers() -> None:
+    venue = ExecutionSimulator(ExecutionConfig(policy=ExecutionPolicy.TAKER_ONLY))
+    preview = venue.preview_taker(
+        book=book(asks=(("100.10", "1"), ("100.20", "2"))),
+        side=OrderSide.BUY,
+        position_effect=PositionEffect.OPEN_LONG,
+        quantity=Decimal("4"),
+        reference_price=Decimal("100.00"),
+    )
+
+    assert preview.filled_quantity == Decimal("3")
+    assert preview.vwap == Decimal("100.1666666666666666666666667")
+    assert preview.levels_consumed == 2
+    assert preview.depth_slippage_bps > 0
+    assert preview.fee > 0
+    assert venue.orders == ()
+    assert venue.execution_ledger.fills == ()
+
+
+def test_taker_preview_rejects_side_effect_mismatch() -> None:
+    venue = ExecutionSimulator(ExecutionConfig(policy=ExecutionPolicy.TAKER_ONLY))
+    with pytest.raises(ValueError, match="conflicts"):
+        venue.preview_taker(
+            book=book(),
+            side=OrderSide.SELL,
+            position_effect=PositionEffect.OPEN_LONG,
+            quantity=Decimal("1"),
+            reference_price=Decimal("100"),
+        )
 
 
 def test_market_sell_consumes_bids_and_never_invents_liquidity() -> None:

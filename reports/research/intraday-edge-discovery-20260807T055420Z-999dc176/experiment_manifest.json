@@ -1,0 +1,31 @@
+{
+  "alpha_v1_implemented": false,
+  "anchor_count": 7192,
+  "anchor_frequency_ms": 250,
+  "authentication_used": false,
+  "campaign_hash": "999dc176fb76d0cc3f3d85541dc9dbe08333028f163b657813f5a09bec1ac27b",
+  "campaign_id": "ethusdt-futures-intraday-v1",
+  "clock_limitation": "receive_wall - exchange_event_time is not reliable one-way latency and is excluded from alpha and labels",
+  "created_at": "2026-08-07T06:10:00.632286+00:00",
+  "dataset_status": "ENGINEERING_ONLY",
+  "duration_seconds": 1798.938,
+  "elastic_status": "MIXED",
+  "execution_config_hash": "56449248094a372137049d993a3ea27bf066e5dad236a406d3fc85a917338af1",
+  "experiment_id": "intraday-edge-discovery-20260807T055420Z-999dc176",
+  "feature_hash": "51947aa0216c8d1fcd0268c48d89be9de2816a9c9871d7404636af41ca30711a",
+  "labeling_config_hash": "154f855328eb733bfb47d1fc7ea78edc8a192278bfa2b5a09f03ab97baacaaf6",
+  "long_label_hash": "49ed5a8be9cec36b372994f8f5c3ca4323989819702addbc604712ae93e5d713",
+  "long_status": "LONG_MORE_DATA_REQUIRED",
+  "next_step": "MORE_DATA_REQUIRED",
+  "orders_sent": false,
+  "public_only": true,
+  "research_only": true,
+  "session_count": 1,
+  "short_label_hash": "0d495f209014dae0d6c695c761b10168debe2658aacb1e4094c016277019c386",
+  "short_status": "SHORT_MORE_DATA_REQUIRED",
+  "software_commit": "484a7689fef39728e0ad46b7e43110fce752c3aa+SPRINT_4A_3_WORKTREE",
+  "structure_observed_is_profitable_strategy_claim": false,
+  "utc_dates_covered": [
+    "2026-08-07"
+  ]
+}

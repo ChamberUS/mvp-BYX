@@ -214,3 +214,11 @@ privadas, congestionamento individual da conta ou fee tier. Latências são cen�
 O book de 100 ms pode omitir eventos entre frames, e market impact além do depth visível não é
 modelado. Markout vazio não é convertido em zero. Os 17 cenários A–Q e o replay Spot validam
 mecânica e determinismo; não validam edge, frequência ou lucratividade.
+
+## Preview taker para labels offline
+
+Sprint 4A.3 adiciona ao mesmo simulador um preview não mutante para campaigns grandes. Ele valida
+`OPEN_LONG`, `CLOSE_LONG`, `OPEN_SHORT` ou `CLOSE_SHORT` contra o lado da ordem, caminha os mesmos
+níveis, mantém remainder/partial fill, calcula VWAP e usa o mesmo `FeeModel`. A otimização evita
+alocar lifecycle e position ledger para centenas de milhares de hipóteses; não troca depth por
+mid/mark e não inventa liquidez. O protocolo completo está em `docs/INTRADAY_EDGE_DISCOVERY.md`.

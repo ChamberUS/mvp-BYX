@@ -68,6 +68,10 @@ from adaptive_trader.market_data.binance_public import BinancePublicClient
 from adaptive_trader.market_data.exceptions import MarketDataError
 from adaptive_trader.market_data.futures_history import FuturesHistoricalDownloader
 from adaptive_trader.market_data.history import HistoricalCandleDownloader
+from adaptive_trader.microstructure.campaign import (
+    MicrostructureCampaignBuilder,
+    load_campaign,
+)
 from adaptive_trader.microstructure.connection import stream_capabilities
 from adaptive_trader.microstructure.foundation import MicrostructureFoundationService
 from adaptive_trader.microstructure.futures_feed import FuturesFeedHardeningService
@@ -93,7 +97,11 @@ from adaptive_trader.research.datasets import (
     validate_dataset,
 )
 from adaptive_trader.research.diagnostics import entry_exit_decomposition_rows
+from adaptive_trader.research.executable_forward_labels import NOTIONALS
 from adaptive_trader.research.experiment import ResearchExperimentRunner
+from adaptive_trader.research.microstructure_edge_service import (
+    IntradayEdgeDiscoveryService,
+)
 from adaptive_trader.research.models import GapPolicy, SelectionMode, WalkForwardMode
 from adaptive_trader.research.periods import ResearchPeriods
 from adaptive_trader.research.pullback_calibration_experiment import (
@@ -202,6 +210,19 @@ def _parser() -> argparse.ArgumentParser:
     microstructure_inspect.add_argument("--session", type=Path, required=True)
     microstructure_health = microstructure_commands.add_parser("health")
     microstructure_health.add_argument("--session", type=Path, required=True)
+    campaign_record = microstructure_commands.add_parser("campaign-record")
+    campaign_record.add_argument("--market", choices=("spot", "futures"), required=True)
+    campaign_record.add_argument("--symbol", default="ETHUSDT")
+    campaign_record.add_argument("--streams", required=True)
+    campaign_record.add_argument("--depth-speed", choices=("100ms",), default="100ms")
+    campaign_record.add_argument("--campaign-id", required=True)
+    campaign_record.add_argument("--chunk-seconds", type=int, default=1800)
+    campaign_record.add_argument("--total-seconds", type=int, required=True)
+    campaign_record.add_argument("--output-dir", type=Path, required=True)
+    campaign_record.add_argument("--maximum-reconnects", type=int, default=3)
+    campaign_status = microstructure_commands.add_parser("campaign-status")
+    campaign_status.add_argument("--campaign", required=True)
+    campaign_status.add_argument("--output-dir", type=Path, default=Path("data/microstructure"))
     backtest = commands.add_parser("backtest")
     backtest_commands = backtest.add_subparsers(dest="backtest_command", required=True)
     run = backtest_commands.add_parser("run")
@@ -229,9 +250,7 @@ def _parser() -> argparse.ArgumentParser:
     microstructure_alpha.add_argument("--session", type=Path, required=True)
     microstructure_alpha.add_argument("--models", default="long,short")
     microstructure_alpha.add_argument("--output-dir", type=Path, required=True)
-    futures_feed_harden = microstructure_research_commands.add_parser(
-        "futures-feed-harden"
-    )
+    futures_feed_harden = microstructure_research_commands.add_parser("futures-feed-harden")
     futures_feed_harden.add_argument("--session", type=Path, required=True)
     futures_feed_harden.add_argument("--previous-session", type=Path, default=None)
     futures_feed_harden.add_argument("--output-dir", type=Path, required=True)
@@ -242,6 +261,22 @@ def _parser() -> argparse.ArgumentParser:
     futures_liveness_qualify.add_argument("--previous-session", type=Path, default=None)
     futures_liveness_qualify.add_argument("--long-session", type=Path, default=None)
     futures_liveness_qualify.add_argument("--output-dir", type=Path, required=True)
+    for edge_command in ("build-edge-dataset", "discover-edge"):
+        edge = microstructure_research_commands.add_parser(edge_command)
+        edge.add_argument("--campaign", required=True)
+        edge.add_argument("--anchor-ms", type=int, default=250)
+        edge.add_argument("--notionals", default="100,500,1000")
+        edge.add_argument(
+            "--latency-profile",
+            choices=("fast", "normal", "stressed"),
+            default="normal",
+        )
+        edge.add_argument("--output-dir", type=Path, required=True)
+        edge.add_argument("--yes", action="store_true")
+    characterize_edge = microstructure_research_commands.add_parser("characterize-edge")
+    characterize_edge.add_argument("--experiment", type=Path, required=True)
+    edge_show = microstructure_research_commands.add_parser("edge-show")
+    edge_show.add_argument("--experiment", type=Path, required=True)
     execution_research = research_commands.add_parser("execution")
     execution_research_commands = execution_research.add_subparsers(
         dest="execution_research_command",
@@ -688,6 +723,127 @@ async def _microstructure_record(args: argparse.Namespace) -> int:
     return 0 if result.session.completeness == "COMPLETE" else 1
 
 
+def _campaign_manifest_path(campaign: str, output_dir: Path) -> Path:
+    supplied = Path(campaign)
+    if supplied.is_file():
+        return supplied
+    candidate = output_dir / "campaigns" / campaign / "campaign_manifest.json"
+    if not candidate.is_file():
+        raise ValueError(f"microstructure campaign not found: {campaign}")
+    return candidate
+
+
+async def _microstructure_campaign_record(args: argparse.Namespace) -> int:
+    if args.chunk_seconds <= 0 or args.total_seconds <= 0:
+        raise ValueError("campaign chunk and total seconds must be positive")
+    streams = tuple(item.strip() for item in args.streams.split(",") if item.strip())
+    if not streams:
+        raise ValueError("at least one public stream is required")
+    manifest_path = args.output_dir / "campaigns" / args.campaign_id / "campaign_manifest.json"
+    paths: list[Path] = []
+    captured = 0.0
+    if manifest_path.is_file():
+        existing = load_campaign(manifest_path)
+        if existing.market != _microstructure_market(args.market).value:
+            raise ValueError("campaign resume market differs from existing campaign")
+        if existing.symbol != args.symbol.upper():
+            raise ValueError("campaign resume symbol differs from existing campaign")
+        paths.extend(Path(item.path) for item in existing.sessions)
+        captured = existing.total_duration_seconds
+    stop_requested = False
+    current: PublicMicrostructureRecorder | None = None
+    loop = asyncio.get_running_loop()
+
+    def stop() -> None:
+        nonlocal stop_requested
+        stop_requested = True
+        if current is not None:
+            current.request_stop()
+
+    registered: list[signal.Signals] = []
+    for current_signal in (signal.SIGINT, signal.SIGTERM):
+        try:
+            loop.add_signal_handler(current_signal, stop)
+            registered.append(current_signal)
+        except (NotImplementedError, RuntimeError, ValueError):
+            continue
+    try:
+        while captured < args.total_seconds and not stop_requested:
+            duration = min(args.chunk_seconds, max(1, int(args.total_seconds - captured)))
+            current = PublicMicrostructureRecorder(
+                market_type=_microstructure_market(args.market),
+                symbol=args.symbol,
+                streams=streams,
+                output_dir=args.output_dir,
+                duration_seconds=duration,
+                maximum_reconnects=args.maximum_reconnects,
+            )
+            result = await current.run()
+            current = None
+            if result.session.completeness != "COMPLETE":
+                break
+            paths.append(result.session.session_path)
+            campaign = MicrostructureCampaignBuilder().build(args.campaign_id, tuple(paths))
+            MicrostructureCampaignBuilder().write(campaign, manifest_path)
+            captured = campaign.total_duration_seconds
+    finally:
+        for current_signal in registered:
+            loop.remove_signal_handler(current_signal)
+    campaign = MicrostructureCampaignBuilder().build(args.campaign_id, tuple(paths))
+    MicrostructureCampaignBuilder().write(campaign, manifest_path)
+    print(
+        json.dumps({**campaign.as_dict(), "manifest": str(manifest_path)}, indent=2, sort_keys=True)
+    )
+    return 0
+
+
+def _microstructure_campaign_status(args: argparse.Namespace) -> int:
+    path = _campaign_manifest_path(args.campaign, args.output_dir)
+    campaign = load_campaign(path)
+    print(json.dumps({**campaign.as_dict(), "manifest": str(path)}, indent=2, sort_keys=True))
+    return 0
+
+
+def _edge_notionals(value: str) -> tuple[Decimal, ...]:
+    try:
+        notionals = tuple(Decimal(item.strip()) for item in value.split(",") if item.strip())
+    except InvalidOperation as exc:
+        raise ValueError("edge notionals must be decimal values") from exc
+    if notionals != NOTIONALS:
+        raise ValueError("edge notionals are pre-registered as 100,500,1000")
+    return notionals
+
+
+def _microstructure_build_edge(args: argparse.Namespace) -> int:
+    campaign_path = _campaign_manifest_path(args.campaign, Path("data/microstructure"))
+    profile = LatencyProfile(args.latency_profile.upper())
+    report = IntradayEdgeDiscoveryService().build(
+        campaign_manifest=campaign_path,
+        output_dir=args.output_dir,
+        anchor_ms=args.anchor_ms,
+        notionals=_edge_notionals(args.notionals),
+        latency_profile=profile,
+        characterize=True,
+    )
+    print(json.dumps(IntradayEdgeDiscoveryService.inspect(report), indent=2, sort_keys=True))
+    return 0
+
+
+def _microstructure_characterize_edge(args: argparse.Namespace) -> int:
+    result = IntradayEdgeDiscoveryService.inspect(args.experiment)
+    required = (
+        "long_univariate_edge.csv",
+        "short_univariate_edge.csv",
+        "block_bootstrap.json",
+        "association_assessment.json",
+    )
+    missing = [name for name in required if not (args.experiment / name).is_file()]
+    if missing:
+        raise ValueError(f"edge characterization artifacts missing: {missing}")
+    print(json.dumps({**result, "characterization": "COMPLETE"}, indent=2, sort_keys=True))
+    return 0
+
+
 def _microstructure_inspect(args: argparse.Namespace) -> int:
     result = inspect_session(args.session)
     print(json.dumps(result, indent=2, sort_keys=True))
@@ -742,9 +898,7 @@ def _microstructure_alpha_diagnose(args: argparse.Namespace) -> int:
     if capture.get("market") == MarketType.USD_M_FUTURES.value:
         health, _, _ = FeedHealthAnalyzer().analyze(args.session)
         if health.status is FeedHealthStatus.NOT_READY:
-            raise ValueError(
-                "alpha diagnosis refused: Futures microstructure feed is NOT_READY"
-            )
+            raise ValueError("alpha diagnosis refused: Futures microstructure feed is NOT_READY")
     report = MicrostructureFoundationService().run(
         session_path=args.session,
         output_dir=args.output_dir,
@@ -794,9 +948,7 @@ def _microstructure_futures_liveness_qualify(args: argparse.Namespace) -> int:
         long_session_path=args.long_session,
         output_dir=args.output_dir,
     )
-    assessment = json.loads(
-        (report / "readiness_assessment.json").read_text(encoding="utf-8")
-    )
+    assessment = json.loads((report / "readiness_assessment.json").read_text(encoding="utf-8"))
     final = assessment["final"]
     print(
         json.dumps(
@@ -2475,13 +2627,9 @@ def _research_trend_following_show(args: argparse.Namespace) -> int:
     payload = {
         "manifest": read_json(experiment / "experiment_manifest.json"),
         "catalog": read_json(experiment / "hypothesis_catalog.json"),
-        "selection": _read_json_array(
-            experiment / "development_selection.json"
-        ),
+        "selection": _read_json_array(experiment / "development_selection.json"),
         "lock": read_json(experiment / "trend_following_validation_lock.json"),
-        "assessment": _read_json_array(
-            experiment / "hypothesis_assessment.json"
-        ),
+        "assessment": _read_json_array(experiment / "hypothesis_assessment.json"),
         "future_confirmation_plan": read_json(experiment / "future_confirmation_plan.json"),
     }
     print(json.dumps(payload, indent=2, sort_keys=True))
@@ -2555,6 +2703,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                 return _microstructure_doctor(args)
             if args.microstructure_market_command == "record":
                 return asyncio.run(_microstructure_record(args))
+            if args.microstructure_market_command == "campaign-record":
+                return asyncio.run(_microstructure_campaign_record(args))
+            if args.microstructure_market_command == "campaign-status":
+                return _microstructure_campaign_status(args)
             if args.microstructure_market_command == "inspect":
                 return _microstructure_inspect(args)
             if args.microstructure_market_command == "health":
@@ -2592,6 +2744,16 @@ def main(argv: Sequence[str] | None = None) -> int:
                 return _microstructure_futures_feed_harden(args)
             if args.microstructure_research_command == "futures-liveness-qualify":
                 return _microstructure_futures_liveness_qualify(args)
+            if args.microstructure_research_command in {
+                "build-edge-dataset",
+                "discover-edge",
+            }:
+                return _microstructure_build_edge(args)
+            if args.microstructure_research_command in {
+                "characterize-edge",
+                "edge-show",
+            }:
+                return _microstructure_characterize_edge(args)
         if args.command == "research" and args.research_command == "execution":
             if args.execution_research_command == "simulate":
                 return _research_execution_simulate(args)

@@ -441,3 +441,25 @@ Capturas públicas mais longas usam `--duration 3600`; `--duration 0` permanece 
 SIGINT/SIGTERM e finaliza gzip e manifest de forma limpa. O desenho completo, defaults de fee,
 invariantes, 17 cenários e limitações estão em
 [`docs/INTRADAY_EXECUTION_SIMULATION.md`](docs/INTRADAY_EXECUTION_SIMULATION.md).
+
+## Dataset de edge intraday executável
+
+A Sprint 4A.3 agrega sessões públicas válidas em campaigns resumíveis, amostra anchors point-in-time
+a cada 250 ms e calcula labels forward LONG/SHORT independentes em oito horizontes e três tiers de
+notional. Entrada/saída caminham depth no `ExecutionSimulator`, incluem fees/slippage e nunca usam
+mark ou mid como fill garantido. Features, labels e holdout permanecem fisicamente separados.
+
+```bash
+adaptive-trader market microstructure campaign-status \
+  --campaign ethusdt-futures-intraday-v1
+
+adaptive-trader research microstructure discover-edge \
+  --campaign ethusdt-futures-intraday-v1 --anchor-ms 250 \
+  --notionals 100,500,1000 --latency-profile normal \
+  --output-dir reports/research --yes
+```
+
+A captura qualificada de ~30 minutos gerou 7.192 anchors, mas permanece `ENGINEERING_ONLY`:
+`LONG_MORE_DATA_REQUIRED`, `SHORT_MORE_DATA_REQUIRED` e `MORE_DATA_REQUIRED`. Nenhum Alpha V1 foi
+criado. Metodologia, campaign recording, temporal lock, block bootstrap, no-trade e Elastic real
+data estão em [`docs/INTRADAY_EDGE_DISCOVERY.md`](docs/INTRADAY_EDGE_DISCOVERY.md).

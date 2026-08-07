@@ -1,0 +1,7 @@
+{
+  "chronological": true,
+  "holdout_created": false,
+  "random_shuffle": false,
+  "reason": "Dataset below 24 valid hours and two UTC dates",
+  "status": "NOT_APPLICABLE_BELOW_DISCOVERY_READY"
+}

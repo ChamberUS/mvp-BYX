@@ -1,0 +1,20 @@
+{
+  "activation_count": 90,
+  "classification": "MIXED",
+  "hard_floor_triggers": 0,
+  "liquidity_failsafes": 0,
+  "mark_price_used": false,
+  "mean_adverse_selection_after_exit_bps": "-0.2420478719895764874715409556",
+  "mean_elastic_exit_pnl_bps": "4.980464870444258583851037778",
+  "mean_immediate_exit_pnl_bps": "5.436411888900900829772496889",
+  "mean_incremental_pnl_bps": "-0.4559470184566422459214591111",
+  "mean_maximum_additional_capture_bps": "0",
+  "mean_profit_giveback_bps": "0",
+  "mean_slippage_bps": "5.862068460166512054611029774E-26",
+  "minimum_sample_for_classification": 30,
+  "parameters_changed_after_results": false,
+  "partial_exits": 0,
+  "profile": "ELASTIC_300_150_V0",
+  "reversal_150ms_exits": 0,
+  "timeout_300ms_exits": 87
+}

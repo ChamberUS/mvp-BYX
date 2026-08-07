@@ -1,0 +1,17 @@
+{
+  "anchors": 7192,
+  "campaign_quality": "CLEAN",
+  "capture_breaks": [],
+  "capture_breaks_are_market_data_gaps": false,
+  "feature_hash": "51947aa0216c8d1fcd0268c48d89be9de2816a9c9871d7404636af41ca30711a",
+  "invalid_states_repaired": false,
+  "long_label_hash": "49ed5a8be9cec36b372994f8f5c3ca4323989819702addbc604712ae93e5d713",
+  "session_warnings": [],
+  "sessions_eligible": 1,
+  "source_session_manifest_hashes": {
+    "microstructure-20260807T042149Z-usd_m_futures": "28411d38fa3cb4caced8feff6c796a7b913f66fb8565e65c77a083fdac2ea6e9"
+  },
+  "short_label_hash": "0d495f209014dae0d6c695c761b10168debe2658aacb1e4094c016277019c386",
+  "transport_clock_alignment_valid": false,
+  "transport_clock_limitation": "receive_wall - exchange_event_time cannot establish one-way network latency"
+}

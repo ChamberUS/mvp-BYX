@@ -1,0 +1,10 @@
+{
+  "additional_valid_seconds_required": 84601.062,
+  "current_status": "ENGINEERING_ONLY",
+  "discovery_ready_requires_seconds": 86400,
+  "discovery_ready_requires_utc_dates": 2,
+  "next_step": "MORE_DATA_REQUIRED",
+  "requirements_were_reduced_after_results": false,
+  "utc_dates_covered": 1,
+  "valid_duration_seconds": 1798.938
+}

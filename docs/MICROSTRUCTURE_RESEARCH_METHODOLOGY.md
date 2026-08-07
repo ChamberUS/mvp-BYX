@@ -185,3 +185,15 @@ reconstrução pública, não uma visão co-localizada. A Sprint 4A.2 adiciona u
 mas posição de fila continua sendo aproximação conservadora e impacto além do depth visível não
 é inventado. Smoke captures e cenários sintéticos validam engenharia, não desempenho financeiro;
 qualquer conclusão econômica ainda exige pesquisa de alpha e validação pré-registrada posterior.
+
+## Sprint 4A.3: features não são labels
+
+Campaigns, anchors de 250 ms, labels executáveis LONG/SHORT, tiers 100/500/1.000, horizontes
+250 ms–60 s, split temporal bloqueado e bootstrap em blocos estão especificados em
+`docs/INTRADAY_EDGE_DISCOVERY.md`. Features usam somente o prefixo até `T`; forward return, MFE e
+MAE existem apenas no módulo/arquivo offline de labels. Alpha não importa esse módulo, confirmation
+não recalcula quantis e discovery rejeita `LOCKED_FUTURE_HOLDOUT`.
+
+O resultado atual é somente `ENGINEERING_ONLY/MORE_DATA_REQUIRED`. A diferença
+`receive_wall - exchange_event_time` continua excluída de features, labels e conclusões porque os
+relógios não estavam alinhados.

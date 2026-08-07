@@ -40,7 +40,14 @@ class OrderBookUpdateResult:
 class LocalOrderBook:
     """Maintain one market/symbol book and fail closed on any sequence gap."""
 
-    def __init__(self, market_type: MarketType, symbol: str, *, visible_levels: int = 20) -> None:
+    def __init__(
+        self,
+        market_type: MarketType,
+        symbol: str,
+        *,
+        visible_levels: int = 20,
+        retained_levels: int | None = None,
+    ) -> None:
         if visible_levels < 20:
             raise ValueError("LocalOrderBook must expose at least 20 levels")
         normalized = symbol.strip().upper()
@@ -49,6 +56,9 @@ class LocalOrderBook:
         self.market_type = market_type
         self.symbol = normalized
         self.visible_levels = visible_levels
+        if retained_levels is not None and retained_levels < visible_levels:
+            raise ValueError("retained_levels must cover visible_levels")
+        self.retained_levels = retained_levels
         self.status = OrderBookStatus.EMPTY
         self.update_id: int | None = None
         self.last_event_time: datetime | None = None
@@ -66,9 +76,7 @@ class LocalOrderBook:
         self._seen_event_ids: set[str] = set()
         self._awaiting_first_diff = False
         self.sequence_policy: DepthSequencePolicy = (
-            SpotSequencePolicy()
-            if market_type is MarketType.SPOT
-            else FuturesSequencePolicy()
+            SpotSequencePolicy() if market_type is MarketType.SPOT else FuturesSequencePolicy()
         )
 
     @property
@@ -102,10 +110,7 @@ class LocalOrderBook:
 
     def top_asks(self, count: int = 20) -> tuple[DepthLevel, ...]:
         self._validate_count(count)
-        return tuple(
-            DepthLevel(price, self._asks[price])
-            for price in sorted(self._asks)[:count]
-        )
+        return tuple(DepthLevel(price, self._asks[price]) for price in sorted(self._asks)[:count])
 
     def buffer_update(self, event: MicrostructureEvent) -> OrderBookUpdateResult:
         self._validate_event(event, MicrostructureStreamType.DEPTH_UPDATE)
@@ -125,6 +130,7 @@ class LocalOrderBook:
             raise ValueError("snapshot requires lastUpdateId")
         self._bids = {level.price: level.quantity for level in event.bids if level.quantity > ZERO}
         self._asks = {level.price: level.quantity for level in event.asks if level.quantity > ZERO}
+        self._trim_retained_levels()
         self.update_id = event.sequence_last
         self.last_event_time = event.exchange_event_time
         self.last_receive_time = event.receive_wall_time
@@ -262,6 +268,7 @@ class LocalOrderBook:
             )
         self._apply_levels(self._bids, event.bids)
         self._apply_levels(self._asks, event.asks)
+        self._trim_retained_levels()
         self.update_id = event.sequence_last
         self.last_event_time = event.exchange_event_time
         self.last_receive_time = event.receive_wall_time
@@ -322,6 +329,18 @@ class LocalOrderBook:
                 book.pop(level.price, None)
             else:
                 book[level.price] = level.quantity
+
+    def _trim_retained_levels(self) -> None:
+        if self.retained_levels is None:
+            return
+        retained_bids = set(sorted(self._bids, reverse=True)[: self.retained_levels])
+        retained_asks = set(sorted(self._asks)[: self.retained_levels])
+        self._bids = {
+            price: quantity for price, quantity in self._bids.items() if price in retained_bids
+        }
+        self._asks = {
+            price: quantity for price, quantity in self._asks.items() if price in retained_asks
+        }
 
     @staticmethod
     def _event_order(event: MicrostructureEvent) -> tuple[int, int, int, str]:

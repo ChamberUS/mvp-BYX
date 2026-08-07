@@ -105,3 +105,14 @@ do relógio cliente. Os valores brutos são preservados e marcados inválidos no
 reinterpretados como rede ou event-loop. As métricas monotônicas locais permanecem utilizáveis:
 processamento total mediano 7,328 ms, p95 49,419 ms e p99 90,151 ms; persistência mediana
 0,062 ms, p95 0,407 ms e p99 1,700 ms.
+
+## Admissão em campaign científica
+
+Sprint 4A.3 admite no dataset principal apenas sessões `COMPLETE`, hash-valid, replayáveis, com
+current feed `READY`, livro íntegro, zero incidente não resolvido, gap real, drop e corrupção de
+parser. Warning recuperado pode entrar apenas com integridade preservada e permanece registrado.
+Intervalos sem recorder entre sessões são `CAPTURE_BREAK`, nunca `MARKET_DATA_GAP`.
+
+O campaign qualificado atual cobre 1.798,938 s em uma data UTC e, portanto, é
+`ENGINEERING_ONLY`. Os mínimos imutáveis de discovery/confirmation e o fluxo resumível estão em
+`docs/INTRADAY_EDGE_DISCOVERY.md`. Clock wall desalinhado continua proibido para alpha e labels.

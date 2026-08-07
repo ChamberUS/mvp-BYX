@@ -1,0 +1,24 @@
+{
+  "fee_profile": "RESEARCH_FEE_PROFILE_V1",
+  "horizons_ms": [
+    250,
+    500,
+    1000,
+    3000,
+    5000,
+    15000,
+    30000,
+    60000
+  ],
+  "latency_profile": "NORMAL",
+  "leverage": "1",
+  "long_short_calculated_independently": true,
+  "mark_price_is_execution_price": false,
+  "notionals_usdt": [
+    "100",
+    "500",
+    "1000"
+  ],
+  "policy": "TAKER_ONLY",
+  "receive_wall_minus_exchange_time_used": false
+}

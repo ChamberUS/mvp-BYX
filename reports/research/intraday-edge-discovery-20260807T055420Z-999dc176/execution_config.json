@@ -1,0 +1,7 @@
+{
+  "authenticated": false,
+  "fee_rates_are_account_tier_claim": false,
+  "orders_sent": false,
+  "public_depth_only": true,
+  "research_only": true
+}

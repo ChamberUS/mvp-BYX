@@ -84,6 +84,10 @@ class MicrostructureFeatureEngine:
         if event.stream_type is MicrostructureStreamType.AGG_TRADE:
             self._trades.append(event)
             self._trades.sort(key=self._event_order)
+            cutoff = event.exchange_event_time - self.retention
+            self._trades = [
+                item for item in self._trades if item.exchange_event_time >= cutoff
+            ]
         if self._last_event_time is None or event.exchange_event_time > self._last_event_time:
             self._last_event_time = event.exchange_event_time
 
@@ -101,6 +105,9 @@ class MicrostructureFeatureEngine:
         self._books.sort(key=lambda item: item.timestamp)
         if previous is not None and current.timestamp >= previous.timestamp:
             self._ofi.append((current.timestamp, self._ofi_increment(previous, current)))
+        cutoff = current.timestamp - self.retention
+        self._books = [item for item in self._books if item.timestamp >= cutoff]
+        self._ofi = [item for item in self._ofi if item[0] >= cutoff]
         if self._last_event_time is None or liquidity.timestamp > self._last_event_time:
             self._last_event_time = liquidity.timestamp
 

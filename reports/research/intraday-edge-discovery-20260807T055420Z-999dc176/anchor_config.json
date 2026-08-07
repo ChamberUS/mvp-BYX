@@ -1,0 +1,6 @@
+{
+  "anchor_interval_ms": 250,
+  "future_fields_present": false,
+  "maximum_anchors_per_interval": 1,
+  "methodology": "V1_PRE_REGISTERED"
+}

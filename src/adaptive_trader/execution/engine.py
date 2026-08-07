@@ -75,6 +75,20 @@ class ExecutionResult:
     queue_state: QueueState | None
 
 
+@dataclass(frozen=True, slots=True)
+class TakerExecutionPreview:
+    """Non-mutating depth walk for large offline label campaigns."""
+
+    requested_quantity: Decimal
+    filled_quantity: Decimal
+    vwap: Decimal | None
+    fee: Decimal
+    spread_crossing_bps: Decimal
+    depth_slippage_bps: Decimal
+    levels_consumed: int
+    worst_fill_price: Decimal | None
+
+
 class ExecutionPlanner:
     def __init__(self, policy: ExecutionPolicy) -> None:
         self.policy = policy
@@ -85,10 +99,15 @@ class ExecutionPlanner:
         effect: PositionEffect,
     ) -> tuple[OrderType, Decimal | None]:
         if self.policy is ExecutionPolicy.TAKER_ONLY:
-            direction = Decimal("1") if effect in {
-                PositionEffect.OPEN_LONG,
-                PositionEffect.CLOSE_SHORT,
-            } else Decimal("-1")
+            direction = (
+                Decimal("1")
+                if effect
+                in {
+                    PositionEffect.OPEN_LONG,
+                    PositionEffect.CLOSE_SHORT,
+                }
+                else Decimal("-1")
+            )
             limit = intent.reference_price * (
                 Decimal("1") + direction * intent.maximum_slippage_bps / TEN_THOUSAND
             )
@@ -134,6 +153,72 @@ class SimulatedOrderBookVenue:
         return hashlib.sha256(
             json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
         ).hexdigest()
+
+    def preview_taker(
+        self,
+        *,
+        book: BookState,
+        side: OrderSide,
+        position_effect: PositionEffect,
+        quantity: Decimal,
+        reference_price: Decimal,
+        maximum_slippage_bps: Decimal = Decimal("1000"),
+    ) -> TakerExecutionPreview:
+        """Apply the venue's taker depth/fee semantics without allocating order ledgers."""
+
+        if quantity <= ZERO or reference_price <= ZERO:
+            raise ValueError("preview quantity and reference must be positive")
+        expected_side = (
+            OrderSide.BUY
+            if position_effect in {PositionEffect.OPEN_LONG, PositionEffect.CLOSE_SHORT}
+            else OrderSide.SELL
+        )
+        if side is not expected_side:
+            raise ValueError("preview side conflicts with position effect")
+        levels = book.asks if side is OrderSide.BUY else book.bids
+        remaining = quantity
+        notional = ZERO
+        fee = ZERO
+        consumed = 0
+        worst: Decimal | None = None
+        direction = Decimal("1") if side is OrderSide.BUY else Decimal("-1")
+        maximum = maximum_slippage_bps / TEN_THOUSAND
+        for level in levels:
+            allowed = (
+                level.price <= reference_price * (Decimal("1") + maximum)
+                if side is OrderSide.BUY
+                else level.price >= reference_price * (Decimal("1") - maximum)
+            )
+            if not allowed:
+                break
+            filled = min(remaining, level.quantity)
+            if filled <= ZERO:
+                continue
+            notional += filled * level.price
+            fee += self.fees.calculate(book.market, LiquidityRole.TAKER, level.price, filled)
+            remaining -= filled
+            consumed += 1
+            worst = level.price
+            if remaining == ZERO:
+                break
+        filled_quantity = quantity - remaining
+        if filled_quantity == ZERO:
+            return TakerExecutionPreview(quantity, ZERO, None, ZERO, ZERO, ZERO, 0, None)
+        vwap = notional / filled_quantity
+        best = levels[0].price
+        return TakerExecutionPreview(
+            requested_quantity=quantity,
+            filled_quantity=filled_quantity,
+            vwap=vwap,
+            fee=fee,
+            spread_crossing_bps=direction
+            * (best - reference_price)
+            / reference_price
+            * TEN_THOUSAND,
+            depth_slippage_bps=direction * (vwap - best) / reference_price * TEN_THOUSAND,
+            levels_consumed=consumed,
+            worst_fill_price=worst,
+        )
 
     def submit(
         self,
@@ -214,10 +299,15 @@ class SimulatedOrderBookVenue:
         books: tuple[BookState, ...],
     ) -> ExecutionResult:
         order_type, limit_price = ExecutionPlanner(self.config.policy).plan(intent, effect)
-        side = OrderSide.BUY if effect in {
-            PositionEffect.OPEN_LONG,
-            PositionEffect.CLOSE_SHORT,
-        } else OrderSide.SELL
+        side = (
+            OrderSide.BUY
+            if effect
+            in {
+                PositionEffect.OPEN_LONG,
+                PositionEffect.CLOSE_SHORT,
+            }
+            else OrderSide.SELL
+        )
         return self.submit(
             client_intent_id=client_intent_id,
             market=market,
@@ -376,9 +466,7 @@ class SimulatedOrderBookVenue:
                 order = order.transition(status)
                 self._store(order)
                 event_type = (
-                    ExecutionEventType.ORDER_EXPIRED
-                    if expired
-                    else ExecutionEventType.CANCEL_ACK
+                    ExecutionEventType.ORDER_EXPIRED if expired else ExecutionEventType.CANCEL_ACK
                 )
                 effective_time = order.cancel_effective_time
                 if effective_time is None:
@@ -570,11 +658,7 @@ class SimulatedOrderBookVenue:
         if not eligible:
             return None
         decision_book = max(eligible, key=lambda item: (item.timestamp, item.sequence))
-        return (
-            decision_book.best_ask
-            if order.side is OrderSide.BUY
-            else decision_book.best_bid
-        )
+        return decision_book.best_ask if order.side is OrderSide.BUY else decision_book.best_bid
 
     @staticmethod
     def _is_marketable(order: SimulatedOrder, book: BookState) -> bool:

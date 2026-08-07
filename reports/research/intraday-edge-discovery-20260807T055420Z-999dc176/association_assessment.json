@@ -1,0 +1,9 @@
+{
+  "alpha_v1_implemented": false,
+  "dataset_status": "ENGINEERING_ONLY",
+  "elastic_status": "MIXED",
+  "long_status": "LONG_MORE_DATA_REQUIRED",
+  "next_step": "MORE_DATA_REQUIRED",
+  "short_status": "SHORT_MORE_DATA_REQUIRED",
+  "structure_observed_is_profitable_strategy_claim": false
+}
