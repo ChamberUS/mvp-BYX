@@ -81,6 +81,10 @@ from adaptive_trader.microstructure.liveness_qualification import (
     FuturesLivenessQualificationService,
 )
 from adaptive_trader.microstructure.replay import MicrostructureReplayEngine, ReplaySpeed
+from adaptive_trader.microstructure.scientific_admission import (
+    SessionAdmission,
+    qualify_session,
+)
 from adaptive_trader.microstructure.storage import inspect_session
 from adaptive_trader.observability.logging import configure_logging
 from adaptive_trader.research.candidate_freeze import (
@@ -779,6 +783,7 @@ async def _microstructure_campaign_record(args: argparse.Namespace) -> int:
                 captured += float(requested)
     stop_requested = False
     current: PublicMicrostructureRecorder | None = None
+    last_admission: SessionAdmission | None = None
     loop = asyncio.get_running_loop()
 
     def stop() -> None:
@@ -809,6 +814,17 @@ async def _microstructure_campaign_record(args: argparse.Namespace) -> int:
             current = None
             if result.session.completeness != "COMPLETE":
                 break
+            last_admission = qualify_session(
+                result.session.session_path,
+                expected_market=_microstructure_market(args.market).value,
+                expected_symbol=args.symbol.upper(),
+            )
+            (result.session.session_path / "scientific_admission.json").write_text(
+                json.dumps(last_admission.as_dict(), indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+            if not last_admission.admitted:
+                break
             paths.append(result.session.session_path)
             campaign = MicrostructureCampaignBuilder().build(args.campaign_id, tuple(paths))
             MicrostructureCampaignBuilder().write(campaign, manifest_path)
@@ -819,7 +835,17 @@ async def _microstructure_campaign_record(args: argparse.Namespace) -> int:
     campaign = MicrostructureCampaignBuilder().build(args.campaign_id, tuple(paths))
     MicrostructureCampaignBuilder().write(campaign, manifest_path)
     print(
-        json.dumps({**campaign.as_dict(), "manifest": str(manifest_path)}, indent=2, sort_keys=True)
+        json.dumps(
+            {
+                **campaign.as_dict(),
+                "manifest": str(manifest_path),
+                "last_chunk_admission": (
+                    last_admission.as_dict() if last_admission is not None else None
+                ),
+            },
+            indent=2,
+            sort_keys=True,
+        )
     )
     return 0
 
@@ -827,16 +853,37 @@ async def _microstructure_campaign_record(args: argparse.Namespace) -> int:
 def _microstructure_campaign_status(args: argparse.Namespace) -> int:
     path = _campaign_manifest_path(args.campaign, args.output_dir)
     campaign = load_campaign(path)
+    admissions = tuple(
+        qualify_session(
+            Path(item.path),
+            expected_market=campaign.market,
+            expected_symbol=campaign.symbol,
+        )
+        for item in campaign.sessions
+    )
+    valid_duration = sum(item.duration_seconds for item in admissions if item.admitted)
+    valid_dates = {
+        datetime.fromisoformat(item.start).date().isoformat()
+        for item, admission in zip(campaign.sessions, admissions, strict=True)
+        if admission.admitted
+    } | {
+        datetime.fromisoformat(item.end).date().isoformat()
+        for item, admission in zip(campaign.sessions, admissions, strict=True)
+        if admission.admitted
+    }
     print(
         json.dumps(
             {
                 **campaign.as_dict(),
                 "manifest": str(path),
+                "scientific_session_admission": [item.as_dict() for item in admissions],
+                "scientific_valid_duration_seconds": valid_duration,
+                "scientific_utc_dates": sorted(valid_dates),
                 "valid_seconds_missing_for_discovery": max(
-                    0.0, 86_400 - campaign.total_duration_seconds
+                    0.0, 86_400 - valid_duration
                 ),
                 "utc_dates_missing_for_discovery": max(
-                    0, 2 - len(campaign.utc_dates_covered)
+                    0, 2 - len(valid_dates)
                 ),
             },
             indent=2,

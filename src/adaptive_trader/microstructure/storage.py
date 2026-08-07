@@ -16,6 +16,10 @@ from adaptive_trader.microstructure.models import (
     MicrostructureEvent,
     MicrostructureStreamType,
 )
+from adaptive_trader.microstructure.provenance import (
+    RecorderProvenance,
+    capture_recorder_provenance,
+)
 
 FORBIDDEN_SECRET_MARKERS = ("apikey", "api_key", "secret", "listenkey", "listen_key")
 
@@ -85,6 +89,7 @@ class MicrostructureSessionWriter:
         rotate_event_count: int = 100_000,
         subscriptions: tuple[StreamSubscriptionMetadata, ...] = (),
         requested_duration_seconds: int | None = None,
+        provenance: RecorderProvenance | None = None,
     ) -> None:
         if rotate_event_count <= 0:
             raise ValueError("rotate_event_count must be positive")
@@ -110,6 +115,15 @@ class MicrostructureSessionWriter:
         self.rotate_event_count = rotate_event_count
         self.subscriptions = subscriptions
         self.requested_duration_seconds = requested_duration_seconds
+        self.provenance = provenance or capture_recorder_provenance(
+            {
+                "market": market_type.value,
+                "symbol": self.symbol,
+                "subscriptions": [item.requested_stream for item in subscriptions],
+                "requested_duration_seconds": requested_duration_seconds,
+                "rotate_event_count": rotate_event_count,
+            }
+        )
         self._handle: TextIO | None = None
         self._part_path: Path | None = None
         self._part_index = 0
@@ -128,6 +142,7 @@ class MicrostructureSessionWriter:
         self._liveness_incidents: tuple[dict[str, object], ...] = ()
         self._runtime_health: dict[str, object] = {}
         self._processing_latency: dict[str, object] = {}
+        self._order_book_status = "UNKNOWN"
         self._resync_events: tuple[dict[str, object], ...] = ()
         self._delivery: dict[str, dict[str, object]] = {
             item.requested_stream: {
@@ -182,6 +197,7 @@ class MicrostructureSessionWriter:
         liveness_incidents: tuple[dict[str, object], ...] = (),
         runtime_health: dict[str, object] | None = None,
         processing_latency: dict[str, object] | None = None,
+        order_book_status: str = "UNKNOWN",
     ) -> None:
         if parser_errors < 0:
             raise ValueError("parser error count must be non-negative")
@@ -192,6 +208,7 @@ class MicrostructureSessionWriter:
         self._liveness_incidents = liveness_incidents
         self._runtime_health = runtime_health or {}
         self._processing_latency = processing_latency or {}
+        self._order_book_status = order_book_status
 
     def close(
         self,
@@ -266,6 +283,7 @@ class MicrostructureSessionWriter:
             "market": summary.market,
             "symbol": summary.symbol,
             "started_at": self.started_at.isoformat(),
+            "ended_at": datetime.now(tz=UTC).isoformat(),
             "event_count": summary.event_count,
             "first_event": summary.first_event,
             "last_event": summary.last_event,
@@ -275,6 +293,12 @@ class MicrostructureSessionWriter:
             "completeness": summary.completeness,
             "credentials_persisted": False,
             "requested_duration_seconds": self.requested_duration_seconds,
+            "software_commit": self.provenance.software_commit,
+            "dirty_worktree": self.provenance.dirty_worktree,
+            "branch": self.provenance.branch,
+            "recorder_version": self.provenance.recorder_version,
+            "recorder_config_hash": self.provenance.recorder_config_hash,
+            "provenance_status": self.provenance.status,
             "parser_errors": self._parser_errors,
             "subscription_manifest": [
                 {
@@ -294,6 +318,7 @@ class MicrostructureSessionWriter:
             "liveness_incidents": self._liveness_incidents,
             "recorder_runtime_health": self._runtime_health,
             "local_processing_latency": self._processing_latency,
+            "order_book_status": self._order_book_status,
             "resync_events": self._resync_events,
             "files": [
                 {

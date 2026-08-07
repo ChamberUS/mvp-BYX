@@ -37,6 +37,10 @@ from adaptive_trader.microstructure.parsing import (
     parse_depth_snapshot,
     parse_public_event,
 )
+from adaptive_trader.microstructure.provenance import (
+    RecorderProvenance,
+    capture_recorder_provenance,
+)
 from adaptive_trader.microstructure.routing import (
     FuturesConnectionPlan,
     FuturesStreamRoute,
@@ -278,6 +282,20 @@ class PublicMicrostructureRecorder:
         self._parser_errors = 0
         self._resync_events: list[dict[str, object]] = []
 
+    def _provenance(self) -> RecorderProvenance:
+        return capture_recorder_provenance(
+            {
+                "market": self.market_type.value,
+                "symbol": self.symbol,
+                "streams": list(self.streams),
+                "depth_speed": "100ms",
+                "duration_seconds": self.duration_seconds,
+                "maximum_reconnects": self.supervisor.maximum_reconnects,
+                "latency_profile": "CAPTURE_RUNTIME",
+                "authentication": False,
+            }
+        )
+
     def request_stop(self) -> None:
         """Request a clean close; used by SIGINT/SIGTERM handlers for duration zero."""
 
@@ -300,6 +318,7 @@ class PublicMicrostructureRecorder:
             started_at=started_at,
             subscriptions=self._subscription_metadata(),
             requested_duration_seconds=self.duration_seconds,
+            provenance=self._provenance(),
         )
         deadline = (
             None
@@ -377,7 +396,11 @@ class PublicMicrostructureRecorder:
                 deadline is not None and self._monotonic() >= deadline
             )
         finally:
-            writer.set_capture_metadata(parser_errors=0, liveness_summary={})
+            writer.set_capture_metadata(
+                parser_errors=0,
+                liveness_summary={},
+                order_book_status=self.book.status.value,
+            )
             summary = writer.close(
                 complete=complete,
                 gaps=self.supervisor.metrics.sequence_gap_count,
@@ -406,6 +429,7 @@ class PublicMicrostructureRecorder:
             started_at=started_at,
             subscriptions=self._subscription_metadata(plans),
             requested_duration_seconds=self.duration_seconds,
+            provenance=self._provenance(),
         )
         liveness = StreamLivenessMonitor(
             tuple(
@@ -581,6 +605,7 @@ class PublicMicrostructureRecorder:
                 ),
                 runtime_health=runtime.summary_dict(),
                 processing_latency=runtime.latency_summary(),
+                order_book_status=self.book.status.value,
             )
             summary = writer.close(
                 complete=complete,
