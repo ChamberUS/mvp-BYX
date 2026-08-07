@@ -121,8 +121,10 @@ about 99.19% of rows overall, but mean net results were approximately -10.12 bps
 -9.98 bps short, dominated by the fixed 5 bps taker fee on each leg. These are overlapping
 engineering observations, not independent trades or a strategy backtest.
 
-Elastic activated 90 times: mean immediate result 5.436 bps, mean Elastic result 4.980 bps and
-mean incremental result -0.456 bps. There were 87 300 ms timeout exits, no hard-floor event and no
-liquidity failsafe; the mechanical classification is `MIXED`. Dataset, long and short conclusions
-remain `ENGINEERING_ONLY`, `LONG_MORE_DATA_REQUIRED`, `SHORT_MORE_DATA_REQUIRED`, and
+Elastic activated 90 times, all on the independently simulated short side; long had no activation
+and is `INSUFFICIENT_SAMPLE` for this diagnostic. Mean immediate result was 5.436 bps, mean Elastic
+result 4.980 bps, incremental result -0.456 bps, maximum additional capture 0.103 bps and giveback
+0.559 bps. There were 87 300 ms timeout exits, no hard-floor event and no liquidity failsafe; the
+combined/short mechanical classification is `MIXED`. Dataset, long and short conclusions remain
+`ENGINEERING_ONLY`, `LONG_MORE_DATA_REQUIRED`, `SHORT_MORE_DATA_REQUIRED`, and
 `MORE_DATA_REQUIRED`.

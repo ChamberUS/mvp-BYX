@@ -440,8 +440,10 @@ class IntradayEdgeDiscoveryService:
             elastic: Decimal | None = None
             reason: str | None = None
             previous: Decimal | None = None
+            maximum_observed: Decimal | None = None
             exit_time = anchor.timestamp + timedelta(seconds=60)
             exit_price: Decimal | None = None
+            exit_slippage = ZERO
             last_observation = None
             for state in ordered[start:end]:
                 price = (
@@ -460,6 +462,11 @@ class IntradayEdgeDiscoveryService:
                 last_observation = observation
                 if observation.state is ProfitExtensionState.ARMED and immediate is None:
                     immediate = observation.net_executable_profit_bps
+                if immediate is not None and observation.net_executable_profit_bps is not None:
+                    maximum_observed = max(
+                        maximum_observed or observation.net_executable_profit_bps,
+                        observation.net_executable_profit_bps,
+                    )
                 if observation.state in {
                     ProfitExtensionState.EXIT_REQUESTED,
                     ProfitExtensionState.FAILSAFE,
@@ -468,6 +475,12 @@ class IntradayEdgeDiscoveryService:
                     reason = observation.exit_reason
                     exit_time = state.timestamp
                     exit_price = price
+                    if price is not None:
+                        exit_slippage = (
+                            (state.best_bid - price) / state.best_bid * TEN_THOUSAND
+                            if side is PositionSide.LONG
+                            else (price - state.best_ask) / state.best_ask * TEN_THOUSAND
+                        )
                     break
                 if price is not None:
                     previous = price
@@ -509,14 +522,14 @@ class IntradayEdgeDiscoveryService:
                     "elastic_exit_pnl_bps": elastic,
                     "incremental_pnl_bps": elastic - immediate if elastic is not None else None,
                     "maximum_additional_capture_bps": max(
-                        ZERO, (label.mfe_bps_60s or immediate) - immediate
+                        ZERO, (maximum_observed or immediate) - immediate
                     ),
                     "profit_giveback_bps": max(
-                        ZERO, (label.mfe_bps_60s or immediate) - (elastic or immediate)
+                        ZERO, (maximum_observed or immediate) - (elastic or immediate)
                     ),
                     "exit_reason": reason or "CAPTURE_BOUNDARY",
                     "partial_exit": False,
-                    "slippage_bps": label.depth_slippage_bps,
+                    "slippage_bps": exit_slippage,
                     "adverse_selection_after_exit_bps": post_exit_move,
                     "mark_price_used": False,
                     "post_event_research_only": True,
@@ -565,6 +578,10 @@ class IntradayEdgeDiscoveryService:
             "classification": classification,
             "parameters_changed_after_results": False,
             "mark_price_used": False,
+            "by_side": {
+                side.value: _elastic_side_summary(rows, side.value, minimum)
+                for side in (PositionSide.LONG, PositionSide.SHORT)
+            },
         }
         return rows, summary
 
@@ -674,6 +691,48 @@ def _summary(labels: list[ExecutableForwardLabel]) -> dict[str, object]:
 def _mean_decimal(rows: list[dict[str, object]], name: str) -> str | None:
     values = [Decimal(str(row[name])) for row in rows if row.get(name) is not None]
     return str(sum(values, ZERO) / len(values)) if values else None
+
+
+def _elastic_side_summary(
+    rows: list[dict[str, object]], side: str, minimum: int
+) -> dict[str, object]:
+    selected = [row for row in rows if row["side"] == side]
+    increments = [
+        Decimal(str(row["incremental_pnl_bps"]))
+        for row in selected
+        if row["incremental_pnl_bps"] is not None
+    ]
+    classification = (
+        "INSUFFICIENT_SAMPLE"
+        if len(selected) < minimum or not increments
+        else "EXTENSION_HELPFUL"
+        if sum(increments, ZERO) > ZERO
+        and sum(value > ZERO for value in increments) / len(increments) >= Decimal("0.6")
+        else "EXTENSION_HARMFUL"
+        if sum(increments, ZERO) < ZERO
+        and sum(value < ZERO for value in increments) / len(increments) >= Decimal("0.6")
+        else "MIXED"
+    )
+    reasons = Counter(str(row["exit_reason"]) for row in selected)
+    return {
+        "activation_count": len(selected),
+        "mean_immediate_exit_pnl_bps": _mean_decimal(selected, "immediate_exit_pnl_bps"),
+        "mean_elastic_exit_pnl_bps": _mean_decimal(selected, "elastic_exit_pnl_bps"),
+        "mean_incremental_pnl_bps": (
+            str(sum(increments, ZERO) / len(increments)) if increments else None
+        ),
+        "mean_maximum_additional_capture_bps": _mean_decimal(
+            selected, "maximum_additional_capture_bps"
+        ),
+        "mean_profit_giveback_bps": _mean_decimal(selected, "profit_giveback_bps"),
+        "mean_slippage_bps": _mean_decimal(selected, "slippage_bps"),
+        "hard_floor_triggers": reasons["HARD_PROFIT_FLOOR"],
+        "reversal_150ms_exits": reasons["REVERSAL_CONFIRMED_150MS"],
+        "timeout_300ms_exits": reasons["NO_NEW_PEAK_300MS"],
+        "liquidity_failsafes": reasons["LIQUIDITY_EXIT_FAILSAFE"],
+        "partial_exits": sum(bool(row["partial_exit"]) for row in selected),
+        "classification": classification,
+    }
 
 
 def _git_commit() -> str:

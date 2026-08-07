@@ -31,6 +31,7 @@ from adaptive_trader.research.microstructure_edge_dataset import (
 from adaptive_trader.research.microstructure_edge_service import (
     IntradayEdgeDiscoveryService,
     MicrostructureHoldoutLock,
+    _elastic_side_summary,
 )
 from tests.microstructure.helpers import at, feature_snapshot
 
@@ -221,3 +222,27 @@ def test_temporal_protocol_excludes_holdout_and_freezes_discovery_quantiles(
     assert lock["anchor_count"] == 2
     assert lock["event_hashes"] == ["b" * 64]
     assert len(str(lock["lock_hash"])) == 64
+
+
+def test_elastic_summary_keeps_long_and_short_independent() -> None:
+    short_rows = [
+        {
+            "side": "SHORT",
+            "incremental_pnl_bps": Decimal("1"),
+            "immediate_exit_pnl_bps": Decimal("2"),
+            "elastic_exit_pnl_bps": Decimal("3"),
+            "maximum_additional_capture_bps": Decimal("1.5"),
+            "profit_giveback_bps": Decimal("0.5"),
+            "slippage_bps": Decimal("0.1"),
+            "exit_reason": "NO_NEW_PEAK_300MS",
+            "partial_exit": False,
+        }
+        for _ in range(30)
+    ]
+
+    assert _elastic_side_summary(short_rows, "LONG", 30)["classification"] == (
+        "INSUFFICIENT_SAMPLE"
+    )
+    short = _elastic_side_summary(short_rows, "SHORT", 30)
+    assert short["classification"] == "EXTENSION_HELPFUL"
+    assert short["timeout_300ms_exits"] == 30

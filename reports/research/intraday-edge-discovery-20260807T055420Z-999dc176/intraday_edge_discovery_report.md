@@ -23,8 +23,8 @@ profitable-strategy claim. No threshold, horizon, notional or side was selected 
 - Long executable rate: 99.19181034482759;
   short: 99.19181034482759.
 - Long mean net bps: -10.122470057930025; short: -9.98323407172662.
-- Elastic activations: 90; hard floors: 0;
-  liquidity failsafes: 0.
+- Elastic activations: 90 SHORT and 0 LONG; hard floors: 0;
+  liquidity failsafes: 0. LONG is `INSUFFICIENT_SAMPLE`; SHORT/combined is `MIXED`.
 
 ## Methodological protections
 
