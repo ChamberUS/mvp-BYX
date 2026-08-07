@@ -222,3 +222,11 @@ Sprint 4A.3 adiciona ao mesmo simulador um preview não mutante para campaigns g
 níveis, mantém remainder/partial fill, calcula VWAP e usa o mesmo `FeeModel`. A otimização evita
 alocar lifecycle e position ledger para centenas de milhares de hipóteses; não troca depth por
 mid/mark e não inventa liquidez. O protocolo completo está em `docs/INTRADAY_EDGE_DISCOVERY.md`.
+
+## Maker/taker e runners multi-minute
+
+O catálogo V1 congela quatro combinações de entrada/saída sem assumir maker fill por touch.
+MakerFirst V0 continua usando fila FIFO conservadora, agressões, partials, cancel race, expiry e
+fallback. Runners de 10/15 minutos compartilham PnL executável, hard floor e liquidity failsafe,
+mas não herdam o timeout de 300 ms do Elastic. Detalhes e resultado atual estão em
+`docs/MULTI_DAY_EXECUTION_ECONOMICS.md`.

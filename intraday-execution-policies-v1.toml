@@ -1,0 +1,30 @@
+catalog_id = "INTRADAY_EXECUTION_POLICIES_V1"
+latency_profile = "NORMAL"
+fee_profile = "RESEARCH_FEE_PROFILE_V1"
+maker_wait_ms = 250
+queue_model = "CONSERVATIVE_FIFO_APPROXIMATION"
+cancel_outbound_latency_ms = 12
+cancel_processing_latency_ms = 3
+fallback_behavior = "CANCEL_THEN_TAKER_REMAINDER"
+maximum_slippage_bps = "10"
+leverage = "1"
+
+[[policies]]
+id = "TAKER_TAKER_V1"
+entry = "TAKER"
+exit = "TAKER"
+
+[[policies]]
+id = "MAKER_TAKER_V1"
+entry = "MAKER_FIRST_V0"
+exit = "TAKER"
+
+[[policies]]
+id = "TAKER_MAKER_V1"
+entry = "TAKER"
+exit = "MAKER_FIRST_V0"
+
+[[policies]]
+id = "MAKER_MAKER_V1"
+entry = "MAKER_FIRST_V0"
+exit = "MAKER_FIRST_V0"

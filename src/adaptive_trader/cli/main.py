@@ -103,6 +103,9 @@ from adaptive_trader.research.microstructure_edge_service import (
     IntradayEdgeDiscoveryService,
 )
 from adaptive_trader.research.models import GapPolicy, SelectionMode, WalkForwardMode
+from adaptive_trader.research.multi_day_execution_service import (
+    MultiDayExecutionEconomicsService,
+)
 from adaptive_trader.research.periods import ResearchPeriods
 from adaptive_trader.research.pullback_calibration_experiment import (
     PullbackCalibrationService,
@@ -300,6 +303,27 @@ def _parser() -> argparse.ArgumentParser:
     execution_synthetic.add_argument("--output-dir", type=Path, required=True)
     execution_show = execution_research_commands.add_parser("show")
     execution_show.add_argument("--experiment", type=Path, required=True)
+    multi_day = execution_research_commands.add_parser("build-multi-day-economics")
+    multi_day.add_argument("--campaign", required=True)
+    multi_day.add_argument(
+        "--policies",
+        default="taker-taker,maker-taker,taker-maker,maker-maker",
+    )
+    multi_day.add_argument(
+        "--exits",
+        default="immediate,elastic-300-150,runner-10m,runner-15m",
+    )
+    multi_day.add_argument("--notionals", default="100,500,1000")
+    multi_day.add_argument("--latency-profile", choices=("normal",), default="normal")
+    multi_day.add_argument("--output-dir", type=Path, required=True)
+    multi_day.add_argument(
+        "--policy-catalog",
+        type=Path,
+        default=Path("intraday-execution-policies-v1.toml"),
+    )
+    multi_day.add_argument("--yes", action="store_true")
+    economics_show = execution_research_commands.add_parser("economics-show")
+    economics_show.add_argument("--experiment", type=Path, required=True)
     dataset = research_commands.add_parser("dataset")
     dataset_commands = dataset.add_subparsers(dest="dataset_command", required=True)
     inspect = dataset_commands.add_parser("inspect")
@@ -749,7 +773,10 @@ async def _microstructure_campaign_record(args: argparse.Namespace) -> int:
         if existing.symbol != args.symbol.upper():
             raise ValueError("campaign resume symbol differs from existing campaign")
         paths.extend(Path(item.path) for item in existing.sessions)
-        captured = existing.total_duration_seconds
+        for path in paths:
+            requested = inspect_session(path).get("requested_duration_seconds", 0)
+            if isinstance(requested, (int, float)) and not isinstance(requested, bool):
+                captured += float(requested)
     stop_requested = False
     current: PublicMicrostructureRecorder | None = None
     loop = asyncio.get_running_loop()
@@ -785,7 +812,7 @@ async def _microstructure_campaign_record(args: argparse.Namespace) -> int:
             paths.append(result.session.session_path)
             campaign = MicrostructureCampaignBuilder().build(args.campaign_id, tuple(paths))
             MicrostructureCampaignBuilder().write(campaign, manifest_path)
-            captured = campaign.total_duration_seconds
+            captured += duration
     finally:
         for current_signal in registered:
             loop.remove_signal_handler(current_signal)
@@ -800,7 +827,22 @@ async def _microstructure_campaign_record(args: argparse.Namespace) -> int:
 def _microstructure_campaign_status(args: argparse.Namespace) -> int:
     path = _campaign_manifest_path(args.campaign, args.output_dir)
     campaign = load_campaign(path)
-    print(json.dumps({**campaign.as_dict(), "manifest": str(path)}, indent=2, sort_keys=True))
+    print(
+        json.dumps(
+            {
+                **campaign.as_dict(),
+                "manifest": str(path),
+                "valid_seconds_missing_for_discovery": max(
+                    0.0, 86_400 - campaign.total_duration_seconds
+                ),
+                "utc_dates_missing_for_discovery": max(
+                    0, 2 - len(campaign.utc_dates_covered)
+                ),
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
     return 0
 
 
@@ -1019,6 +1061,47 @@ def _research_execution_synthetic(args: argparse.Namespace) -> int:
 def _research_execution_show(args: argparse.Namespace) -> int:
     payload = ExecutionResearchService.show(args.experiment)
     print(json.dumps(payload, indent=2, sort_keys=True))
+    return 0
+
+
+def _research_multi_day_economics(args: argparse.Namespace) -> int:
+    if not args.yes:
+        raise ValueError("multi-day execution economics requires --yes acknowledgement")
+    policies = tuple(item.strip() for item in args.policies.split(",") if item.strip())
+    if policies != ("taker-taker", "maker-taker", "taker-maker", "maker-maker"):
+        raise ValueError("exactly the four pre-registered execution policies are required")
+    exits = tuple(item.strip() for item in args.exits.split(",") if item.strip())
+    if exits != ("immediate", "elastic-300-150", "runner-10m", "runner-15m"):
+        raise ValueError("exactly the four pre-registered exit variants are required")
+    _edge_notionals(args.notionals)
+    campaign = _campaign_manifest_path(args.campaign, Path("data/microstructure"))
+    consumed = _campaign_manifest_path(
+        "ethusdt-futures-intraday-v1", Path("data/microstructure")
+    )
+    experiment = MultiDayExecutionEconomicsService().build(
+        campaign_manifest=campaign,
+        consumed_campaign_manifest_path=consumed,
+        policy_catalog_path=args.policy_catalog,
+        output_dir=args.output_dir,
+    )
+    print(
+        json.dumps(
+            MultiDayExecutionEconomicsService.inspect(experiment),
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return 0
+
+
+def _research_multi_day_economics_show(args: argparse.Namespace) -> int:
+    print(
+        json.dumps(
+            MultiDayExecutionEconomicsService.inspect(args.experiment),
+            indent=2,
+            sort_keys=True,
+        )
+    )
     return 0
 
 
@@ -2761,6 +2844,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                 return _research_execution_synthetic(args)
             if args.execution_research_command == "show":
                 return _research_execution_show(args)
+            if args.execution_research_command == "build-multi-day-economics":
+                return _research_multi_day_economics(args)
+            if args.execution_research_command == "economics-show":
+                return _research_multi_day_economics_show(args)
         if args.command == "research" and args.research_command == "holdout":
             if args.holdout_command == "run":
                 return _research_holdout(config, args)

@@ -1,0 +1,4 @@
+execution_policy,maker_wait_ms,queue_model,fill_rate,partial_fill_rate,missed_opportunity_rate,mean_time_to_fill_ms,mean_queue_time_ms,fallback_taker_rate,fill_confidence
+MAKER_TAKER_V1,250,CONSERVATIVE_FIFO_APPROXIMATION,,,,,,,INSUFFICIENT_NEW_DATA
+TAKER_MAKER_V1,250,CONSERVATIVE_FIFO_APPROXIMATION,,,,,,,INSUFFICIENT_NEW_DATA
+MAKER_MAKER_V1,250,CONSERVATIVE_FIFO_APPROXIMATION,,,,,,,INSUFFICIENT_NEW_DATA

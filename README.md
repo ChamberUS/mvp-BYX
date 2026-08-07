@@ -463,3 +463,16 @@ A captura qualificada de ~30 minutos gerou 7.192 anchors, mas permanece `ENGINEE
 `LONG_MORE_DATA_REQUIRED`, `SHORT_MORE_DATA_REQUIRED` e `MORE_DATA_REQUIRED`. Nenhum Alpha V1 foi
 criado. Metodologia, campaign recording, temporal lock, block bootstrap, no-trade e Elastic real
 data estão em [`docs/INTRADAY_EDGE_DISCOVERY.md`](docs/INTRADAY_EDGE_DISCOVERY.md).
+
+## Economia de execução multi-day
+
+A Sprint 4A.3.1 marca o campaign anterior como `ENGINEERING_CONSUMED` e inicia
+`ethusdt-futures-intraday-discovery-v1` sem reutilizar suas sessões. O catálogo imutável compara
+taker/taker, maker/taker, taker/maker e maker/maker; labels novos cobrem até 15 minutos sem cruzar
+capture boundaries. Os runners de 10m/15m são controladores independentes e não modificam o
+baseline histórico Elastic 300/150.
+
+A primeira sessão nova cobre apenas 59,012 s. Todos os labels longos são `LABEL_INCOMPLETE`, e
+políticas/runners permanecem `MORE_DATA_REQUIRED`. O comando de continuação até 24h/duas datas,
+maker queue, episódios não sobrepostos e limitações estão em
+[`docs/MULTI_DAY_EXECUTION_ECONOMICS.md`](docs/MULTI_DAY_EXECUTION_ECONOMICS.md).

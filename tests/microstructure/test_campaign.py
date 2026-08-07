@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import json
+from argparse import Namespace
+from asyncio import run
 from pathlib import Path
 
 import pytest
 
+from adaptive_trader.cli.main import _microstructure_campaign_record
 from adaptive_trader.domain.market import MarketType
 from adaptive_trader.microstructure.campaign import (
     DatasetSufficiency,
@@ -119,6 +122,35 @@ def test_campaign_rejects_unresolved_incident(tmp_path: Path) -> None:
 
     with pytest.raises(ValueError, match="not eligible"):
         MicrostructureCampaignBuilder().build("fixture-campaign", (session,))
+
+
+def test_campaign_resume_uses_requested_chunk_duration_without_duplicate(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    session = write_session(tmp_path / "session", market=MarketType.USD_M_FUTURES)
+    source_manifest = session / "manifest.json"
+    payload = json.loads(source_manifest.read_text())
+    payload["requested_duration_seconds"] = 60
+    source_manifest.write_text(json.dumps(payload))
+    campaign = MicrostructureCampaignBuilder().build("resume-fixture", (session,))
+    campaign_manifest = (
+        tmp_path / "campaigns" / "resume-fixture" / "campaign_manifest.json"
+    )
+    MicrostructureCampaignBuilder().write(campaign, campaign_manifest)
+    args = Namespace(
+        chunk_seconds=60,
+        total_seconds=60,
+        streams="aggTrade,bookTicker,depth,markPrice",
+        output_dir=tmp_path,
+        campaign_id="resume-fixture",
+        market="futures",
+        symbol="ETHUSDT",
+        maximum_reconnects=3,
+    )
+
+    assert run(_microstructure_campaign_record(args)) == 0
+    shown = json.loads(capsys.readouterr().out)
+    assert len(shown["sessions"]) == 1
 
 
 @pytest.mark.parametrize(

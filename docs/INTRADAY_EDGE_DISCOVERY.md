@@ -26,6 +26,14 @@ These requirements must not be reduced after inspecting edge. The current one-se
 `ENGINEERING_ONLY`; all financial outputs are diagnostics and the decision is
 `MORE_DATA_REQUIRED`.
 
+## Campaign consumido e sucessor
+
+Sprint 4A.3.1 congela este campaign como `ENGINEERING_CONSUMED`: seus resultados continuam como
+regressão histórica, mas não podem selecionar política maker/taker, horizon ou runner. O successor
+`ethusdt-futures-intraday-discovery-v1` aceita somente sessões novas. Elastic 300/150 permanece
+imutável; runners 10m/15m pertencem à metodologia independente documentada em
+`docs/MULTI_DAY_EXECUTION_ECONOMICS.md`.
+
 ## Anchors, features and leakage boundary
 
 `MicrostructureAnchorSampler` emits at most one eligible anchor per pre-registered 250 ms event-time

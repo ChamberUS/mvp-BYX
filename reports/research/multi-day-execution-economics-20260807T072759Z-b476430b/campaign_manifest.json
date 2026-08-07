@@ -1,0 +1,40 @@
+{
+  "campaign_hash": "b476430b9dda7a155a77cfe02ff095ea8d09326e32a4e73dff56df622840de74",
+  "campaign_id": "ethusdt-futures-intraday-discovery-v1",
+  "capture_breaks": [],
+  "event_counts": {
+    "aggTrade": 281,
+    "bookTicker": 9291,
+    "depth": 575,
+    "markPrice": 59
+  },
+  "market": "USD_M_FUTURES",
+  "sessions": [
+    {
+      "duration_seconds": 59.012,
+      "end": "2026-08-07T07:26:55.286000+00:00",
+      "event_count": 10209,
+      "event_hashes": [
+        "de3c08b6a0b599756817433f8ab899bb05122066230485a3c93272a54fd2b666"
+      ],
+      "market": "USD_M_FUTURES",
+      "path": "data/microstructure/futures/ETHUSDT/2026-08-07/microstructure-20260807T072555Z-usd_m_futures",
+      "quality": "CLEAN",
+      "session_id": "microstructure-20260807T072555Z-usd_m_futures",
+      "software_commit": "UNKNOWN",
+      "start": "2026-08-07T07:25:56.274000+00:00",
+      "symbol": "ETHUSDT",
+      "warnings": []
+    }
+  ],
+  "software_commits": [
+    "UNKNOWN"
+  ],
+  "status": "ENGINEERING_ONLY",
+  "symbol": "ETHUSDT",
+  "total_duration_seconds": 59.012,
+  "utc_dates_covered": [
+    "2026-08-07"
+  ],
+  "warnings": []
+}

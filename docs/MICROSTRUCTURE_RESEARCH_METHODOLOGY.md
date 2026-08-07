@@ -197,3 +197,11 @@ não recalcula quantis e discovery rejeita `LOCKED_FUTURE_HOLDOUT`.
 O resultado atual é somente `ENGINEERING_ONLY/MORE_DATA_REQUIRED`. A diferença
 `receive_wall - exchange_event_time` continua excluída de features, labels e conclusões porque os
 relógios não estavam alinhados.
+
+## Dados consumidos e episódios multi-minute
+
+Após produzir hipótese, o campaign de 30 minutos tornou-se `ENGINEERING_CONSUMED`; seu hash não
+pode reaparecer na seleção multi-day. O novo protocolo estende availability labels até 15 minutos,
+mas rejeita qualquer horizon que cruze session end/CAPTURE_BREAK. Para evitar pseudo-replicação,
+episodes são não sobrepostos por lado, notional, política e variante de saída. Bootstrap futuro usa
+blocos temporais de 30 minutos. Consulte `docs/MULTI_DAY_EXECUTION_ECONOMICS.md`.
