@@ -15,6 +15,7 @@ from adaptive_trader.domain.models import (
     Fill,
     MarketRegime,
     MarketSignal,
+    OrderIntent,
     PortfolioSnapshot,
     Position,
     SignalDirection,
@@ -38,6 +39,8 @@ class BacktestEngine:
         repository: Repository | None = None,
         clock: Callable[[], datetime] | None = None,
         time_exit_candles: int | None = None,
+        allow_strategy_exit: bool = False,
+        strategy_version: str = "deterministic-ema-atr-volume-v1",
     ) -> None:
         self._strategy = strategy
         self._risk_manager = risk_manager
@@ -48,6 +51,8 @@ class BacktestEngine:
         if time_exit_candles is not None and time_exit_candles < 1:
             raise ValueError("time_exit_candles must be positive")
         self._time_exit_candles = time_exit_candles
+        self._allow_strategy_exit = allow_strategy_exit
+        self._strategy_version = strategy_version
         self._context_builder = MarketContextBuilder(
             minimum_candles=1,
             short_ema_period=config.short_ema_period,
@@ -93,9 +98,10 @@ class BacktestEngine:
         initial_capital = self._config.initial_balance
         cash = initial_capital
         position: Position | None = None
-        pending = None
+        pending: OrderIntent | None = None
         pending_signal_time: datetime | None = None
         pending_execution_index: int | None = None
+        pending_strategy_exit_reason: str | None = None
         entry_candle_index: int | None = None
         trades: list[TradeRecord] = []
         decision_traces: list[StrategyDecisionTrace] = []
@@ -140,6 +146,8 @@ class BacktestEngine:
                 orders_today = 0
                 closed_trades_today = 0
                 current_day = candle_day
+            pending_exit_intent: OrderIntent | None = None
+            pending_exit_reason: str | None = None
             if (
                 pending is not None
                 and pending_execution_index is not None
@@ -228,6 +236,17 @@ class BacktestEngine:
                             )
                             pending = None
                             pending_execution_index = None
+                elif (
+                    self._allow_strategy_exit
+                    and pending.direction is SignalDirection.SELL
+                ):
+                    pending_exit_intent = pending
+                    pending_exit_reason = (
+                        pending_strategy_exit_reason or "STRATEGY_EXIT"
+                    )
+                    pending = None
+                    pending_execution_index = None
+                    pending_strategy_exit_reason = None
                 else:
                     raise RuntimeError("only BUY entries can be scheduled")
             # Process old protective levels first; close-based protection applies next candle.
@@ -268,6 +287,7 @@ class BacktestEngine:
                 exit_reason, trigger, ambiguous = self._exit_trigger(position, candle)
                 time_exit = (
                     trigger is None
+                    and pending_exit_intent is None
                     and self._time_exit_candles is not None
                     and entry_candle_index is not None
                     and index - entry_candle_index >= self._time_exit_candles
@@ -312,10 +332,64 @@ class BacktestEngine:
                         self._save_order_fill_position(order, fill, None)
                         position = None
                         entry_candle_index = None
+                if pending_exit_intent is not None:
+                    if position is None:
+                        self._update_trace(
+                            decision_traces,
+                            trace_by_intent,
+                            pending_exit_intent.intent_id,
+                            execution_status="REJECTED",
+                            execution_rejection_code=(
+                                "PROTECTIVE_EXIT_PRECEDED_STRATEGY_EXIT"
+                            ),
+                        )
+                    else:
+                        self._executor.set_reference_price(candle.open)
+                        order = self._executor.execute(pending_exit_intent)
+                        fill = self._fill(order, candle.open_time)
+                        cash += order.price * order.quantity - order.fee
+                        if entry_candle_index is None:
+                            raise RuntimeError(
+                                "position lost its entry candle index"
+                            )
+                        trades.append(
+                            self._trade_record(
+                                position,
+                                order,
+                                fill,
+                                candle,
+                                pending_exit_reason or "STRATEGY_EXIT",
+                                False,
+                                index,
+                                entry_candle_index,
+                                exit_time=candle.open_time,
+                            )
+                        )
+                        order_count += 1
+                        closed_trade_count += 1
+                        orders_today += 1
+                        closed_trades_today += 1
+                        self._save_order_fill_position(order, fill, None)
+                        self._update_trace(
+                            decision_traces,
+                            trace_by_intent,
+                            pending_exit_intent.intent_id,
+                            execution_status="EXECUTED",
+                        )
+                        position = None
+                        entry_candle_index = None
                 if position is not None:
                     position = self._update_position_protection(
                         position, ordered[: index + 1], candle
                     )
+            if pending_exit_intent is not None and position is None:
+                self._update_trace(
+                    decision_traces,
+                    trace_by_intent,
+                    pending_exit_intent.intent_id,
+                    execution_status="REJECTED",
+                    execution_rejection_code="NO_POSITION_FOR_STRATEGY_EXIT",
+                )
             ready_for_analysis = (
                 index >= evaluation_index
                 if evaluation_start_time is not None
@@ -345,13 +419,79 @@ class BacktestEngine:
                     pending_order=pending is not None,
                 )
                 if position is not None:
-                    decision_traces.append(
-                        replace(
-                            trace,
-                            strategy_reason_code="POSITION_ALREADY_OPEN",
-                            execution_status="SKIPPED",
+                    if (
+                        self._allow_strategy_exit
+                        and signal.direction is SignalDirection.SELL
+                        and pending is None
+                    ):
+                        signal = replace(
+                            signal,
+                            entry_price=candle.close,
+                            stop_loss=candle.close,
+                            take_profit=candle.close,
+                            suggested_quantity=position.quantity,
                         )
-                    )
+                        record = StrategyDecisionRecord(
+                            record_id=f"{signal.signal_id}-RECORD",
+                            analysis_time=context.created_at,
+                            signal=signal,
+                            context_candle_count=len(context.candles),
+                            indicators=context.indicators,
+                        )
+                        if self._repository is not None:
+                            self._repository.save_strategy_decision(record)
+                        portfolio = self._snapshot(
+                            cash,
+                            position,
+                            candle,
+                            day_start_equity,
+                            entries_today,
+                            orders_today,
+                            closed_trades_today,
+                        )
+                        decision = self._risk_manager.evaluate(
+                            signal,
+                            portfolio,
+                            self._config,
+                        )
+                        self._save_risk(decision)
+                        trace = replace(
+                            trace,
+                            risk_approved=decision.approved,
+                            risk_rejection_code=(
+                                None if decision.approved else decision.reason_code
+                            ),
+                            execution_status=(
+                                "PENDING"
+                                if decision.approved
+                                else "NOT_EXECUTED"
+                            ),
+                            execution_rejection_code=(
+                                None if decision.approved else decision.reason_code
+                            ),
+                        )
+                        decision_traces.append(trace)
+                        trace_index = len(decision_traces) - 1
+                        if decision.approved and decision.order_intent is not None:
+                            pending = decision.order_intent
+                            pending_signal_time = candle.open_time
+                            pending_execution_index = (
+                                index + self._config.latency_candles
+                            )
+                            pending_strategy_exit_reason = (
+                                "REGIME_LOSS_EXIT"
+                                if signal.reason_code == "REGIME_LOSS_EXIT"
+                                else "STRATEGY_EXIT"
+                            )
+                            trace_by_intent[pending.intent_id] = trace_index
+                    else:
+                        decision_traces.append(
+                            replace(
+                                trace,
+                                strategy_reason_code="POSITION_ALREADY_OPEN",
+                                execution_status="SKIPPED",
+                            )
+                        )
                 elif pending is not None:
                     decision_traces.append(
                         replace(
@@ -478,7 +618,7 @@ class BacktestEngine:
         )
         return BacktestResult(
             report_version="2",
-            strategy_version="deterministic-ema-atr-volume-v1",
+            strategy_version=self._strategy_version,
             symbol=symbol,
             interval=interval,
             start_time=evaluation_candles[0].open_time,
@@ -798,6 +938,8 @@ class BacktestEngine:
         ambiguous: bool,
         index: int,
         entry_candle_index: int,
+        *,
+        exit_time: datetime | None = None,
     ) -> TradeRecord:
         from adaptive_trader.domain.models import SimulatedOrder
 
@@ -811,7 +953,7 @@ class BacktestEngine:
             symbol=position.symbol,
             quantity=order.quantity,
             entry_time=position.opened_at,
-            exit_time=candle.close_time or candle.open_time,
+            exit_time=exit_time or candle.close_time or candle.open_time,
             entry_price=position.average_entry_price,
             exit_price=order.price,
             gross_pnl=gross,

@@ -1,0 +1,418 @@
+[
+  {
+    "advanced_to_financial_analysis": false,
+    "advanced_to_validation": false,
+    "candidate_frozen": false,
+    "classifications": [
+      "TOO_RESTRICTIVE",
+      "INSUFFICIENT_SAMPLE"
+    ],
+    "market": "SPOT",
+    "mode": "LONG",
+    "profitability_claimed": false,
+    "variant_id": "CALIBRATION_BASE"
+  },
+  {
+    "advanced_to_financial_analysis": false,
+    "advanced_to_validation": false,
+    "candidate_frozen": false,
+    "classifications": [
+      "TOO_RESTRICTIVE",
+      "INSUFFICIENT_SAMPLE"
+    ],
+    "market": "SPOT",
+    "mode": "LONG",
+    "profitability_claimed": false,
+    "variant_id": "EXTENSION_1_5"
+  },
+  {
+    "advanced_to_financial_analysis": false,
+    "advanced_to_validation": false,
+    "candidate_frozen": false,
+    "classifications": [
+      "TOO_RESTRICTIVE",
+      "INSUFFICIENT_SAMPLE"
+    ],
+    "market": "SPOT",
+    "mode": "LONG",
+    "profitability_claimed": false,
+    "variant_id": "EXTENSION_2_0"
+  },
+  {
+    "advanced_to_financial_analysis": false,
+    "advanced_to_validation": false,
+    "candidate_frozen": false,
+    "classifications": [
+      "TOO_RESTRICTIVE",
+      "INSUFFICIENT_SAMPLE"
+    ],
+    "market": "SPOT",
+    "mode": "LONG",
+    "profitability_claimed": false,
+    "variant_id": "NO_MINIMUM_DEPTH"
+  },
+  {
+    "advanced_to_financial_analysis": false,
+    "advanced_to_validation": false,
+    "candidate_frozen": false,
+    "classifications": [
+      "TOO_RESTRICTIVE",
+      "INSUFFICIENT_SAMPLE"
+    ],
+    "market": "SPOT",
+    "mode": "LONG",
+    "profitability_claimed": false,
+    "variant_id": "VOLUME_RELAXED"
+  },
+  {
+    "advanced_to_financial_analysis": false,
+    "advanced_to_validation": false,
+    "candidate_frozen": false,
+    "classifications": [
+      "TOO_RESTRICTIVE",
+      "INSUFFICIENT_SAMPLE"
+    ],
+    "market": "SPOT",
+    "mode": "LONG",
+    "profitability_claimed": false,
+    "variant_id": "VOLATILITY_RELAXED"
+  },
+  {
+    "advanced_to_financial_analysis": false,
+    "advanced_to_validation": false,
+    "candidate_frozen": false,
+    "classifications": [
+      "TOO_RESTRICTIVE",
+      "INSUFFICIENT_SAMPLE"
+    ],
+    "market": "SPOT",
+    "mode": "LONG",
+    "profitability_claimed": false,
+    "variant_id": "PERSISTENCE_2"
+  },
+  {
+    "advanced_to_financial_analysis": false,
+    "advanced_to_validation": false,
+    "candidate_frozen": false,
+    "classifications": [
+      "TOO_RESTRICTIVE",
+      "INSUFFICIENT_SAMPLE"
+    ],
+    "market": "SPOT",
+    "mode": "LONG",
+    "profitability_claimed": false,
+    "variant_id": "DIRECTIONAL_CLOSE_RELAXED"
+  },
+  {
+    "advanced_to_financial_analysis": false,
+    "advanced_to_validation": false,
+    "candidate_frozen": false,
+    "classifications": [
+      "TOO_RESTRICTIVE",
+      "INSUFFICIENT_SAMPLE"
+    ],
+    "market": "FUTURES",
+    "mode": "LONG",
+    "profitability_claimed": false,
+    "variant_id": "CALIBRATION_BASE"
+  },
+  {
+    "advanced_to_financial_analysis": false,
+    "advanced_to_validation": false,
+    "candidate_frozen": false,
+    "classifications": [
+      "TOO_RESTRICTIVE",
+      "INSUFFICIENT_SAMPLE"
+    ],
+    "market": "FUTURES",
+    "mode": "LONG",
+    "profitability_claimed": false,
+    "variant_id": "EXTENSION_1_5"
+  },
+  {
+    "advanced_to_financial_analysis": false,
+    "advanced_to_validation": false,
+    "candidate_frozen": false,
+    "classifications": [
+      "TOO_RESTRICTIVE",
+      "INSUFFICIENT_SAMPLE"
+    ],
+    "market": "FUTURES",
+    "mode": "LONG",
+    "profitability_claimed": false,
+    "variant_id": "EXTENSION_2_0"
+  },
+  {
+    "advanced_to_financial_analysis": false,
+    "advanced_to_validation": false,
+    "candidate_frozen": false,
+    "classifications": [
+      "TOO_RESTRICTIVE",
+      "INSUFFICIENT_SAMPLE"
+    ],
+    "market": "FUTURES",
+    "mode": "LONG",
+    "profitability_claimed": false,
+    "variant_id": "NO_MINIMUM_DEPTH"
+  },
+  {
+    "advanced_to_financial_analysis": false,
+    "advanced_to_validation": false,
+    "candidate_frozen": false,
+    "classifications": [
+      "TOO_RESTRICTIVE",
+      "INSUFFICIENT_SAMPLE"
+    ],
+    "market": "FUTURES",
+    "mode": "LONG",
+    "profitability_claimed": false,
+    "variant_id": "VOLUME_RELAXED"
+  },
+  {
+    "advanced_to_financial_analysis": false,
+    "advanced_to_validation": false,
+    "candidate_frozen": false,
+    "classifications": [
+      "TOO_RESTRICTIVE",
+      "INSUFFICIENT_SAMPLE"
+    ],
+    "market": "FUTURES",
+    "mode": "LONG",
+    "profitability_claimed": false,
+    "variant_id": "VOLATILITY_RELAXED"
+  },
+  {
+    "advanced_to_financial_analysis": false,
+    "advanced_to_validation": false,
+    "candidate_frozen": false,
+    "classifications": [
+      "TOO_RESTRICTIVE",
+      "INSUFFICIENT_SAMPLE"
+    ],
+    "market": "FUTURES",
+    "mode": "LONG",
+    "profitability_claimed": false,
+    "variant_id": "PERSISTENCE_2"
+  },
+  {
+    "advanced_to_financial_analysis": false,
+    "advanced_to_validation": false,
+    "candidate_frozen": false,
+    "classifications": [
+      "TOO_RESTRICTIVE",
+      "INSUFFICIENT_SAMPLE"
+    ],
+    "market": "FUTURES",
+    "mode": "LONG",
+    "profitability_claimed": false,
+    "variant_id": "DIRECTIONAL_CLOSE_RELAXED"
+  },
+  {
+    "advanced_to_financial_analysis": false,
+    "advanced_to_validation": false,
+    "candidate_frozen": false,
+    "classifications": [
+      "TOO_RESTRICTIVE",
+      "INSUFFICIENT_SAMPLE"
+    ],
+    "market": "FUTURES",
+    "mode": "SHORT",
+    "profitability_claimed": false,
+    "variant_id": "CALIBRATION_BASE"
+  },
+  {
+    "advanced_to_financial_analysis": false,
+    "advanced_to_validation": false,
+    "candidate_frozen": false,
+    "classifications": [
+      "TOO_RESTRICTIVE",
+      "INSUFFICIENT_SAMPLE"
+    ],
+    "market": "FUTURES",
+    "mode": "SHORT",
+    "profitability_claimed": false,
+    "variant_id": "EXTENSION_1_5"
+  },
+  {
+    "advanced_to_financial_analysis": false,
+    "advanced_to_validation": false,
+    "candidate_frozen": false,
+    "classifications": [
+      "TOO_RESTRICTIVE",
+      "INSUFFICIENT_SAMPLE"
+    ],
+    "market": "FUTURES",
+    "mode": "SHORT",
+    "profitability_claimed": false,
+    "variant_id": "EXTENSION_2_0"
+  },
+  {
+    "advanced_to_financial_analysis": false,
+    "advanced_to_validation": false,
+    "candidate_frozen": false,
+    "classifications": [
+      "TOO_RESTRICTIVE",
+      "INSUFFICIENT_SAMPLE"
+    ],
+    "market": "FUTURES",
+    "mode": "SHORT",
+    "profitability_claimed": false,
+    "variant_id": "NO_MINIMUM_DEPTH"
+  },
+  {
+    "advanced_to_financial_analysis": false,
+    "advanced_to_validation": false,
+    "candidate_frozen": false,
+    "classifications": [
+      "TOO_RESTRICTIVE",
+      "INSUFFICIENT_SAMPLE"
+    ],
+    "market": "FUTURES",
+    "mode": "SHORT",
+    "profitability_claimed": false,
+    "variant_id": "VOLUME_RELAXED"
+  },
+  {
+    "advanced_to_financial_analysis": false,
+    "advanced_to_validation": false,
+    "candidate_frozen": false,
+    "classifications": [
+      "TOO_RESTRICTIVE",
+      "INSUFFICIENT_SAMPLE"
+    ],
+    "market": "FUTURES",
+    "mode": "SHORT",
+    "profitability_claimed": false,
+    "variant_id": "VOLATILITY_RELAXED"
+  },
+  {
+    "advanced_to_financial_analysis": false,
+    "advanced_to_validation": false,
+    "candidate_frozen": false,
+    "classifications": [
+      "TOO_RESTRICTIVE",
+      "INSUFFICIENT_SAMPLE"
+    ],
+    "market": "FUTURES",
+    "mode": "SHORT",
+    "profitability_claimed": false,
+    "variant_id": "PERSISTENCE_2"
+  },
+  {
+    "advanced_to_financial_analysis": false,
+    "advanced_to_validation": false,
+    "candidate_frozen": false,
+    "classifications": [
+      "TOO_RESTRICTIVE",
+      "INSUFFICIENT_SAMPLE"
+    ],
+    "market": "FUTURES",
+    "mode": "SHORT",
+    "profitability_claimed": false,
+    "variant_id": "DIRECTIONAL_CLOSE_RELAXED"
+  },
+  {
+    "advanced_to_financial_analysis": false,
+    "advanced_to_validation": false,
+    "candidate_frozen": false,
+    "classifications": [
+      "TOO_RESTRICTIVE",
+      "INSUFFICIENT_SAMPLE"
+    ],
+    "market": "FUTURES",
+    "mode": "LONG_SHORT",
+    "profitability_claimed": false,
+    "variant_id": "CALIBRATION_BASE"
+  },
+  {
+    "advanced_to_financial_analysis": false,
+    "advanced_to_validation": false,
+    "candidate_frozen": false,
+    "classifications": [
+      "TOO_RESTRICTIVE",
+      "INSUFFICIENT_SAMPLE"
+    ],
+    "market": "FUTURES",
+    "mode": "LONG_SHORT",
+    "profitability_claimed": false,
+    "variant_id": "EXTENSION_1_5"
+  },
+  {
+    "advanced_to_financial_analysis": false,
+    "advanced_to_validation": false,
+    "candidate_frozen": false,
+    "classifications": [
+      "TOO_RESTRICTIVE",
+      "INSUFFICIENT_SAMPLE"
+    ],
+    "market": "FUTURES",
+    "mode": "LONG_SHORT",
+    "profitability_claimed": false,
+    "variant_id": "EXTENSION_2_0"
+  },
+  {
+    "advanced_to_financial_analysis": false,
+    "advanced_to_validation": false,
+    "candidate_frozen": false,
+    "classifications": [
+      "TOO_RESTRICTIVE",
+      "INSUFFICIENT_SAMPLE"
+    ],
+    "market": "FUTURES",
+    "mode": "LONG_SHORT",
+    "profitability_claimed": false,
+    "variant_id": "NO_MINIMUM_DEPTH"
+  },
+  {
+    "advanced_to_financial_analysis": false,
+    "advanced_to_validation": false,
+    "candidate_frozen": false,
+    "classifications": [
+      "TOO_RESTRICTIVE",
+      "INSUFFICIENT_SAMPLE"
+    ],
+    "market": "FUTURES",
+    "mode": "LONG_SHORT",
+    "profitability_claimed": false,
+    "variant_id": "VOLUME_RELAXED"
+  },
+  {
+    "advanced_to_financial_analysis": false,
+    "advanced_to_validation": false,
+    "candidate_frozen": false,
+    "classifications": [
+      "TOO_RESTRICTIVE",
+      "INSUFFICIENT_SAMPLE"
+    ],
+    "market": "FUTURES",
+    "mode": "LONG_SHORT",
+    "profitability_claimed": false,
+    "variant_id": "VOLATILITY_RELAXED"
+  },
+  {
+    "advanced_to_financial_analysis": false,
+    "advanced_to_validation": false,
+    "candidate_frozen": false,
+    "classifications": [
+      "TOO_RESTRICTIVE",
+      "INSUFFICIENT_SAMPLE"
+    ],
+    "market": "FUTURES",
+    "mode": "LONG_SHORT",
+    "profitability_claimed": false,
+    "variant_id": "PERSISTENCE_2"
+  },
+  {
+    "advanced_to_financial_analysis": false,
+    "advanced_to_validation": false,
+    "candidate_frozen": false,
+    "classifications": [
+      "TOO_RESTRICTIVE",
+      "INSUFFICIENT_SAMPLE"
+    ],
+    "market": "FUTURES",
+    "mode": "LONG_SHORT",
+    "profitability_claimed": false,
+    "variant_id": "DIRECTIONAL_CLOSE_RELAXED"
+  }
+]

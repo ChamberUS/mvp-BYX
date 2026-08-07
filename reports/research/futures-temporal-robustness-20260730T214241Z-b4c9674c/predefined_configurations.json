@@ -1,0 +1,48 @@
+{
+  "fixed_from_sprint_3a5": true,
+  "selection_performed": false,
+  "variants": [
+    {
+      "leverage": "1",
+      "mode": "FUTURES_LONG_ONLY",
+      "target_r_multiple": "2",
+      "time_exit_candles": null,
+      "variant_id": "FUTURES_LONG_BASELINE_1X"
+    },
+    {
+      "leverage": "1",
+      "mode": "FUTURES_SHORT_ONLY",
+      "target_r_multiple": "2",
+      "time_exit_candles": null,
+      "variant_id": "FUTURES_SHORT_MIRRORED_1X"
+    },
+    {
+      "leverage": "1",
+      "mode": "FUTURES_LONG_SHORT",
+      "target_r_multiple": "2",
+      "time_exit_candles": null,
+      "variant_id": "FUTURES_LONG_SHORT_BASELINE_1X"
+    },
+    {
+      "leverage": "1",
+      "mode": "FUTURES_LONG_SHORT",
+      "target_r_multiple": "2",
+      "time_exit_candles": 12,
+      "variant_id": "FUTURES_LONG_SHORT_TIME_EXIT_12_1X"
+    },
+    {
+      "leverage": "1",
+      "mode": "FUTURES_LONG_SHORT",
+      "target_r_multiple": "2",
+      "time_exit_candles": 24,
+      "variant_id": "FUTURES_LONG_SHORT_TIME_EXIT_24_1X"
+    },
+    {
+      "leverage": "1",
+      "mode": "FUTURES_LONG_SHORT",
+      "target_r_multiple": "2.5",
+      "time_exit_candles": null,
+      "variant_id": "FUTURES_LONG_SHORT_TARGET_R_2_5_1X"
+    }
+  ]
+}

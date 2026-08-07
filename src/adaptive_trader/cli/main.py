@@ -5,12 +5,12 @@ from __future__ import annotations
 import argparse
 import asyncio
 import csv
-import hashlib
 import json
 import logging
 import os
 import re
 import sqlite3
+import subprocess
 import sys
 from collections.abc import Sequence
 from dataclasses import replace
@@ -24,6 +24,7 @@ from adaptive_trader.config.settings import ConfigError, TradingConfig, load_con
 from adaptive_trader.domain.market import MarketType, TradingMode
 from adaptive_trader.domain.models import Candle, SignalDirection, serialize_model
 from adaptive_trader.futures.datasets import FuturesDataset, validate_futures_dataset
+from adaptive_trader.futures.integrity import FuturesGapPolicy, inspect_public_dataset
 from adaptive_trader.futures.models import (
     FundingMissingPolicy,
     FundingRate,
@@ -31,6 +32,13 @@ from adaptive_trader.futures.models import (
     FuturesBacktestResult,
     FuturesCandle,
     MarkPriceCandle,
+)
+from adaptive_trader.futures.real_validation import (
+    FuturesRealValidationService,
+    RealValidationPeriods,
+)
+from adaptive_trader.futures.real_validation_report import (
+    write_real_validation_report,
 )
 from adaptive_trader.futures.report import write_futures_report
 from adaptive_trader.futures.research import (
@@ -42,6 +50,13 @@ from adaptive_trader.futures.research import (
     run_futures_walk_forward,
     write_market_comparison,
     write_walk_forward_report,
+)
+from adaptive_trader.futures.temporal_robustness import (
+    FuturesTemporalRobustnessService,
+    TemporalRobustnessRequest,
+)
+from adaptive_trader.futures.temporal_robustness_report import (
+    write_temporal_robustness_report,
 )
 from adaptive_trader.market_data.binance_futures_public import BinanceFuturesPublicClient
 from adaptive_trader.market_data.binance_public import BinancePublicClient
@@ -66,6 +81,20 @@ from adaptive_trader.research.diagnostics import entry_exit_decomposition_rows
 from adaptive_trader.research.experiment import ResearchExperimentRunner
 from adaptive_trader.research.models import GapPolicy, SelectionMode, WalkForwardMode
 from adaptive_trader.research.periods import ResearchPeriods
+from adaptive_trader.research.pullback_calibration_experiment import (
+    PullbackCalibrationService,
+)
+from adaptive_trader.research.pullback_calibration_report import (
+    write_pullback_calibration_report,
+)
+from adaptive_trader.research.pullback_catalog import PullbackExperimentPeriods
+from adaptive_trader.research.pullback_experiment import (
+    PullbackExperimentRequest,
+    PullbackExperimentService,
+)
+from adaptive_trader.research.pullback_report import (
+    write_pullback_experiment_report,
+)
 from adaptive_trader.research.service import (
     run_diagnostics_experiment,
     run_holdout_experiment,
@@ -76,6 +105,16 @@ from adaptive_trader.research.spot_experiment import SpotHypothesisExperiment
 from adaptive_trader.research.spot_hypotheses import (
     SpotExperimentPeriods,
     load_spot_hypothesis_catalog,
+)
+from adaptive_trader.research.trend_following_catalog import (
+    TrendFollowingPeriods,
+)
+from adaptive_trader.research.trend_following_experiment import (
+    TrendFollowingExperimentRequest,
+    TrendFollowingExperimentService,
+)
+from adaptive_trader.research.trend_following_report import (
+    write_trend_following_report,
 )
 from adaptive_trader.research.walk_forward import WalkForwardRunner
 from adaptive_trader.storage.sqlite import (
@@ -234,9 +273,7 @@ def _parser() -> argparse.ArgumentParser:
     timeframe_compare.add_argument("--warmup-candles", type=int, default=None)
     timeframe_compare.add_argument("--output-dir", type=Path, required=True)
     diagnostics = research_commands.add_parser("diagnostics")
-    diagnostics_commands = diagnostics.add_subparsers(
-        dest="diagnostics_command", required=True
-    )
+    diagnostics_commands = diagnostics.add_subparsers(dest="diagnostics_command", required=True)
     diagnostics_show = diagnostics_commands.add_parser("show")
     diagnostics_show.add_argument("--experiment", type=Path, required=True)
     report = research_commands.add_parser("report")
@@ -272,6 +309,75 @@ def _parser() -> argparse.ArgumentParser:
     spot_hypotheses_run.add_argument("--yes", action="store_true")
     spot_hypotheses_show = spot_hypotheses_commands.add_parser("show")
     spot_hypotheses_show.add_argument("--experiment", type=Path, required=True)
+    pullback = research_commands.add_parser("pullback")
+    pullback_commands = pullback.add_subparsers(
+        dest="pullback_command",
+        required=True,
+    )
+    pullback_run = pullback_commands.add_parser("run")
+    pullback_run.add_argument("--symbol", required=True)
+    pullback_run.add_argument("--interval", required=True)
+    pullback_run.add_argument("--development-start", required=True)
+    pullback_run.add_argument("--development-end", required=True)
+    pullback_run.add_argument("--validation-start", required=True)
+    pullback_run.add_argument("--validation-end", required=True)
+    pullback_run.add_argument("--consumed-start", required=True)
+    pullback_run.add_argument("--consumed-end", required=True)
+    pullback_run.add_argument("--markets", default="spot,futures")
+    pullback_run.add_argument(
+        "--futures-modes",
+        default="long,short,long-short",
+    )
+    pullback_run.add_argument("--leverage", default="1")
+    pullback_run.add_argument("--output-dir", type=Path, required=True)
+    pullback_run.add_argument("--yes", action="store_true")
+    pullback_show = pullback_commands.add_parser("show")
+    pullback_show.add_argument("--experiment", type=Path, required=True)
+    pullback_calibrate = pullback_commands.add_parser("calibrate")
+    pullback_calibrate.add_argument("--symbol", required=True)
+    pullback_calibrate.add_argument("--interval", required=True)
+    pullback_calibrate.add_argument("--development-start", required=True)
+    pullback_calibrate.add_argument("--development-end", required=True)
+    pullback_calibrate.add_argument("--validation-start", required=True)
+    pullback_calibrate.add_argument("--validation-end", required=True)
+    pullback_calibrate.add_argument("--consumed-start", required=True)
+    pullback_calibrate.add_argument("--consumed-end", required=True)
+    pullback_calibrate.add_argument("--markets", default="spot,futures")
+    pullback_calibrate.add_argument("--futures-modes", default="long,short,long-short")
+    pullback_calibrate.add_argument("--leverage", default="1")
+    pullback_calibrate.add_argument("--output-dir", type=Path, required=True)
+    pullback_calibrate.add_argument("--yes", action="store_true")
+    pullback_calibration_show = pullback_commands.add_parser("calibration-show")
+    pullback_calibration_show.add_argument("--experiment", type=Path, required=True)
+    trend_following = research_commands.add_parser("trend-following")
+    trend_following_commands = trend_following.add_subparsers(
+        dest="trend_following_command",
+        required=True,
+    )
+    trend_following_run = trend_following_commands.add_parser("run")
+    trend_following_run.add_argument("--symbol", required=True)
+    trend_following_run.add_argument("--source-interval", required=True)
+    trend_following_run.add_argument("--strategy-interval", required=True)
+    trend_following_run.add_argument("--development-start", required=True)
+    trend_following_run.add_argument("--development-end", required=True)
+    trend_following_run.add_argument("--validation-start", required=True)
+    trend_following_run.add_argument("--validation-end", required=True)
+    trend_following_run.add_argument("--consumed-start", required=True)
+    trend_following_run.add_argument("--consumed-end", required=True)
+    trend_following_run.add_argument("--markets", default="spot,futures")
+    trend_following_run.add_argument(
+        "--futures-modes",
+        default="long,short,long-short",
+    )
+    trend_following_run.add_argument("--leverage", default="1")
+    trend_following_run.add_argument("--output-dir", type=Path, required=True)
+    trend_following_run.add_argument("--yes", action="store_true")
+    trend_following_show = trend_following_commands.add_parser("show")
+    trend_following_show.add_argument(
+        "--experiment",
+        type=Path,
+        required=True,
+    )
     candidate = research_commands.add_parser("candidate")
     candidate_commands = candidate.add_subparsers(
         dest="candidate_command",
@@ -303,6 +409,33 @@ def _parser() -> argparse.ArgumentParser:
     futures_walk.add_argument("--validation-days", type=int, required=True)
     futures_walk.add_argument("--step-days", type=int, required=True)
     futures_walk.add_argument("--output-dir", type=Path, required=True)
+    futures_validate = futures_research_commands.add_parser("validate-real")
+    futures_validate.add_argument("--symbol", default="ETHUSDT")
+    futures_validate.add_argument("--interval", default="1h")
+    futures_validate.add_argument("--development-start", required=True)
+    futures_validate.add_argument("--development-end", required=True)
+    futures_validate.add_argument("--validation-start", required=True)
+    futures_validate.add_argument("--validation-end", required=True)
+    futures_validate.add_argument("--consumed-test-start", required=True)
+    futures_validate.add_argument("--consumed-test-end", required=True)
+    futures_validate.add_argument("--leverage", default="1")
+    futures_validate.add_argument("--output-dir", type=Path, required=True)
+    futures_validate.add_argument("--yes", action="store_true")
+    futures_validation_show = futures_research_commands.add_parser("validation-show")
+    futures_validation_show.add_argument("--experiment", type=Path, required=True)
+    futures_temporal = futures_research_commands.add_parser("temporal-robustness")
+    futures_temporal.add_argument("--symbol", default="ETHUSDT")
+    futures_temporal.add_argument("--interval", default="1h")
+    futures_temporal.add_argument("--start", required=True)
+    futures_temporal.add_argument("--end", required=True)
+    futures_temporal.add_argument("--dataset-hash", required=True)
+    futures_temporal.add_argument("--leverage", default="1")
+    futures_temporal.add_argument("--bootstrap-iterations", type=int, default=2000)
+    futures_temporal.add_argument("--bootstrap-seed", type=int, default=42)
+    futures_temporal.add_argument("--output-dir", type=Path, required=True)
+    futures_temporal.add_argument("--yes", action="store_true")
+    futures_temporal_show = futures_research_commands.add_parser("temporal-show")
+    futures_temporal_show.add_argument("--experiment", type=Path, required=True)
     market_research = research_commands.add_parser("market")
     market_research_commands = market_research.add_subparsers(
         dest="research_market_command",
@@ -505,8 +638,55 @@ async def _futures_download(config: TradingConfig, args: argparse.Namespace) -> 
     finally:
         await client.aclose()
         repository.close()
-    print(json.dumps(serialize_model(stats), indent=2, sort_keys=True))
+    serialized_stats = serialize_model(stats)
+    audit_path = config.database_path.parent / "futures_download_audit.json"
+    audit = _read_optional_json(audit_path)
+    downloads = audit.setdefault("downloads", {})
+    if not isinstance(downloads, dict):
+        raise ValueError("Futures download audit downloads field must be an object")
+    endpoint_by_command = {
+        "download-klines": "GET /fapi/v1/klines",
+        "download-mark-price": "GET /fapi/v1/markPriceKlines",
+        "download-funding": "GET /fapi/v1/fundingRate",
+    }
+    downloads[args.futures_market_command] = {
+        "endpoint": endpoint_by_command[args.futures_market_command],
+        "symbol": symbol,
+        "interval": (
+            None
+            if args.futures_market_command == "download-funding"
+            else args.interval or config.interval
+        ),
+        "requested_start": start.isoformat(),
+        "requested_end": end.isoformat(),
+        "stats": serialized_stats,
+        "authenticated": False,
+        "orders_sent": False,
+    }
+    audit.update(
+        {
+            "source": "BINANCE_USD_M_PUBLIC",
+            "authenticated": False,
+            "api_key_used": False,
+            "orders_sent": False,
+            "updated_at": datetime.now(tz=UTC).isoformat(),
+        }
+    )
+    audit_path.write_text(
+        json.dumps(audit, indent=2, sort_keys=True),
+        encoding="utf-8",
+    )
+    print(json.dumps(serialized_stats, indent=2, sort_keys=True))
     return 0
+
+
+def _read_optional_json(path: Path) -> dict[str, object]:
+    if not path.exists():
+        return {}
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError(f"{path} must contain a JSON object")
+    return payload
 
 
 def _futures_status(config: TradingConfig, args: argparse.Namespace) -> int:
@@ -519,16 +699,18 @@ def _futures_status(config: TradingConfig, args: argparse.Namespace) -> int:
         funding = repository.get_funding_rates(symbol)
     finally:
         repository.close()
-    content = serialize_model(
-        {
-            "candles": candles,
-            "mark_prices": marks,
-            "funding_rates": funding,
-        }
+    integrity = (
+        inspect_public_dataset(
+            candles,
+            marks,
+            funding,
+            requested_start=candles[0].open_time,
+            requested_end=candles[-1].open_time,
+            gap_policy=FuturesGapPolicy.WARN,
+        )
+        if candles
+        else None
     )
-    digest = hashlib.sha256(
-        json.dumps(content, sort_keys=True, separators=(",", ":")).encode("utf-8")
-    ).hexdigest()
     print(
         json.dumps(
             {
@@ -539,11 +721,30 @@ def _futures_status(config: TradingConfig, args: argparse.Namespace) -> int:
                 "candle_count": len(candles),
                 "mark_price_count": len(marks),
                 "funding_rate_count": len(funding),
+                "first_open_time": (candles[0].open_time.isoformat() if candles else None),
                 "latest_open_time": candles[-1].open_time.isoformat() if candles else None,
-                "content_hash": digest,
+                "first_mark_time": marks[0].open_time.isoformat() if marks else None,
+                "last_mark_time": marks[-1].open_time.isoformat() if marks else None,
+                "first_funding_time": (funding[0].funding_time.isoformat() if funding else None),
+                "last_funding_time": (funding[-1].funding_time.isoformat() if funding else None),
+                "duplicate_count": (integrity.candles.duplicate_count if integrity else 0),
+                "gap_count": integrity.candles.gap_count if integrity else 0,
+                "mark_coverage_percent": (
+                    integrity.marks.coverage_percent if integrity else Decimal("0")
+                ),
+                "funding_coverage_percent": (
+                    integrity.funding.coverage_percent if integrity else Decimal("0")
+                ),
+                "futures_candle_hash": (integrity.futures_candle_hash if integrity else None),
+                "mark_price_hash": integrity.mark_price_hash if integrity else None,
+                "funding_hash": integrity.funding_hash if integrity else None,
+                "combined_dataset_hash": (integrity.combined_dataset_hash if integrity else None),
+                "readiness": integrity.readiness.value if integrity else "NOT_READY",
+                "warnings": integrity.warnings if integrity else ("NO_DATA",),
                 "range_semantics": "start_and_end_inclusive",
                 "research_only": True,
             },
+            default=str,
             indent=2,
             sort_keys=True,
         )
@@ -591,13 +792,34 @@ def _load_futures_dataset(
     config: TradingConfig,
     args: argparse.Namespace,
 ) -> FuturesDataset:
+    candles, marks, funding, start, end = _load_futures_records(config, args)
+    funding_enabled, funding_policy = _futures_policy(args)
+    return validate_futures_dataset(
+        candles,
+        marks,
+        funding,
+        source="BINANCE_USD_M_PUBLIC_SQLITE",
+        funding_enabled=funding_enabled,
+        funding_missing_policy=funding_policy,
+    )
+
+
+def _load_futures_records(
+    config: TradingConfig,
+    args: argparse.Namespace,
+) -> tuple[
+    tuple[FuturesCandle, ...],
+    tuple[MarkPriceCandle, ...],
+    tuple[FundingRate, ...],
+    datetime,
+    datetime,
+]:
     start = _parse_datetime(args.start)
     end = _parse_datetime(args.end)
     if end < start:
         raise ValueError("end must not precede start")
     symbol = args.symbol or config.symbol
     interval = args.interval or config.interval
-    funding_enabled, funding_policy = _futures_policy(args)
     repository = DatabaseRepository(config.database_path)
     try:
         candles = repository.get_futures_candles(
@@ -621,41 +843,48 @@ def _load_futures_dataset(
         repository.close()
     if not candles:
         raise ValueError("no local USD-M Futures candles; research never downloads automatically")
-    return validate_futures_dataset(
-        candles,
-        marks,
-        funding,
-        source="BINANCE_USD_M_PUBLIC_SQLITE",
-        funding_enabled=funding_enabled,
-        funding_missing_policy=funding_policy,
-    )
+    return candles, marks, funding, start, end
 
 
 def _research_futures_inspect(config: TradingConfig, args: argparse.Namespace) -> int:
-    dataset = _load_futures_dataset(config, args)
+    candles, marks, funding, start, end = _load_futures_records(config, args)
+    integrity = inspect_public_dataset(
+        candles,
+        marks,
+        funding,
+        requested_start=start,
+        requested_end=end,
+        gap_policy=FuturesGapPolicy.WARN,
+    )
     payload = {
-        "dataset_id": dataset.dataset_id,
-        "market_type": dataset.market_type.value,
-        "contract_type": dataset.contract_type.value,
-        "symbol": dataset.symbol,
-        "interval": dataset.interval,
-        "first_open_time": dataset.candles[0].open_time.isoformat(),
-        "last_open_time": dataset.candles[-1].open_time.isoformat(),
+        "dataset_id": f"futures-{integrity.combined_dataset_hash[:16]}",
+        "market_type": integrity.candles.market_type.value,
+        "contract_type": integrity.candles.contract_type.value,
+        "symbol": integrity.candles.symbol,
+        "interval": integrity.candles.interval,
+        "first_open_time": integrity.candles.first_open_time.isoformat(),
+        "last_open_time": integrity.candles.last_open_time.isoformat(),
         "end_is_inclusive": True,
-        "candle_count": len(dataset.candles),
-        "mark_price_count": len(dataset.mark_prices),
-        "funding_rate_count": len(dataset.funding_rates),
-        "duplicate_count": dataset.duplicate_count,
-        "gap_count": dataset.gap_count,
-        "mark_price_missing_count": dataset.mark_price_missing_count,
-        "funding_gap_count": dataset.funding_gap_count,
-        "all_candles_closed": all(item.is_closed for item in dataset.candles),
-        "candle_hash": dataset.candle_hash,
-        "mark_price_hash": dataset.mark_price_hash,
-        "funding_hash": dataset.funding_hash,
-        "combined_dataset_hash": dataset.combined_dataset_hash,
-        "valid_for_research": dataset.valid_for_research,
-        "warnings": dataset.warnings,
+        "candle_count": integrity.candles.count,
+        "mark_price_count": integrity.marks.count,
+        "funding_rate_count": integrity.funding.event_count,
+        "duplicate_count": integrity.candles.duplicate_count,
+        "gap_count": integrity.candles.gap_count,
+        "mark_price_missing_count": integrity.marks.missing_count,
+        "mark_coverage_percent": integrity.marks.coverage_percent,
+        "funding_missing_windows": integrity.funding.missing_windows,
+        "funding_coverage_percent": integrity.funding.coverage_percent,
+        "all_candles_closed": integrity.candles.all_closed,
+        "candle_hash": integrity.futures_candle_hash,
+        "mark_price_hash": integrity.mark_price_hash,
+        "funding_hash": integrity.funding_hash,
+        "combined_dataset_hash": integrity.combined_dataset_hash,
+        "alignment_policy": integrity.marks.alignment_policy,
+        "gap_policy": integrity.candles.gap_policy.value,
+        "funding_missing_policy": args.funding_missing_policy,
+        "readiness": integrity.readiness.value,
+        "valid_for_research": integrity.readiness.value != "NOT_READY",
+        "warnings": integrity.warnings,
     }
     print(json.dumps(serialize_model(payload), indent=2, sort_keys=True))
     return 0
@@ -715,6 +944,166 @@ def _research_futures_walk_forward(config: TradingConfig, args: argparse.Namespa
     return 0
 
 
+def _research_futures_validate_real(
+    config: TradingConfig,
+    args: argparse.Namespace,
+) -> int:
+    if not args.yes:
+        raise ValueError("real Futures validation requires explicit --yes")
+    leverage = _parse_decimal(str(args.leverage), "leverage")
+    if leverage != Decimal("1"):
+        raise ValueError("Sprint 3A.5 real validation permits only leverage 1")
+    periods = RealValidationPeriods(
+        development_start=_parse_datetime(args.development_start),
+        development_end=_parse_datetime(args.development_end),
+        validation_start=_parse_datetime(args.validation_start),
+        validation_end=_parse_datetime(args.validation_end),
+        consumed_test_start=_parse_datetime(args.consumed_test_start),
+        consumed_test_end=_parse_datetime(args.consumed_test_end),
+    )
+    periods.assert_pre_registered()
+    repository = DatabaseRepository(config.database_path)
+    try:
+        bundle = FuturesRealValidationService(repository, config).run(
+            symbol=args.symbol,
+            interval=args.interval,
+            periods=periods,
+            leverage=leverage,
+        )
+    finally:
+        repository.close()
+    git_commit, git_dirty = _git_metadata()
+    download_audit = _read_optional_json(
+        config.database_path.parent / "futures_download_audit.json"
+    )
+    output_path = write_real_validation_report(
+        bundle,
+        args.output_dir,
+        git_commit=git_commit,
+        git_dirty=git_dirty,
+        download_audit=download_audit,
+    )
+    print(
+        json.dumps(
+            {
+                "experiment_id": bundle.experiment_id,
+                "output_path": str(output_path),
+                "readiness": bundle.integrity.readiness.value,
+                "classifications": {
+                    str(item["configuration"]): str(item["status"]) for item in bundle.assessments
+                },
+                "duration_seconds": str(bundle.duration_seconds),
+                "consumed_test_used": False,
+                "leverages_executed": ["1"],
+                "network_used": False,
+                "authenticated_api_used": False,
+                "api_key_used": False,
+                "external_orders_sent": False,
+                "paper_trading_enabled": False,
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return 0
+
+
+def _git_metadata() -> tuple[str, bool]:
+    commit = subprocess.run(
+        ("git", "rev-parse", "HEAD"),
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    status = subprocess.run(
+        ("git", "status", "--porcelain"),
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout
+    return commit, bool(status.strip())
+
+
+def _research_futures_validation_show(args: argparse.Namespace) -> int:
+    experiment = args.experiment
+    payload = {
+        "manifest": read_json(experiment / "experiment_manifest.json"),
+        "candle_integrity": read_json(experiment / "futures_candle_integrity.json"),
+        "mark_integrity": read_json(experiment / "mark_price_integrity.json"),
+        "funding_integrity": read_json(experiment / "funding_integrity.json"),
+        "assessment": read_json(experiment / "futures_candidate_assessment.json"),
+    }
+    print(json.dumps(payload, indent=2, sort_keys=True))
+    return 0
+
+
+def _research_futures_temporal_robustness(
+    config: TradingConfig,
+    args: argparse.Namespace,
+) -> int:
+    if not args.yes:
+        raise ValueError("temporal Futures robustness requires explicit --yes")
+    request = TemporalRobustnessRequest(
+        symbol=args.symbol,
+        interval=args.interval,
+        start=_parse_datetime(args.start),
+        end=_parse_datetime(args.end),
+        dataset_hash=args.dataset_hash,
+        leverage=_parse_decimal(str(args.leverage), "leverage"),
+        bootstrap_iterations=args.bootstrap_iterations,
+        bootstrap_seed=args.bootstrap_seed,
+    )
+    request.validate()
+    repository = DatabaseRepository(config.database_path)
+    try:
+        bundle = FuturesTemporalRobustnessService(repository, config).run(request)
+    finally:
+        repository.close()
+    git_commit, git_dirty = _git_metadata()
+    output_path = write_temporal_robustness_report(
+        bundle,
+        args.output_dir,
+        git_commit=git_commit,
+        git_dirty=git_dirty,
+    )
+    print(
+        json.dumps(
+            {
+                "experiment_id": bundle.experiment_id,
+                "output_path": str(output_path),
+                "dataset_hash": bundle.integrity.combined_dataset_hash,
+                "classifications": {
+                    str(item["configuration"]): str(item["classification"])
+                    for item in bundle.classifications
+                },
+                "duration_seconds": str(bundle.duration_seconds),
+                "leverages_executed": ["1"],
+                "consumed_2026_used": False,
+                "network_used": False,
+                "authenticated_api_used": False,
+                "external_orders_sent": False,
+                "candidate_frozen": False,
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return 0
+
+
+def _research_futures_temporal_show(args: argparse.Namespace) -> int:
+    experiment = args.experiment
+    payload = {
+        "manifest": read_json(experiment / "experiment_manifest.json"),
+        "scorecard": read_json(experiment / "temporal_stability_scorecard.json"),
+        "classifications": read_json(experiment / "configuration_classification.json"),
+        "explanation_2025": read_json(experiment / "2025_result_explanation.json"),
+        "bootstrap": read_json(experiment / "bootstrap_uncertainty.json"),
+    }
+    print(json.dumps(payload, indent=2, sort_keys=True))
+    return 0
+
+
 def _backtest_run(config: TradingConfig, args: argparse.Namespace) -> int:
     start = _parse_datetime(args.start)
     end = _parse_datetime(args.end)
@@ -761,9 +1150,7 @@ def _research_dataset(config: TradingConfig, args: argparse.Namespace) -> int:
     return 0
 
 
-def _research_candles(
-    config: TradingConfig, args: argparse.Namespace
-) -> tuple[Candle, ...]:
+def _research_candles(config: TradingConfig, args: argparse.Namespace) -> tuple[Candle, ...]:
     file_config = _research_file_config(args)
     if file_config is None and (args.start is None or args.end is None):
         raise ValueError("research dates are required unless --config is provided")
@@ -1037,9 +1424,7 @@ def _research_timeframe_compare(config: TradingConfig, args: argparse.Namespace)
             )
             run = ResearchExperimentRunner().run_segment(segment, run_config)
             result = run.result
-            benchmark = next(
-                (item for item in run.benchmarks if item.name == "BUY_AND_HOLD"), None
-            )
+            benchmark = next((item for item in run.benchmarks if item.name == "BUY_AND_HOLD"), None)
             duration_years = Decimal(
                 str((segment.end_time - segment.start_time).total_seconds())
             ) / Decimal("31557600")
@@ -1305,9 +1690,7 @@ def _spot_comparison_row(
             Decimal("100") if metrics.closed_trade_count == 0 else Decimal("0")
         ),
         "candidate_status": (
-            "CANDIDATE"
-            if net_return > 0 and metrics.closed_trade_count >= 10
-            else "NOT_CANDIDATE"
+            "CANDIDATE" if net_return > 0 and metrics.closed_trade_count >= 10 else "NOT_CANDIDATE"
         ),
         "warnings": "",
     }
@@ -1510,12 +1893,274 @@ def _research_hypotheses_spot_show(args: argparse.Namespace) -> int:
     payload = {
         "manifest": read_json(args.experiment / "experiment_manifest.json"),
         "criteria": read_json(args.experiment / "candidate_criteria.json"),
-        "freeze_decision": read_json(
-            args.experiment / "candidate_freeze_decision.json"
-        ),
+        "freeze_decision": read_json(args.experiment / "candidate_freeze_decision.json"),
     }
     print(json.dumps(payload, indent=2, sort_keys=True))
     return 0
+
+
+def _research_pullback_run(
+    config: TradingConfig,
+    args: argparse.Namespace,
+) -> int:
+    if not args.yes:
+        raise ValueError("pullback experiment requires explicit --yes")
+    markets = tuple(item.strip() for item in str(args.markets).split(",") if item.strip())
+    futures_modes = tuple(
+        item.strip() for item in str(args.futures_modes).split(",") if item.strip()
+    )
+    request = PullbackExperimentRequest(
+        symbol=args.symbol,
+        interval=args.interval,
+        periods=PullbackExperimentPeriods(
+            development_start=_parse_datetime(args.development_start),
+            development_end=_parse_datetime(args.development_end),
+            validation_start=_parse_datetime(args.validation_start),
+            validation_end=_parse_datetime(args.validation_end),
+            consumed_start=_parse_datetime(args.consumed_start),
+            consumed_end=_parse_datetime(args.consumed_end),
+        ),
+        markets=markets,
+        futures_modes=futures_modes,
+        leverage=_parse_decimal(str(args.leverage), "leverage"),
+        output_dir=args.output_dir,
+    )
+    request.validate()
+    repository = DatabaseRepository(config.database_path)
+    try:
+        bundle = PullbackExperimentService(repository, config).run(request)
+    finally:
+        repository.close()
+    git_commit, git_dirty = _git_metadata()
+    output_path = write_pullback_experiment_report(
+        bundle,
+        args.output_dir,
+        git_commit=git_commit,
+        git_dirty=git_dirty,
+    )
+    print(
+        json.dumps(
+            {
+                "experiment_id": bundle.experiment_id,
+                "output_path": str(output_path),
+                "catalog_hash": bundle.catalog.content_hash,
+                "classifications": {
+                    (
+                        f"{item.market}/{item.mode}/{item.variant_id or 'NONE'}"
+                    ): item.classification.value
+                    for item in bundle.assessments
+                },
+                "duration_seconds": str(bundle.duration_seconds),
+                "development_period": "2022-2023",
+                "validation_period": "2024",
+                "consumed_2025_used": False,
+                "consumed_2026_used": False,
+                "leverages_executed": ["1"],
+                "network_used": False,
+                "authenticated_api_used": False,
+                "external_orders_sent": False,
+                "candidate_frozen": False,
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return 0
+
+
+def _research_pullback_show(args: argparse.Namespace) -> int:
+    experiment = args.experiment
+    payload = {
+        "manifest": read_json(experiment / "experiment_manifest.json"),
+        "catalog": read_json(experiment / "hypothesis_catalog.json"),
+        "assessment": read_json(experiment / "hypothesis_assessment.json"),
+        "future_holdout_plan": read_json(experiment / "future_holdout_plan.json"),
+    }
+    print(json.dumps(payload, indent=2, sort_keys=True))
+    return 0
+
+
+def _research_pullback_calibrate(
+    config: TradingConfig,
+    args: argparse.Namespace,
+) -> int:
+    if not args.yes:
+        raise ValueError("pullback calibration requires explicit --yes")
+    request = PullbackExperimentRequest(
+        symbol=args.symbol,
+        interval=args.interval,
+        periods=PullbackExperimentPeriods(
+            development_start=_parse_datetime(args.development_start),
+            development_end=_parse_datetime(args.development_end),
+            validation_start=_parse_datetime(args.validation_start),
+            validation_end=_parse_datetime(args.validation_end),
+            consumed_start=_parse_datetime(args.consumed_start),
+            consumed_end=_parse_datetime(args.consumed_end),
+        ),
+        markets=tuple(item.strip() for item in str(args.markets).split(",") if item.strip()),
+        futures_modes=tuple(
+            item.strip() for item in str(args.futures_modes).split(",") if item.strip()
+        ),
+        leverage=_parse_decimal(str(args.leverage), "leverage"),
+        output_dir=args.output_dir,
+    )
+    request.validate()
+    repository = DatabaseRepository(config.database_path)
+    try:
+        bundle = PullbackCalibrationService(repository, config).run(request)
+    finally:
+        repository.close()
+    git_commit, git_dirty = _git_metadata()
+    output_path = write_pullback_calibration_report(
+        bundle,
+        args.output_dir,
+        git_commit=git_commit,
+        git_dirty=git_dirty,
+    )
+    print(
+        json.dumps(
+            {
+                "experiment_id": bundle.experiment_id,
+                "output_path": str(output_path),
+                "catalog_hash": bundle.catalog.canonical_hash,
+                "selected": {
+                    f"{item['market']}/{item['mode']}": item["selected_variant_ids"]
+                    for item in bundle.selection_decisions
+                },
+                "duration_seconds": str(bundle.duration_seconds),
+                "development_period": "2022-2023",
+                "validation_period": "2024",
+                "consumed_2025_used": False,
+                "consumed_2026_used": False,
+                "leverages_executed": ["1"],
+                "network_used": False,
+                "authenticated_api_used": False,
+                "external_orders_sent": False,
+                "candidate_frozen": False,
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return 0
+
+
+def _research_pullback_calibration_show(args: argparse.Namespace) -> int:
+    experiment = args.experiment
+    payload = {
+        "manifest": read_json(experiment / "experiment_manifest.json"),
+        "catalog": read_json(experiment / "calibration_catalog.json"),
+        "selection": read_json(experiment / "frequency_selection_decision.json"),
+        "lock": read_json(experiment / "pullback_calibration_lock.json"),
+        "assessment": read_json(experiment / "calibration_assessment.json"),
+    }
+    print(json.dumps(payload, indent=2, sort_keys=True))
+    return 0
+
+
+def _research_trend_following_run(
+    config: TradingConfig,
+    args: argparse.Namespace,
+) -> int:
+    if not args.yes:
+        raise ValueError("trend-following experiment requires explicit --yes")
+    request = TrendFollowingExperimentRequest(
+        symbol=args.symbol,
+        source_interval=args.source_interval,
+        strategy_interval=args.strategy_interval,
+        periods=TrendFollowingPeriods(
+            development_start=_parse_datetime(args.development_start),
+            development_end=_parse_datetime(args.development_end),
+            validation_start=_parse_datetime(args.validation_start),
+            validation_end=_parse_datetime(args.validation_end),
+            consumed_start=_parse_datetime(args.consumed_start),
+            consumed_end=_parse_datetime(args.consumed_end),
+        ),
+        markets=tuple(item.strip() for item in str(args.markets).split(",") if item.strip()),
+        futures_modes=tuple(
+            item.strip() for item in str(args.futures_modes).split(",") if item.strip()
+        ),
+        leverage=_parse_decimal(str(args.leverage), "leverage"),
+        output_dir=args.output_dir,
+    )
+    # Validate the complete immutable request before opening SQLite.
+    request.validate()
+    git_commit, git_dirty = _git_metadata()
+    repository = DatabaseRepository(config.database_path)
+    try:
+        bundle = TrendFollowingExperimentService(repository, config).run(
+            request,
+            git_commit=git_commit,
+            git_dirty=git_dirty,
+        )
+    finally:
+        repository.close()
+    output_path = write_trend_following_report(
+        bundle,
+        git_commit=git_commit,
+        git_dirty=git_dirty,
+    )
+    print(
+        json.dumps(
+            {
+                "experiment_id": bundle.experiment_id,
+                "output_path": str(output_path),
+                "catalog_hash": bundle.catalog.canonical_hash,
+                "selected": {
+                    f"{item['market']}/{item['mode']}": item.get("selected_variant_id")
+                    for item in bundle.development_selection
+                },
+                "classifications": {
+                    (f"{item['market']}/{item['mode']}/{item.get('variant_id') or 'NONE'}"): item[
+                        "classification"
+                    ]
+                    for item in bundle.assessments
+                },
+                "duration_seconds": str(bundle.duration_seconds),
+                "development_period": "2022-2023",
+                "validation_period": "2024",
+                "consumed_2025_used": False,
+                "consumed_2026_used": False,
+                "leverages_executed": ["1"],
+                "network_used": False,
+                "downloads_performed": False,
+                "authenticated_api_used": False,
+                "external_orders_sent": False,
+                "candidate_frozen": False,
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return 0
+
+
+def _research_trend_following_show(args: argparse.Namespace) -> int:
+    experiment = args.experiment
+    payload = {
+        "manifest": read_json(experiment / "experiment_manifest.json"),
+        "catalog": read_json(experiment / "hypothesis_catalog.json"),
+        "selection": _read_json_array(
+            experiment / "development_selection.json"
+        ),
+        "lock": read_json(experiment / "trend_following_validation_lock.json"),
+        "assessment": _read_json_array(
+            experiment / "hypothesis_assessment.json"
+        ),
+        "future_confirmation_plan": read_json(experiment / "future_confirmation_plan.json"),
+    }
+    print(json.dumps(payload, indent=2, sort_keys=True))
+    return 0
+
+
+def _read_json_array(path: Path) -> list[object]:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"could not read report: {path}") from exc
+    if not isinstance(payload, list):
+        raise ValueError("report JSON must contain an array")
+    return payload
 
 
 def _research_candidate_freeze(args: argparse.Namespace) -> int:
@@ -1631,6 +2276,20 @@ def main(argv: Sequence[str] | None = None) -> int:
                 return _research_hypotheses_spot_run(config, args)
             if args.spot_hypotheses_command == "show":
                 return _research_hypotheses_spot_show(args)
+        if args.command == "research" and args.research_command == "pullback":
+            if args.pullback_command == "run":
+                return _research_pullback_run(config, args)
+            if args.pullback_command == "show":
+                return _research_pullback_show(args)
+            if args.pullback_command == "calibrate":
+                return _research_pullback_calibrate(config, args)
+            if args.pullback_command == "calibration-show":
+                return _research_pullback_calibration_show(args)
+        if args.command == "research" and args.research_command == "trend-following":
+            if args.trend_following_command == "run":
+                return _research_trend_following_run(config, args)
+            if args.trend_following_command == "show":
+                return _research_trend_following_show(args)
         if args.command == "research" and args.research_command == "candidate":
             if args.candidate_command == "freeze":
                 return _research_candidate_freeze(args)
@@ -1645,6 +2304,14 @@ def main(argv: Sequence[str] | None = None) -> int:
                 return _research_futures_backtest(config, args)
             if args.futures_research_command == "walk-forward":
                 return _research_futures_walk_forward(config, args)
+            if args.futures_research_command == "validate-real":
+                return _research_futures_validate_real(config, args)
+            if args.futures_research_command == "validation-show":
+                return _research_futures_validation_show(args)
+            if args.futures_research_command == "temporal-robustness":
+                return _research_futures_temporal_robustness(config, args)
+            if args.futures_research_command == "temporal-show":
+                return _research_futures_temporal_show(args)
         if args.command == "research" and args.research_command == "market":
             if args.research_market_command == "compare":
                 return _research_market_compare(config, args)

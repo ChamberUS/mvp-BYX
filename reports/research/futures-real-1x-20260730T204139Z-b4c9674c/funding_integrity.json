@@ -1,0 +1,23 @@
+{
+  "all_timestamps_utc": true,
+  "content_hash": "b8936cf7f526e0b2766f04998dc3a282e6a5e421509fe954d1b26b3262570da8",
+  "coverage_percent": "100",
+  "duplicate_count": 0,
+  "event_count": 4383,
+  "first_event": "2022-01-01T00:00:00.006000+00:00",
+  "largest_gap_seconds": 28800,
+  "last_event": "2025-12-31T16:00:00.001000+00:00",
+  "maximum_rate": "0.00101724",
+  "mean_rate": "0.00006153867442391056354095368469",
+  "median_rate": "0.00006753",
+  "minimum_rate": "-0.00301937",
+  "missing_windows": 0,
+  "multiple_events_same_timestamp": 0,
+  "negative_count": 697,
+  "observed_median_interval_seconds": 28800,
+  "positive_count": 3686,
+  "strictly_increasing": true,
+  "symbol": "ETHUSDT",
+  "warnings": [],
+  "zero_count": 0
+}

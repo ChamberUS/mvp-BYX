@@ -1,0 +1,42 @@
+[
+  {
+    "aggregation_config_hash": "27f3f458aa27e54f18d3f03eb4d1c04fe43ea637acf6ee4700a133348c2d760b",
+    "daily_candle_count": 729,
+    "daily_candle_hash": "ffe35a168c1d7daee538c48333b8a3498384bf39bc338746242466e633dd1617",
+    "daily_rows_hash": "18d69d968d058fa191196e29da1a1774ce794cbc667010fffa58b8cd35f65038",
+    "hourly_candle_count": 17519,
+    "market": "SPOT",
+    "period": "DEVELOPMENT",
+    "source_hourly_hash": "b300aa6553ebd545dd6147c677217075bbfce061e9bdf0ba8841d37032416964"
+  },
+  {
+    "aggregation_config_hash": "27f3f458aa27e54f18d3f03eb4d1c04fe43ea637acf6ee4700a133348c2d760b",
+    "daily_candle_count": 730,
+    "daily_candle_hash": "67ddee3b866d235ef634f0c19c5351232165e9ba21ba8ce45af21b25f50eb4f4",
+    "daily_rows_hash": "4cbae706922782237b0970d031fe3b688cd008d126a2c71f27ecc0933c608230",
+    "hourly_candle_count": 17520,
+    "market": "FUTURES",
+    "period": "DEVELOPMENT",
+    "source_hourly_hash": "08b78942aa063cc6e32ce43b6ba64e2b91ff0302ca6a2bc38d5786f56f10d899"
+  },
+  {
+    "aggregation_config_hash": "27f3f458aa27e54f18d3f03eb4d1c04fe43ea637acf6ee4700a133348c2d760b",
+    "daily_candle_count": 366,
+    "daily_candle_hash": "47a5b7cc14a0da7e650a2dc3537a27bf248d6de2adef9086947e84760c8f1125",
+    "daily_rows_hash": "14fe0df3d473eee4f0111c40cfc5b1f5afc18385a0159b96a3a9a83eaef2414b",
+    "hourly_candle_count": 8784,
+    "market": "SPOT",
+    "period": "VALIDATION",
+    "source_hourly_hash": "79c1a8dc887dfac7735cda05ef9a3939f40fcf21a98527c0fecb36e9a10eef84"
+  },
+  {
+    "aggregation_config_hash": "27f3f458aa27e54f18d3f03eb4d1c04fe43ea637acf6ee4700a133348c2d760b",
+    "daily_candle_count": 366,
+    "daily_candle_hash": "3437a9b9a3fa743b75ba7185b40055211041f55d7be720d7fc671d0243949b3d",
+    "daily_rows_hash": "44c382a034442ea0aea3a3e185564d054f8da7b5c0104395114026a8c3d63b2a",
+    "hourly_candle_count": 8784,
+    "market": "FUTURES",
+    "period": "VALIDATION",
+    "source_hourly_hash": "9a4bad23f572c45f56cf948dd2829eff96d9418e9376a45639f71d6e0fd15661"
+  }
+]

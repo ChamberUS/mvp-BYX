@@ -1,0 +1,88 @@
+[metadata]
+version = 1
+symbol = "ETHUSDT"
+interval = "1h"
+development_start = "2022-01-01T00:00:00Z"
+development_end = "2023-12-31T23:00:00Z"
+validation_start = "2024-01-01T00:00:00Z"
+validation_end = "2024-12-31T23:00:00Z"
+consumed_start = "2025-01-01T00:00:00Z"
+consumed_end = "2026-07-01T00:00:00Z"
+
+[hypotheses.original_baseline]
+variant_id = "ORIGINAL_BASELINE"
+analyzer = "ORIGINAL"
+trend_persistence_candles = 0
+pullback_min_candles = 0
+pullback_max_candles = 0
+minimum_pullback_depth_atr = "0"
+maximum_pullback_depth_atr = "0"
+maximum_entry_extension_atr = "0"
+time_exit_candles = 0
+regime_loss_exit = false
+complexity_rank = 0
+
+[hypotheses.pullback_base]
+variant_id = "PULLBACK_BASE"
+analyzer = "PULLBACK"
+trend_persistence_candles = 3
+pullback_min_candles = 1
+pullback_max_candles = 6
+minimum_pullback_depth_atr = "0.10"
+maximum_pullback_depth_atr = "1.0"
+maximum_entry_extension_atr = "1.0"
+time_exit_candles = 0
+regime_loss_exit = false
+complexity_rank = 1
+
+[hypotheses.pullback_persistence_6]
+variant_id = "PULLBACK_PERSISTENCE_6"
+analyzer = "PULLBACK"
+trend_persistence_candles = 6
+pullback_min_candles = 1
+pullback_max_candles = 6
+minimum_pullback_depth_atr = "0.10"
+maximum_pullback_depth_atr = "1.0"
+maximum_entry_extension_atr = "1.0"
+time_exit_candles = 0
+regime_loss_exit = false
+complexity_rank = 2
+
+[hypotheses.pullback_time_exit_24]
+variant_id = "PULLBACK_TIME_EXIT_24"
+analyzer = "PULLBACK"
+trend_persistence_candles = 3
+pullback_min_candles = 1
+pullback_max_candles = 6
+minimum_pullback_depth_atr = "0.10"
+maximum_pullback_depth_atr = "1.0"
+maximum_entry_extension_atr = "1.0"
+time_exit_candles = 24
+regime_loss_exit = false
+complexity_rank = 2
+
+[hypotheses.pullback_regime_loss_exit]
+variant_id = "PULLBACK_REGIME_LOSS_EXIT"
+analyzer = "PULLBACK"
+trend_persistence_candles = 3
+pullback_min_candles = 1
+pullback_max_candles = 6
+minimum_pullback_depth_atr = "0.10"
+maximum_pullback_depth_atr = "1.0"
+maximum_entry_extension_atr = "1.0"
+time_exit_candles = 0
+regime_loss_exit = true
+complexity_rank = 3
+
+[hypotheses.pullback_persistence_6_regime_loss_exit]
+variant_id = "PULLBACK_PERSISTENCE_6_REGIME_LOSS_EXIT"
+analyzer = "PULLBACK"
+trend_persistence_candles = 6
+pullback_min_candles = 1
+pullback_max_candles = 6
+minimum_pullback_depth_atr = "0.10"
+maximum_pullback_depth_atr = "1.0"
+maximum_entry_extension_atr = "1.0"
+time_exit_candles = 0
+regime_loss_exit = true
+complexity_rank = 4

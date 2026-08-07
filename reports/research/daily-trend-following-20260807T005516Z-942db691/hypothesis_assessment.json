@@ -1,0 +1,771 @@
+[
+  {
+    "candidate_frozen": false,
+    "classification": "INSUFFICIENT_SAMPLE",
+    "criteria": [
+      [
+        "operational_viability",
+        false
+      ],
+      [
+        "development_trades_at_least_8",
+        false
+      ],
+      [
+        "development_median_wf_non_negative",
+        true
+      ],
+      [
+        "development_positive_folds_at_least_50_percent",
+        true
+      ],
+      [
+        "selected_from_development_only",
+        false
+      ]
+    ],
+    "failures": [
+      "operational_viability",
+      "development_trades_at_least_8",
+      "selected_from_development_only"
+    ],
+    "market": "SPOT",
+    "mode": "LONG",
+    "production_enabled": false,
+    "profitability_claimed": false,
+    "selected_for_validation": false,
+    "variant_id": "TF_DONCHIAN_20_FIXED_RISK"
+  },
+  {
+    "candidate_frozen": false,
+    "classification": "INSUFFICIENT_SAMPLE",
+    "criteria": [
+      [
+        "operational_viability",
+        false
+      ],
+      [
+        "development_trades_at_least_8",
+        false
+      ],
+      [
+        "development_median_wf_non_negative",
+        true
+      ],
+      [
+        "development_positive_folds_at_least_50_percent",
+        true
+      ],
+      [
+        "selected_from_development_only",
+        false
+      ]
+    ],
+    "failures": [
+      "operational_viability",
+      "development_trades_at_least_8",
+      "selected_from_development_only"
+    ],
+    "market": "SPOT",
+    "mode": "LONG",
+    "production_enabled": false,
+    "profitability_claimed": false,
+    "selected_for_validation": false,
+    "variant_id": "TF_DONCHIAN_10_FIXED_RISK"
+  },
+  {
+    "candidate_frozen": false,
+    "classification": "INSUFFICIENT_SAMPLE",
+    "criteria": [
+      [
+        "operational_viability",
+        false
+      ],
+      [
+        "development_trades_at_least_8",
+        false
+      ],
+      [
+        "development_median_wf_non_negative",
+        true
+      ],
+      [
+        "development_positive_folds_at_least_50_percent",
+        true
+      ],
+      [
+        "selected_from_development_only",
+        false
+      ]
+    ],
+    "failures": [
+      "operational_viability",
+      "development_trades_at_least_8",
+      "selected_from_development_only"
+    ],
+    "market": "SPOT",
+    "mode": "LONG",
+    "production_enabled": false,
+    "profitability_claimed": false,
+    "selected_for_validation": false,
+    "variant_id": "TF_DONCHIAN_20_DEFENSIVE_RISK"
+  },
+  {
+    "candidate_frozen": false,
+    "classification": "INSUFFICIENT_SAMPLE",
+    "criteria": [
+      [
+        "operational_viability",
+        false
+      ],
+      [
+        "development_trades_at_least_8",
+        false
+      ],
+      [
+        "development_median_wf_non_negative",
+        true
+      ],
+      [
+        "development_positive_folds_at_least_50_percent",
+        true
+      ],
+      [
+        "selected_from_development_only",
+        false
+      ]
+    ],
+    "failures": [
+      "operational_viability",
+      "development_trades_at_least_8",
+      "selected_from_development_only"
+    ],
+    "market": "SPOT",
+    "mode": "LONG",
+    "production_enabled": false,
+    "profitability_claimed": false,
+    "selected_for_validation": false,
+    "variant_id": "TF_DONCHIAN_10_DEFENSIVE_RISK"
+  },
+  {
+    "candidate_frozen": false,
+    "classification": "INSUFFICIENT_SAMPLE",
+    "criteria": [
+      [
+        "operational_viability",
+        false
+      ],
+      [
+        "development_trades_at_least_8",
+        false
+      ],
+      [
+        "development_median_wf_non_negative",
+        true
+      ],
+      [
+        "development_positive_folds_at_least_50_percent",
+        true
+      ],
+      [
+        "selected_from_development_only",
+        false
+      ]
+    ],
+    "failures": [
+      "operational_viability",
+      "development_trades_at_least_8",
+      "selected_from_development_only"
+    ],
+    "market": "SPOT",
+    "mode": "LONG",
+    "production_enabled": false,
+    "profitability_claimed": false,
+    "selected_for_validation": false,
+    "variant_id": "TF_LONG_ONLY_DONCHIAN_20"
+  },
+  {
+    "candidate_frozen": false,
+    "classification": "NO_DEVELOPMENT_HYPOTHESIS",
+    "criteria": [],
+    "failures": [
+      "NO_DEVELOPMENT_HYPOTHESIS"
+    ],
+    "market": "SPOT",
+    "mode": "LONG",
+    "production_enabled": false,
+    "profitability_claimed": false,
+    "selected_for_validation": false,
+    "variant_id": null
+  },
+  {
+    "candidate_frozen": false,
+    "classification": "INSUFFICIENT_SAMPLE",
+    "criteria": [
+      [
+        "operational_viability",
+        false
+      ],
+      [
+        "development_trades_at_least_8",
+        false
+      ],
+      [
+        "development_median_wf_non_negative",
+        false
+      ],
+      [
+        "development_positive_folds_at_least_50_percent",
+        true
+      ],
+      [
+        "selected_from_development_only",
+        false
+      ]
+    ],
+    "failures": [
+      "operational_viability",
+      "development_trades_at_least_8",
+      "development_median_wf_non_negative",
+      "selected_from_development_only"
+    ],
+    "market": "FUTURES",
+    "mode": "LONG",
+    "production_enabled": false,
+    "profitability_claimed": false,
+    "selected_for_validation": false,
+    "variant_id": "TF_DONCHIAN_20_FIXED_RISK"
+  },
+  {
+    "candidate_frozen": false,
+    "classification": "INSUFFICIENT_SAMPLE",
+    "criteria": [
+      [
+        "operational_viability",
+        false
+      ],
+      [
+        "development_trades_at_least_8",
+        false
+      ],
+      [
+        "development_median_wf_non_negative",
+        false
+      ],
+      [
+        "development_positive_folds_at_least_50_percent",
+        true
+      ],
+      [
+        "selected_from_development_only",
+        false
+      ]
+    ],
+    "failures": [
+      "operational_viability",
+      "development_trades_at_least_8",
+      "development_median_wf_non_negative",
+      "selected_from_development_only"
+    ],
+    "market": "FUTURES",
+    "mode": "LONG",
+    "production_enabled": false,
+    "profitability_claimed": false,
+    "selected_for_validation": false,
+    "variant_id": "TF_DONCHIAN_10_FIXED_RISK"
+  },
+  {
+    "candidate_frozen": false,
+    "classification": "INSUFFICIENT_SAMPLE",
+    "criteria": [
+      [
+        "operational_viability",
+        false
+      ],
+      [
+        "development_trades_at_least_8",
+        false
+      ],
+      [
+        "development_median_wf_non_negative",
+        false
+      ],
+      [
+        "development_positive_folds_at_least_50_percent",
+        true
+      ],
+      [
+        "selected_from_development_only",
+        false
+      ]
+    ],
+    "failures": [
+      "operational_viability",
+      "development_trades_at_least_8",
+      "development_median_wf_non_negative",
+      "selected_from_development_only"
+    ],
+    "market": "FUTURES",
+    "mode": "LONG",
+    "production_enabled": false,
+    "profitability_claimed": false,
+    "selected_for_validation": false,
+    "variant_id": "TF_DONCHIAN_20_DEFENSIVE_RISK"
+  },
+  {
+    "candidate_frozen": false,
+    "classification": "INSUFFICIENT_SAMPLE",
+    "criteria": [
+      [
+        "operational_viability",
+        false
+      ],
+      [
+        "development_trades_at_least_8",
+        false
+      ],
+      [
+        "development_median_wf_non_negative",
+        false
+      ],
+      [
+        "development_positive_folds_at_least_50_percent",
+        true
+      ],
+      [
+        "selected_from_development_only",
+        false
+      ]
+    ],
+    "failures": [
+      "operational_viability",
+      "development_trades_at_least_8",
+      "development_median_wf_non_negative",
+      "selected_from_development_only"
+    ],
+    "market": "FUTURES",
+    "mode": "LONG",
+    "production_enabled": false,
+    "profitability_claimed": false,
+    "selected_for_validation": false,
+    "variant_id": "TF_DONCHIAN_10_DEFENSIVE_RISK"
+  },
+  {
+    "candidate_frozen": false,
+    "classification": "INSUFFICIENT_SAMPLE",
+    "criteria": [
+      [
+        "operational_viability",
+        false
+      ],
+      [
+        "development_trades_at_least_8",
+        false
+      ],
+      [
+        "development_median_wf_non_negative",
+        false
+      ],
+      [
+        "development_positive_folds_at_least_50_percent",
+        true
+      ],
+      [
+        "selected_from_development_only",
+        false
+      ]
+    ],
+    "failures": [
+      "operational_viability",
+      "development_trades_at_least_8",
+      "development_median_wf_non_negative",
+      "selected_from_development_only"
+    ],
+    "market": "FUTURES",
+    "mode": "LONG",
+    "production_enabled": false,
+    "profitability_claimed": false,
+    "selected_for_validation": false,
+    "variant_id": "TF_LONG_ONLY_DONCHIAN_20"
+  },
+  {
+    "candidate_frozen": false,
+    "classification": "NO_DEVELOPMENT_HYPOTHESIS",
+    "criteria": [],
+    "failures": [
+      "NO_DEVELOPMENT_HYPOTHESIS"
+    ],
+    "market": "FUTURES",
+    "mode": "LONG",
+    "production_enabled": false,
+    "profitability_claimed": false,
+    "selected_for_validation": false,
+    "variant_id": null
+  },
+  {
+    "candidate_frozen": false,
+    "classification": "INSUFFICIENT_SAMPLE",
+    "criteria": [
+      [
+        "operational_viability",
+        false
+      ],
+      [
+        "development_trades_at_least_8",
+        false
+      ],
+      [
+        "development_median_wf_non_negative",
+        true
+      ],
+      [
+        "development_positive_folds_at_least_50_percent",
+        false
+      ],
+      [
+        "selected_from_development_only",
+        false
+      ]
+    ],
+    "failures": [
+      "operational_viability",
+      "development_trades_at_least_8",
+      "development_positive_folds_at_least_50_percent",
+      "selected_from_development_only"
+    ],
+    "market": "FUTURES",
+    "mode": "SHORT",
+    "production_enabled": false,
+    "profitability_claimed": false,
+    "selected_for_validation": false,
+    "variant_id": "TF_DONCHIAN_20_FIXED_RISK"
+  },
+  {
+    "candidate_frozen": false,
+    "classification": "INSUFFICIENT_SAMPLE",
+    "criteria": [
+      [
+        "operational_viability",
+        false
+      ],
+      [
+        "development_trades_at_least_8",
+        false
+      ],
+      [
+        "development_median_wf_non_negative",
+        false
+      ],
+      [
+        "development_positive_folds_at_least_50_percent",
+        false
+      ],
+      [
+        "selected_from_development_only",
+        false
+      ]
+    ],
+    "failures": [
+      "operational_viability",
+      "development_trades_at_least_8",
+      "development_median_wf_non_negative",
+      "development_positive_folds_at_least_50_percent",
+      "selected_from_development_only"
+    ],
+    "market": "FUTURES",
+    "mode": "SHORT",
+    "production_enabled": false,
+    "profitability_claimed": false,
+    "selected_for_validation": false,
+    "variant_id": "TF_DONCHIAN_10_FIXED_RISK"
+  },
+  {
+    "candidate_frozen": false,
+    "classification": "INSUFFICIENT_SAMPLE",
+    "criteria": [
+      [
+        "operational_viability",
+        false
+      ],
+      [
+        "development_trades_at_least_8",
+        false
+      ],
+      [
+        "development_median_wf_non_negative",
+        true
+      ],
+      [
+        "development_positive_folds_at_least_50_percent",
+        false
+      ],
+      [
+        "selected_from_development_only",
+        false
+      ]
+    ],
+    "failures": [
+      "operational_viability",
+      "development_trades_at_least_8",
+      "development_positive_folds_at_least_50_percent",
+      "selected_from_development_only"
+    ],
+    "market": "FUTURES",
+    "mode": "SHORT",
+    "production_enabled": false,
+    "profitability_claimed": false,
+    "selected_for_validation": false,
+    "variant_id": "TF_DONCHIAN_20_DEFENSIVE_RISK"
+  },
+  {
+    "candidate_frozen": false,
+    "classification": "INSUFFICIENT_SAMPLE",
+    "criteria": [
+      [
+        "operational_viability",
+        false
+      ],
+      [
+        "development_trades_at_least_8",
+        false
+      ],
+      [
+        "development_median_wf_non_negative",
+        false
+      ],
+      [
+        "development_positive_folds_at_least_50_percent",
+        false
+      ],
+      [
+        "selected_from_development_only",
+        false
+      ]
+    ],
+    "failures": [
+      "operational_viability",
+      "development_trades_at_least_8",
+      "development_median_wf_non_negative",
+      "development_positive_folds_at_least_50_percent",
+      "selected_from_development_only"
+    ],
+    "market": "FUTURES",
+    "mode": "SHORT",
+    "production_enabled": false,
+    "profitability_claimed": false,
+    "selected_for_validation": false,
+    "variant_id": "TF_DONCHIAN_10_DEFENSIVE_RISK"
+  },
+  {
+    "candidate_frozen": false,
+    "classification": "INSUFFICIENT_SAMPLE",
+    "criteria": [
+      [
+        "operational_viability",
+        false
+      ],
+      [
+        "development_trades_at_least_8",
+        false
+      ],
+      [
+        "development_median_wf_non_negative",
+        true
+      ],
+      [
+        "development_positive_folds_at_least_50_percent",
+        false
+      ],
+      [
+        "selected_from_development_only",
+        false
+      ]
+    ],
+    "failures": [
+      "operational_viability",
+      "development_trades_at_least_8",
+      "development_positive_folds_at_least_50_percent",
+      "selected_from_development_only"
+    ],
+    "market": "FUTURES",
+    "mode": "SHORT",
+    "production_enabled": false,
+    "profitability_claimed": false,
+    "selected_for_validation": false,
+    "variant_id": "TF_SHORT_ONLY_DONCHIAN_20"
+  },
+  {
+    "candidate_frozen": false,
+    "classification": "NO_DEVELOPMENT_HYPOTHESIS",
+    "criteria": [],
+    "failures": [
+      "NO_DEVELOPMENT_HYPOTHESIS"
+    ],
+    "market": "FUTURES",
+    "mode": "SHORT",
+    "production_enabled": false,
+    "profitability_claimed": false,
+    "selected_for_validation": false,
+    "variant_id": null
+  },
+  {
+    "candidate_frozen": false,
+    "classification": "NOT_PROMISING",
+    "criteria": [
+      [
+        "operational_viability",
+        true
+      ],
+      [
+        "development_trades_at_least_8",
+        true
+      ],
+      [
+        "development_median_wf_non_negative",
+        false
+      ],
+      [
+        "development_positive_folds_at_least_50_percent",
+        false
+      ],
+      [
+        "selected_from_development_only",
+        false
+      ]
+    ],
+    "failures": [
+      "development_median_wf_non_negative",
+      "development_positive_folds_at_least_50_percent",
+      "selected_from_development_only"
+    ],
+    "market": "FUTURES",
+    "mode": "LONG_SHORT",
+    "production_enabled": false,
+    "profitability_claimed": false,
+    "selected_for_validation": false,
+    "variant_id": "TF_DONCHIAN_20_FIXED_RISK"
+  },
+  {
+    "candidate_frozen": false,
+    "classification": "NOT_PROMISING",
+    "criteria": [
+      [
+        "operational_viability",
+        true
+      ],
+      [
+        "development_trades_at_least_8",
+        true
+      ],
+      [
+        "development_median_wf_non_negative",
+        false
+      ],
+      [
+        "development_positive_folds_at_least_50_percent",
+        true
+      ],
+      [
+        "selected_from_development_only",
+        false
+      ]
+    ],
+    "failures": [
+      "development_median_wf_non_negative",
+      "selected_from_development_only"
+    ],
+    "market": "FUTURES",
+    "mode": "LONG_SHORT",
+    "production_enabled": false,
+    "profitability_claimed": false,
+    "selected_for_validation": false,
+    "variant_id": "TF_DONCHIAN_10_FIXED_RISK"
+  },
+  {
+    "candidate_frozen": false,
+    "classification": "NOT_PROMISING",
+    "criteria": [
+      [
+        "operational_viability",
+        true
+      ],
+      [
+        "development_trades_at_least_8",
+        true
+      ],
+      [
+        "development_median_wf_non_negative",
+        false
+      ],
+      [
+        "development_positive_folds_at_least_50_percent",
+        false
+      ],
+      [
+        "selected_from_development_only",
+        false
+      ]
+    ],
+    "failures": [
+      "development_median_wf_non_negative",
+      "development_positive_folds_at_least_50_percent",
+      "selected_from_development_only"
+    ],
+    "market": "FUTURES",
+    "mode": "LONG_SHORT",
+    "production_enabled": false,
+    "profitability_claimed": false,
+    "selected_for_validation": false,
+    "variant_id": "TF_DONCHIAN_20_DEFENSIVE_RISK"
+  },
+  {
+    "candidate_frozen": false,
+    "classification": "NOT_PROMISING",
+    "criteria": [
+      [
+        "operational_viability",
+        true
+      ],
+      [
+        "development_trades_at_least_8",
+        true
+      ],
+      [
+        "development_median_wf_non_negative",
+        false
+      ],
+      [
+        "development_positive_folds_at_least_50_percent",
+        true
+      ],
+      [
+        "selected_from_development_only",
+        false
+      ]
+    ],
+    "failures": [
+      "development_median_wf_non_negative",
+      "selected_from_development_only"
+    ],
+    "market": "FUTURES",
+    "mode": "LONG_SHORT",
+    "production_enabled": false,
+    "profitability_claimed": false,
+    "selected_for_validation": false,
+    "variant_id": "TF_DONCHIAN_10_DEFENSIVE_RISK"
+  },
+  {
+    "candidate_frozen": false,
+    "classification": "NO_DEVELOPMENT_HYPOTHESIS",
+    "criteria": [],
+    "failures": [
+      "NO_DEVELOPMENT_HYPOTHESIS"
+    ],
+    "market": "FUTURES",
+    "mode": "LONG_SHORT",
+    "production_enabled": false,
+    "profitability_claimed": false,
+    "selected_for_validation": false,
+    "variant_id": null
+  }
+]

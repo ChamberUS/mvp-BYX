@@ -1,0 +1,91 @@
+[metadata]
+version = 1
+symbol = "ETHUSDT"
+source_interval = "1h"
+strategy_interval = "1d"
+development_start = "2022-01-01T00:00:00Z"
+development_end = "2023-12-31T23:00:00Z"
+validation_start = "2024-01-01T00:00:00Z"
+validation_end = "2024-12-31T23:00:00Z"
+consumed_start = "2025-01-01T00:00:00Z"
+consumed_end = "2026-07-01T00:00:00Z"
+selection_metric = "median_walk_forward_net_return"
+leverage = "1"
+
+[hypotheses.tf_donchian_20_fixed_risk]
+variant_id = "TF_DONCHIAN_20_FIXED_RISK"
+sma_period_days = 200
+entry_period_days = 20
+exit_period_days = 20
+direction_scope = "MARKET_DEFAULT"
+risk_model = "FIXED"
+normal_risk_percent = "1.0"
+defensive_risk_percent = "0.5"
+defensive_activation_losses = 3
+defensive_recovery_rule = "EQUITY_RECOVERY_TARGET"
+complexity_rank = 1
+
+[hypotheses.tf_donchian_10_fixed_risk]
+variant_id = "TF_DONCHIAN_10_FIXED_RISK"
+sma_period_days = 200
+entry_period_days = 20
+exit_period_days = 10
+direction_scope = "MARKET_DEFAULT"
+risk_model = "FIXED"
+normal_risk_percent = "1.0"
+defensive_risk_percent = "0.5"
+defensive_activation_losses = 3
+defensive_recovery_rule = "EQUITY_RECOVERY_TARGET"
+complexity_rank = 1
+
+[hypotheses.tf_donchian_20_defensive_risk]
+variant_id = "TF_DONCHIAN_20_DEFENSIVE_RISK"
+sma_period_days = 200
+entry_period_days = 20
+exit_period_days = 20
+direction_scope = "MARKET_DEFAULT"
+risk_model = "DEFENSIVE"
+normal_risk_percent = "1.0"
+defensive_risk_percent = "0.5"
+defensive_activation_losses = 3
+defensive_recovery_rule = "EQUITY_RECOVERY_TARGET"
+complexity_rank = 2
+
+[hypotheses.tf_donchian_10_defensive_risk]
+variant_id = "TF_DONCHIAN_10_DEFENSIVE_RISK"
+sma_period_days = 200
+entry_period_days = 20
+exit_period_days = 10
+direction_scope = "MARKET_DEFAULT"
+risk_model = "DEFENSIVE"
+normal_risk_percent = "1.0"
+defensive_risk_percent = "0.5"
+defensive_activation_losses = 3
+defensive_recovery_rule = "EQUITY_RECOVERY_TARGET"
+complexity_rank = 2
+
+[hypotheses.tf_long_only_donchian_20]
+variant_id = "TF_LONG_ONLY_DONCHIAN_20"
+sma_period_days = 200
+entry_period_days = 20
+exit_period_days = 20
+direction_scope = "LONG_ONLY"
+risk_model = "FIXED"
+normal_risk_percent = "1.0"
+defensive_risk_percent = "0.5"
+defensive_activation_losses = 3
+defensive_recovery_rule = "EQUITY_RECOVERY_TARGET"
+complexity_rank = 1
+
+[hypotheses.tf_short_only_donchian_20]
+variant_id = "TF_SHORT_ONLY_DONCHIAN_20"
+sma_period_days = 200
+entry_period_days = 20
+exit_period_days = 20
+direction_scope = "SHORT_ONLY"
+risk_model = "FIXED"
+normal_risk_percent = "1.0"
+defensive_risk_percent = "0.5"
+defensive_activation_losses = 3
+defensive_recovery_rule = "EQUITY_RECOVERY_TARGET"
+complexity_rank = 1

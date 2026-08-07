@@ -1,0 +1,114 @@
+{
+  "candidate_declared": false,
+  "candidate_frozen": false,
+  "classifications": [
+    {
+      "candidate_declared": false,
+      "candidate_frozen": false,
+      "checks": {
+        "bootstrap_not_negative": true,
+        "boundary_stable": true,
+        "minimum_sample": true,
+        "multiple_positive_years": false,
+        "not_concentrated": false,
+        "pre_2025_support": false,
+        "repeated_regime_pattern": true,
+        "rolling_majority_positive": false
+      },
+      "classification": "NON_STATIONARY",
+      "configuration": "FUTURES_LONG_BASELINE_1X",
+      "production_approved": false,
+      "rationale": "2025 is positive without aggregate support in 2022-2024"
+    },
+    {
+      "candidate_declared": false,
+      "candidate_frozen": false,
+      "checks": {
+        "bootstrap_not_negative": true,
+        "boundary_stable": false,
+        "minimum_sample": true,
+        "multiple_positive_years": false,
+        "not_concentrated": false,
+        "pre_2025_support": false,
+        "repeated_regime_pattern": true,
+        "rolling_majority_positive": false
+      },
+      "classification": "NON_STATIONARY",
+      "configuration": "FUTURES_SHORT_MIRRORED_1X",
+      "production_approved": false,
+      "rationale": "2025 is positive without aggregate support in 2022-2024"
+    },
+    {
+      "candidate_declared": false,
+      "candidate_frozen": false,
+      "checks": {
+        "bootstrap_not_negative": true,
+        "boundary_stable": false,
+        "minimum_sample": true,
+        "multiple_positive_years": false,
+        "not_concentrated": false,
+        "pre_2025_support": false,
+        "repeated_regime_pattern": true,
+        "rolling_majority_positive": false
+      },
+      "classification": "NON_STATIONARY",
+      "configuration": "FUTURES_LONG_SHORT_BASELINE_1X",
+      "production_approved": false,
+      "rationale": "2025 is positive without aggregate support in 2022-2024"
+    },
+    {
+      "candidate_declared": false,
+      "candidate_frozen": false,
+      "checks": {
+        "bootstrap_not_negative": true,
+        "boundary_stable": false,
+        "minimum_sample": true,
+        "multiple_positive_years": false,
+        "not_concentrated": false,
+        "pre_2025_support": false,
+        "repeated_regime_pattern": true,
+        "rolling_majority_positive": false
+      },
+      "classification": "NON_STATIONARY",
+      "configuration": "FUTURES_LONG_SHORT_TIME_EXIT_12_1X",
+      "production_approved": false,
+      "rationale": "2025 is positive without aggregate support in 2022-2024"
+    },
+    {
+      "candidate_declared": false,
+      "candidate_frozen": false,
+      "checks": {
+        "bootstrap_not_negative": true,
+        "boundary_stable": false,
+        "minimum_sample": true,
+        "multiple_positive_years": false,
+        "not_concentrated": false,
+        "pre_2025_support": false,
+        "repeated_regime_pattern": true,
+        "rolling_majority_positive": false
+      },
+      "classification": "NON_STATIONARY",
+      "configuration": "FUTURES_LONG_SHORT_TIME_EXIT_24_1X",
+      "production_approved": false,
+      "rationale": "2025 is positive without aggregate support in 2022-2024"
+    },
+    {
+      "candidate_declared": false,
+      "candidate_frozen": false,
+      "checks": {
+        "bootstrap_not_negative": true,
+        "boundary_stable": false,
+        "minimum_sample": true,
+        "multiple_positive_years": false,
+        "not_concentrated": false,
+        "pre_2025_support": false,
+        "repeated_regime_pattern": true,
+        "rolling_majority_positive": false
+      },
+      "classification": "NON_STATIONARY",
+      "configuration": "FUTURES_LONG_SHORT_TARGET_R_2_5_1X",
+      "production_approved": false,
+      "rationale": "2025 is positive without aggregate support in 2022-2024"
+    }
+  ]
+}

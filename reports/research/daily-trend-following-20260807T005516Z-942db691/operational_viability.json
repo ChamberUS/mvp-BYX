@@ -1,0 +1,572 @@
+[
+  {
+    "criteria": [
+      [
+        "minimum_development_trades",
+        false
+      ],
+      [
+        "minimum_folds_with_trades_percent",
+        true
+      ],
+      [
+        "maximum_zero_trade_fold_percent",
+        true
+      ],
+      [
+        "maximum_exposure_percent",
+        true
+      ]
+    ],
+    "development_trade_count": 4,
+    "exposure_percent": "39.05660377358490566037735849",
+    "fold_count": 4,
+    "folds_with_trades": 4,
+    "folds_with_trades_percent": "100",
+    "market": "SPOT",
+    "mode": "LONG",
+    "status": "INSUFFICIENT_SAMPLE",
+    "variant_id": "TF_DONCHIAN_20_FIXED_RISK",
+    "zero_trade_fold_percent": "0"
+  },
+  {
+    "criteria": [
+      [
+        "minimum_development_trades",
+        false
+      ],
+      [
+        "minimum_folds_with_trades_percent",
+        true
+      ],
+      [
+        "maximum_zero_trade_fold_percent",
+        true
+      ],
+      [
+        "maximum_exposure_percent",
+        true
+      ]
+    ],
+    "development_trade_count": 5,
+    "exposure_percent": "27.54716981132075471698113208",
+    "fold_count": 4,
+    "folds_with_trades": 4,
+    "folds_with_trades_percent": "100",
+    "market": "SPOT",
+    "mode": "LONG",
+    "status": "INSUFFICIENT_SAMPLE",
+    "variant_id": "TF_DONCHIAN_10_FIXED_RISK",
+    "zero_trade_fold_percent": "0"
+  },
+  {
+    "criteria": [
+      [
+        "minimum_development_trades",
+        false
+      ],
+      [
+        "minimum_folds_with_trades_percent",
+        true
+      ],
+      [
+        "maximum_zero_trade_fold_percent",
+        true
+      ],
+      [
+        "maximum_exposure_percent",
+        true
+      ]
+    ],
+    "development_trade_count": 4,
+    "exposure_percent": "39.05660377358490566037735849",
+    "fold_count": 4,
+    "folds_with_trades": 4,
+    "folds_with_trades_percent": "100",
+    "market": "SPOT",
+    "mode": "LONG",
+    "status": "INSUFFICIENT_SAMPLE",
+    "variant_id": "TF_DONCHIAN_20_DEFENSIVE_RISK",
+    "zero_trade_fold_percent": "0"
+  },
+  {
+    "criteria": [
+      [
+        "minimum_development_trades",
+        false
+      ],
+      [
+        "minimum_folds_with_trades_percent",
+        true
+      ],
+      [
+        "maximum_zero_trade_fold_percent",
+        true
+      ],
+      [
+        "maximum_exposure_percent",
+        true
+      ]
+    ],
+    "development_trade_count": 5,
+    "exposure_percent": "27.54716981132075471698113208",
+    "fold_count": 4,
+    "folds_with_trades": 4,
+    "folds_with_trades_percent": "100",
+    "market": "SPOT",
+    "mode": "LONG",
+    "status": "INSUFFICIENT_SAMPLE",
+    "variant_id": "TF_DONCHIAN_10_DEFENSIVE_RISK",
+    "zero_trade_fold_percent": "0"
+  },
+  {
+    "criteria": [
+      [
+        "minimum_development_trades",
+        false
+      ],
+      [
+        "minimum_folds_with_trades_percent",
+        true
+      ],
+      [
+        "maximum_zero_trade_fold_percent",
+        true
+      ],
+      [
+        "maximum_exposure_percent",
+        true
+      ]
+    ],
+    "development_trade_count": 4,
+    "exposure_percent": "39.05660377358490566037735849",
+    "fold_count": 4,
+    "folds_with_trades": 4,
+    "folds_with_trades_percent": "100",
+    "market": "SPOT",
+    "mode": "LONG",
+    "status": "INSUFFICIENT_SAMPLE",
+    "variant_id": "TF_LONG_ONLY_DONCHIAN_20",
+    "zero_trade_fold_percent": "0"
+  },
+  {
+    "criteria": [
+      [
+        "minimum_development_trades",
+        false
+      ],
+      [
+        "minimum_folds_with_trades_percent",
+        true
+      ],
+      [
+        "maximum_zero_trade_fold_percent",
+        true
+      ],
+      [
+        "maximum_exposure_percent",
+        true
+      ]
+    ],
+    "development_trade_count": 4,
+    "exposure_percent": "38.60640301318267419962335217",
+    "fold_count": 4,
+    "folds_with_trades": 4,
+    "folds_with_trades_percent": "100",
+    "market": "FUTURES",
+    "mode": "LONG",
+    "status": "INSUFFICIENT_SAMPLE",
+    "variant_id": "TF_DONCHIAN_20_FIXED_RISK",
+    "zero_trade_fold_percent": "0"
+  },
+  {
+    "criteria": [
+      [
+        "minimum_development_trades",
+        false
+      ],
+      [
+        "minimum_folds_with_trades_percent",
+        true
+      ],
+      [
+        "maximum_zero_trade_fold_percent",
+        true
+      ],
+      [
+        "maximum_exposure_percent",
+        true
+      ]
+    ],
+    "development_trade_count": 5,
+    "exposure_percent": "31.63841807909604519774011299",
+    "fold_count": 4,
+    "folds_with_trades": 4,
+    "folds_with_trades_percent": "100",
+    "market": "FUTURES",
+    "mode": "LONG",
+    "status": "INSUFFICIENT_SAMPLE",
+    "variant_id": "TF_DONCHIAN_10_FIXED_RISK",
+    "zero_trade_fold_percent": "0"
+  },
+  {
+    "criteria": [
+      [
+        "minimum_development_trades",
+        false
+      ],
+      [
+        "minimum_folds_with_trades_percent",
+        true
+      ],
+      [
+        "maximum_zero_trade_fold_percent",
+        true
+      ],
+      [
+        "maximum_exposure_percent",
+        true
+      ]
+    ],
+    "development_trade_count": 4,
+    "exposure_percent": "38.60640301318267419962335217",
+    "fold_count": 4,
+    "folds_with_trades": 4,
+    "folds_with_trades_percent": "100",
+    "market": "FUTURES",
+    "mode": "LONG",
+    "status": "INSUFFICIENT_SAMPLE",
+    "variant_id": "TF_DONCHIAN_20_DEFENSIVE_RISK",
+    "zero_trade_fold_percent": "0"
+  },
+  {
+    "criteria": [
+      [
+        "minimum_development_trades",
+        false
+      ],
+      [
+        "minimum_folds_with_trades_percent",
+        true
+      ],
+      [
+        "maximum_zero_trade_fold_percent",
+        true
+      ],
+      [
+        "maximum_exposure_percent",
+        true
+      ]
+    ],
+    "development_trade_count": 5,
+    "exposure_percent": "31.63841807909604519774011299",
+    "fold_count": 4,
+    "folds_with_trades": 4,
+    "folds_with_trades_percent": "100",
+    "market": "FUTURES",
+    "mode": "LONG",
+    "status": "INSUFFICIENT_SAMPLE",
+    "variant_id": "TF_DONCHIAN_10_DEFENSIVE_RISK",
+    "zero_trade_fold_percent": "0"
+  },
+  {
+    "criteria": [
+      [
+        "minimum_development_trades",
+        false
+      ],
+      [
+        "minimum_folds_with_trades_percent",
+        true
+      ],
+      [
+        "maximum_zero_trade_fold_percent",
+        true
+      ],
+      [
+        "maximum_exposure_percent",
+        true
+      ]
+    ],
+    "development_trade_count": 4,
+    "exposure_percent": "38.60640301318267419962335217",
+    "fold_count": 4,
+    "folds_with_trades": 4,
+    "folds_with_trades_percent": "100",
+    "market": "FUTURES",
+    "mode": "LONG",
+    "status": "INSUFFICIENT_SAMPLE",
+    "variant_id": "TF_LONG_ONLY_DONCHIAN_20",
+    "zero_trade_fold_percent": "0"
+  },
+  {
+    "criteria": [
+      [
+        "minimum_development_trades",
+        false
+      ],
+      [
+        "minimum_folds_with_trades_percent",
+        true
+      ],
+      [
+        "maximum_zero_trade_fold_percent",
+        true
+      ],
+      [
+        "maximum_exposure_percent",
+        true
+      ]
+    ],
+    "development_trade_count": 5,
+    "exposure_percent": "26.74199623352165725047080979",
+    "fold_count": 4,
+    "folds_with_trades": 2,
+    "folds_with_trades_percent": "50.0",
+    "market": "FUTURES",
+    "mode": "SHORT",
+    "status": "INSUFFICIENT_SAMPLE",
+    "variant_id": "TF_DONCHIAN_20_FIXED_RISK",
+    "zero_trade_fold_percent": "50.0"
+  },
+  {
+    "criteria": [
+      [
+        "minimum_development_trades",
+        false
+      ],
+      [
+        "minimum_folds_with_trades_percent",
+        true
+      ],
+      [
+        "maximum_zero_trade_fold_percent",
+        true
+      ],
+      [
+        "maximum_exposure_percent",
+        true
+      ]
+    ],
+    "development_trade_count": 6,
+    "exposure_percent": "21.09227871939736346516007533",
+    "fold_count": 4,
+    "folds_with_trades": 2,
+    "folds_with_trades_percent": "50.0",
+    "market": "FUTURES",
+    "mode": "SHORT",
+    "status": "INSUFFICIENT_SAMPLE",
+    "variant_id": "TF_DONCHIAN_10_FIXED_RISK",
+    "zero_trade_fold_percent": "50.0"
+  },
+  {
+    "criteria": [
+      [
+        "minimum_development_trades",
+        false
+      ],
+      [
+        "minimum_folds_with_trades_percent",
+        true
+      ],
+      [
+        "maximum_zero_trade_fold_percent",
+        true
+      ],
+      [
+        "maximum_exposure_percent",
+        true
+      ]
+    ],
+    "development_trade_count": 5,
+    "exposure_percent": "26.74199623352165725047080979",
+    "fold_count": 4,
+    "folds_with_trades": 2,
+    "folds_with_trades_percent": "50.0",
+    "market": "FUTURES",
+    "mode": "SHORT",
+    "status": "INSUFFICIENT_SAMPLE",
+    "variant_id": "TF_DONCHIAN_20_DEFENSIVE_RISK",
+    "zero_trade_fold_percent": "50.0"
+  },
+  {
+    "criteria": [
+      [
+        "minimum_development_trades",
+        false
+      ],
+      [
+        "minimum_folds_with_trades_percent",
+        true
+      ],
+      [
+        "maximum_zero_trade_fold_percent",
+        true
+      ],
+      [
+        "maximum_exposure_percent",
+        true
+      ]
+    ],
+    "development_trade_count": 6,
+    "exposure_percent": "21.09227871939736346516007533",
+    "fold_count": 4,
+    "folds_with_trades": 2,
+    "folds_with_trades_percent": "50.0",
+    "market": "FUTURES",
+    "mode": "SHORT",
+    "status": "INSUFFICIENT_SAMPLE",
+    "variant_id": "TF_DONCHIAN_10_DEFENSIVE_RISK",
+    "zero_trade_fold_percent": "50.0"
+  },
+  {
+    "criteria": [
+      [
+        "minimum_development_trades",
+        false
+      ],
+      [
+        "minimum_folds_with_trades_percent",
+        true
+      ],
+      [
+        "maximum_zero_trade_fold_percent",
+        true
+      ],
+      [
+        "maximum_exposure_percent",
+        true
+      ]
+    ],
+    "development_trade_count": 5,
+    "exposure_percent": "26.74199623352165725047080979",
+    "fold_count": 4,
+    "folds_with_trades": 2,
+    "folds_with_trades_percent": "50.0",
+    "market": "FUTURES",
+    "mode": "SHORT",
+    "status": "INSUFFICIENT_SAMPLE",
+    "variant_id": "TF_SHORT_ONLY_DONCHIAN_20",
+    "zero_trade_fold_percent": "50.0"
+  },
+  {
+    "criteria": [
+      [
+        "minimum_development_trades",
+        true
+      ],
+      [
+        "minimum_folds_with_trades_percent",
+        true
+      ],
+      [
+        "maximum_zero_trade_fold_percent",
+        true
+      ],
+      [
+        "maximum_exposure_percent",
+        true
+      ]
+    ],
+    "development_trade_count": 9,
+    "exposure_percent": "60.64030131826741996233521657",
+    "fold_count": 4,
+    "folds_with_trades": 4,
+    "folds_with_trades_percent": "100",
+    "market": "FUTURES",
+    "mode": "LONG_SHORT",
+    "status": "OPERATIONALLY_VIABLE",
+    "variant_id": "TF_DONCHIAN_20_FIXED_RISK",
+    "zero_trade_fold_percent": "0"
+  },
+  {
+    "criteria": [
+      [
+        "minimum_development_trades",
+        true
+      ],
+      [
+        "minimum_folds_with_trades_percent",
+        true
+      ],
+      [
+        "maximum_zero_trade_fold_percent",
+        true
+      ],
+      [
+        "maximum_exposure_percent",
+        true
+      ]
+    ],
+    "development_trade_count": 10,
+    "exposure_percent": "50.47080979284369114877589454",
+    "fold_count": 4,
+    "folds_with_trades": 4,
+    "folds_with_trades_percent": "100",
+    "market": "FUTURES",
+    "mode": "LONG_SHORT",
+    "status": "OPERATIONALLY_VIABLE",
+    "variant_id": "TF_DONCHIAN_10_FIXED_RISK",
+    "zero_trade_fold_percent": "0"
+  },
+  {
+    "criteria": [
+      [
+        "minimum_development_trades",
+        true
+      ],
+      [
+        "minimum_folds_with_trades_percent",
+        true
+      ],
+      [
+        "maximum_zero_trade_fold_percent",
+        true
+      ],
+      [
+        "maximum_exposure_percent",
+        true
+      ]
+    ],
+    "development_trade_count": 9,
+    "exposure_percent": "60.64030131826741996233521657",
+    "fold_count": 4,
+    "folds_with_trades": 4,
+    "folds_with_trades_percent": "100",
+    "market": "FUTURES",
+    "mode": "LONG_SHORT",
+    "status": "OPERATIONALLY_VIABLE",
+    "variant_id": "TF_DONCHIAN_20_DEFENSIVE_RISK",
+    "zero_trade_fold_percent": "0"
+  },
+  {
+    "criteria": [
+      [
+        "minimum_development_trades",
+        true
+      ],
+      [
+        "minimum_folds_with_trades_percent",
+        true
+      ],
+      [
+        "maximum_zero_trade_fold_percent",
+        true
+      ],
+      [
+        "maximum_exposure_percent",
+        true
+      ]
+    ],
+    "development_trade_count": 10,
+    "exposure_percent": "50.47080979284369114877589454",
+    "fold_count": 4,
+    "folds_with_trades": 4,
+    "folds_with_trades_percent": "100",
+    "market": "FUTURES",
+    "mode": "LONG_SHORT",
+    "status": "OPERATIONALLY_VIABLE",
+    "variant_id": "TF_DONCHIAN_10_DEFENSIVE_RISK",
+    "zero_trade_fold_percent": "0"
+  }
+]

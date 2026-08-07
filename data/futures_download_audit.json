@@ -1,0 +1,81 @@
+{
+  "api_key_used": false,
+  "authenticated": false,
+  "downloads": {
+    "download-funding": {
+      "authenticated": false,
+      "endpoint": "GET /fapi/v1/fundingRate",
+      "interval": null,
+      "orders_sent": false,
+      "requested_end": "2025-12-31T23:00:00+00:00",
+      "requested_start": "2022-01-01T00:00:00+00:00",
+      "stats": {
+        "content_hash": "b8936cf7f526e0b2766f04998dc3a282e6a5e421509fe954d1b26b3262570da8",
+        "duplicate_count": 0,
+        "duration_seconds": "1.5696765419997973",
+        "first_timestamp": "2022-01-01T00:00:00.006000+00:00",
+        "ignored": 0,
+        "last_timestamp": "2025-12-31T16:00:00.001000+00:00",
+        "pages": 5,
+        "persisted": 4383,
+        "range_semantics": "start_and_end_inclusive",
+        "received": 4383,
+        "requests": 5,
+        "retries": 0,
+        "warnings": []
+      },
+      "symbol": "ETHUSDT"
+    },
+    "download-klines": {
+      "authenticated": false,
+      "endpoint": "GET /fapi/v1/klines",
+      "interval": "1h",
+      "orders_sent": false,
+      "requested_end": "2025-12-31T23:00:00+00:00",
+      "requested_start": "2022-01-01T00:00:00+00:00",
+      "stats": {
+        "content_hash": "fe2e3e11d5fd62da0d96ea48d1985b379b2bd8ed427af58212b4e49ec404c38f",
+        "duplicate_count": 0,
+        "duration_seconds": "10.746920995996334",
+        "first_timestamp": "2022-01-01T00:00:00+00:00",
+        "ignored": 0,
+        "last_timestamp": "2025-12-31T23:00:00+00:00",
+        "pages": 24,
+        "persisted": 35064,
+        "range_semantics": "start_and_end_inclusive",
+        "received": 35064,
+        "requests": 24,
+        "retries": 0,
+        "warnings": []
+      },
+      "symbol": "ETHUSDT"
+    },
+    "download-mark-price": {
+      "authenticated": false,
+      "endpoint": "GET /fapi/v1/markPriceKlines",
+      "interval": "1h",
+      "orders_sent": false,
+      "requested_end": "2025-12-31T23:00:00+00:00",
+      "requested_start": "2022-01-01T00:00:00+00:00",
+      "stats": {
+        "content_hash": "959fab5e1d4f88c01291f889c92d5b6f6cad678cb28b859703c1990108572f31",
+        "duplicate_count": 0,
+        "duration_seconds": "9.138040978999925",
+        "first_timestamp": "2022-01-01T00:00:00+00:00",
+        "ignored": 0,
+        "last_timestamp": "2025-12-31T23:00:00+00:00",
+        "pages": 24,
+        "persisted": 35064,
+        "range_semantics": "start_and_end_inclusive",
+        "received": 35064,
+        "requests": 24,
+        "retries": 0,
+        "warnings": []
+      },
+      "symbol": "ETHUSDT"
+    }
+  },
+  "orders_sent": false,
+  "source": "BINANCE_USD_M_PUBLIC",
+  "updated_at": "2026-07-30T20:30:50.533042+00:00"
+}

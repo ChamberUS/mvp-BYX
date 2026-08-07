@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from decimal import Decimal
+from typing import overload
 
 from adaptive_trader.domain.market import PositionSide
 from adaptive_trader.futures.accounting import (
@@ -15,6 +17,7 @@ from adaptive_trader.futures.accounting import (
     position_notional,
     unrealized_pnl,
 )
+from adaptive_trader.futures.integrity import align_mark_prices
 from adaptive_trader.futures.models import (
     FundingMissingPolicy,
     FundingRate,
@@ -71,6 +74,39 @@ class _PendingSignal:
     signal: FuturesSignal
 
 
+class _CandlePrefix(Sequence[FuturesCandle]):
+    def __init__(
+        self,
+        candles: tuple[FuturesCandle, ...],
+        length: int,
+    ) -> None:
+        self._candles = candles
+        self._length = length
+
+    def __len__(self) -> int:
+        return self._length
+
+    @overload
+    def __getitem__(self, index: int) -> FuturesCandle: ...
+
+    @overload
+    def __getitem__(self, index: slice) -> tuple[FuturesCandle, ...]: ...
+
+    def __getitem__(
+        self,
+        index: int | slice,
+    ) -> FuturesCandle | tuple[FuturesCandle, ...]:
+        if isinstance(index, slice):
+            return tuple(
+                self._candles[position]
+                for position in range(*index.indices(self._length))
+            )
+        normalized = index + self._length if index < 0 else index
+        if normalized < 0 or normalized >= self._length:
+            raise IndexError("Futures candle prefix index out of range")
+        return self._candles[normalized]
+
+
 class FuturesBacktestEngine:
     def __init__(
         self,
@@ -78,10 +114,12 @@ class FuturesBacktestEngine:
         *,
         analyzer: FuturesMarketAnalyzer | None = None,
         risk_manager: FuturesRiskManager | None = None,
+        strategy_version: str = "deterministic-futures-1",
     ) -> None:
         self._config = config
         self._analyzer = analyzer or DeterministicFuturesAnalyzer()
         self._risk = risk_manager or FuturesRiskManager()
+        self._strategy_version = strategy_version
 
     def run(
         self,
@@ -90,7 +128,12 @@ class FuturesBacktestEngine:
         funding_rates: tuple[FundingRate, ...],
     ) -> FuturesBacktestResult:
         self._validate_inputs(candles, mark_prices, funding_rates)
-        marks = {item.open_time: item for item in mark_prices}
+        source_marks = {item.open_time: item for item in mark_prices}
+        marks = {
+            item.candle_open_time: source_marks[item.mark_open_time]
+            for item in align_mark_prices(candles, mark_prices)
+            if item.mark_open_time is not None
+        }
         state = _State(
             wallet=self._config.initial_balance,
             day_start_equity=self._config.initial_balance,
@@ -116,14 +159,35 @@ class FuturesBacktestEngine:
             self._roll_day(state, candle.open_time.date())
             if state.candles_since_liquidation is not None:
                 state.candles_since_liquidation += 1
-            if pending is not None and pending.execute_index == absolute_index:
-                self._execute_pending(state, pending.signal, candle, mark, bool(funding_rates))
-                pending = None
             funding_index = self._apply_funding(
                 state,
                 funding_rates,
                 funding_index,
                 candle.open_time,
+                candle.open_time,
+                mark,
+            )
+            pending_exit: _PendingSignal | None = None
+            if pending is not None and pending.execute_index == absolute_index:
+                if pending.signal.direction in {
+                    FuturesSignalDirection.EXIT_LONG,
+                    FuturesSignalDirection.EXIT_SHORT,
+                }:
+                    pending_exit = pending
+                else:
+                    self._execute_pending(
+                        state,
+                        pending.signal,
+                        candle,
+                        mark,
+                        bool(funding_rates),
+                    )
+                pending = None
+            funding_index = self._apply_funding(
+                state,
+                funding_rates,
+                funding_index,
+                candle.open_time + timedelta(microseconds=1),
                 candle.close_time,
                 mark,
             )
@@ -144,7 +208,8 @@ class FuturesBacktestEngine:
                         ambiguous=ambiguous,
                     )
                 elif (
-                    self._config.time_exit_candles is not None
+                    pending_exit is None
+                    and self._config.time_exit_candles is not None
                     and state.position.holding_candles >= self._config.time_exit_candles
                 ):
                     self._close_position(
@@ -153,9 +218,17 @@ class FuturesBacktestEngine:
                         candle.close_time,
                         FuturesExitReason.TIME_EXIT,
                     )
+            if pending_exit is not None:
+                self._execute_pending(
+                    state,
+                    pending_exit.signal,
+                    candle,
+                    mark,
+                    bool(funding_rates),
+                )
             self._record_curves(state, mark.close)
             signal = self._analyzer.analyze(
-                candles[: absolute_index + 1],
+                _CandlePrefix(candles, absolute_index + 1),
                 self._config,
                 state.position.side if state.position is not None else None,
             )
@@ -168,6 +241,7 @@ class FuturesBacktestEngine:
                     risk_reason_code=None,
                     position_side=state.position.side if state.position is not None else None,
                     mark_price=mark.close,
+                    regime=signal.regime,
                 )
             )
             if signal.direction is not FuturesSignalDirection.HOLD:
@@ -186,7 +260,7 @@ class FuturesBacktestEngine:
         metrics = self._metrics(state, len(evaluated))
         return FuturesBacktestResult(
             report_version="futures-1",
-            strategy_version="deterministic-futures-1",
+            strategy_version=self._strategy_version,
             market_type=self._config.market_type,
             contract_type=self._config.contract_type,
             trading_mode=self._config.trading_mode,
@@ -232,10 +306,14 @@ class FuturesBacktestEngine:
         if any(not item.is_closed for item in candles):
             raise ValueError("futures backtest requires closed candles")
         if self._config.price_source is not FuturesPriceSource.SPOT_PROXY_FOR_TESTS_ONLY:
-            mark_times = {item.open_time for item in marks}
-            missing = [item.open_time for item in candles if item.open_time not in mark_times]
+            alignment = align_mark_prices(candles, marks)
+            missing = tuple(item for item in alignment if item.mark_open_time is None)
             if missing:
-                raise ValueError(f"MARK_PRICE_MISSING at {missing[0].isoformat()}")
+                raise ValueError(
+                    f"MARK_PRICE_MISSING at {missing[0].candle_open_time.isoformat()}"
+                )
+            if any(item.future_match for item in alignment):
+                raise ValueError("MARK_PRICE_FUTURE_ALIGNMENT")
         if self._config.funding_enabled and not funding:
             if self._config.funding_missing_policy is FundingMissingPolicy.FAIL:
                 raise ValueError("FUNDING_DATA_MISSING")
@@ -280,11 +358,16 @@ class FuturesBacktestEngine:
                 else PositionSide.SHORT
             )
             if state.position is not None and state.position.side is expected:
+                reason = (
+                    FuturesExitReason.REGIME_LOSS_EXIT
+                    if signal.reason_code == "REGIME_LOSS_EXIT"
+                    else FuturesExitReason.MANUAL_SIMULATED_EXIT
+                )
                 self._close_position(
                     state,
                     candle.open,
                     candle.open_time,
-                    FuturesExitReason.MANUAL_SIMULATED_EXIT,
+                    reason,
                 )
             return
         provisional_side = (
@@ -332,6 +415,7 @@ class FuturesBacktestEngine:
                 risk_reason_code=decision.reason_code,
                 position_side=state.position.side if state.position else None,
                 mark_price=mark.open,
+                regime=signal.regime,
             )
         )
         if decision.intent is not None:
@@ -407,7 +491,7 @@ class FuturesBacktestEngine:
                 and state.position is not None
                 and event.funding_time >= state.position.opened_at
             ):
-                event_mark = event.mark_price or mark.close
+                event_mark = event.mark_price or mark.open
                 cash_flow = funding_cash_flow(
                     state.position.side,
                     position_notional(event_mark, state.position.quantity),
@@ -480,6 +564,7 @@ class FuturesBacktestEngine:
             exit_price,
             position.quantity,
         )
+        wallet_before_exit = state.wallet
         state.wallet += gross - exit_fee - liquidation_fee
         if state.wallet < 0:
             state.wallet = Decimal("0")
@@ -512,6 +597,11 @@ class FuturesBacktestEngine:
                 exit_reason=reason,
                 holding_candles=position.holding_candles,
                 intrabar_ambiguous=ambiguous,
+                liquidation_price=position.liquidation_price,
+                mark_at_exit=position.mark_price,
+                maintenance_margin_at_exit=position.maintenance_margin,
+                wallet_before_exit=wallet_before_exit,
+                wallet_after_exit=state.wallet,
             )
         )
         if reason is FuturesExitReason.LIQUIDATION:

@@ -1,0 +1,93 @@
+{
+  "api_key_used": false,
+  "authenticated_api_used": false,
+  "automatic_download": false,
+  "automatic_selection": false,
+  "bootstrap": {
+    "candles_reordered": false,
+    "iterations": 2000,
+    "maximum_iterations": 10000,
+    "seed": 42,
+    "strategy_input": false
+  },
+  "candidate_frozen": false,
+  "completed_at": "2026-07-30T22:25:42.547542+00:00",
+  "configurations": [
+    "FUTURES_LONG_BASELINE_1X",
+    "FUTURES_SHORT_MIRRORED_1X",
+    "FUTURES_LONG_SHORT_BASELINE_1X",
+    "FUTURES_LONG_SHORT_TIME_EXIT_12_1X",
+    "FUTURES_LONG_SHORT_TIME_EXIT_24_1X",
+    "FUTURES_LONG_SHORT_TARGET_R_2_5_1X"
+  ],
+  "consumed_2026_downloaded": false,
+  "consumed_2026_loaded": false,
+  "consumed_2026_used": false,
+  "cost_scenarios": [
+    "LOW_COST",
+    "BASE_COST",
+    "HIGH_COST",
+    "STRESS_COST"
+  ],
+  "counts": {
+    "candles": 35064,
+    "funding_events": 4383,
+    "mark_prices": 35064
+  },
+  "dataset_hash": "b4c9674c45ef10c96b68a72d84790aedfe6b93f638f23c63d4612ec61b6c570a",
+  "duration_seconds": "1003.5736273090006",
+  "end": "2025-12-31T23:00:00+00:00",
+  "experiment_id": "futures-temporal-robustness-20260730T220858Z-b4c9674c",
+  "experiment_version": "FUTURES_TEMPORAL_ROBUSTNESS_V1",
+  "external_orders_sent": false,
+  "git_commit": "a889362effe0745ac06ce42ae82cadf16a91bdee",
+  "git_dirty": true,
+  "hashes": {
+    "combined_dataset_hash": "b4c9674c45ef10c96b68a72d84790aedfe6b93f638f23c63d4612ec61b6c570a",
+    "funding_hash": "b8936cf7f526e0b2766f04998dc3a282e6a5e421509fe954d1b26b3262570da8",
+    "futures_candle_hash": "fe2e3e11d5fd62da0d96ea48d1985b379b2bd8ed427af58212b4e49ec404c38f",
+    "mark_price_hash": "959fab5e1d4f88c01291f889c92d5b6f6cad678cb28b859703c1990108572f31"
+  },
+  "interval": "1h",
+  "leverage": "1",
+  "leverages_executed": [
+    "1"
+  ],
+  "metric_attribution": {
+    "context_point_in_time": true,
+    "trade_period": "EXIT_TIME",
+    "warmup_in_metrics": false
+  },
+  "network_used": false,
+  "paper_trading_enabled": false,
+  "readiness": "READY",
+  "reproducibility_hash": "caeab720584a6ccbb0e86b34abe955e43c00f17c582c71044a0cfd3917d5a2eb",
+  "research_only": true,
+  "schema_version": 4,
+  "source": "BINANCE_USD_M_PUBLIC_SQLITE_LOCAL_ONLY",
+  "start": "2022-01-01T00:00:00+00:00",
+  "started_at": "2026-07-30T22:08:58.962128+00:00",
+  "strategy_parameters_changed": false,
+  "symbol": "ETHUSDT",
+  "volatility_quantiles": {
+    "boundaries": [
+      "0.006135945449003795848772188040",
+      "0.008620151727536302739728671074",
+      "0.01183843298016330961836973954"
+    ],
+    "includes_2025": false,
+    "source_end": "2024-12-31T23:00:00+00:00",
+    "source_start": "2022-01-01T00:00:00+00:00"
+  },
+  "warnings": [
+    "BOUNDARY_SENSITIVE",
+    "SINGLE_YEAR_DEPENDENCE",
+    "STRESS_COLLAPSE",
+    "LOW_COST_ONLY_EDGE",
+    "COST_DOMINATED_PERIOD",
+    "RESULT_DEPENDS_ON_FEW_TRADES",
+    "POST_EVENT_DIAGNOSTICS_ONLY",
+    "NO_CAUSAL_INTERPRETATION",
+    "NO_CANDIDATE_FREEZE"
+  ]
+}

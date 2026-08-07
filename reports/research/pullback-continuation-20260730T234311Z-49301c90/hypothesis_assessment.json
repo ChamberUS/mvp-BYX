@@ -1,0 +1,122 @@
+{
+  "assessments": [
+    {
+      "classification": "NO_DEVELOPMENT_HYPOTHESIS",
+      "criteria": [],
+      "failures": [
+        "development_selection_threshold"
+      ],
+      "market": "SPOT",
+      "mode": "LONG",
+      "rationale": "No pullback hypothesis qualified in development; validation ran the original baseline only.",
+      "variant_id": null
+    },
+    {
+      "classification": "NO_DEVELOPMENT_HYPOTHESIS",
+      "criteria": [],
+      "failures": [
+        "development_selection_threshold"
+      ],
+      "market": "FUTURES",
+      "mode": "LONG",
+      "rationale": "No pullback hypothesis qualified in development; validation ran the original baseline only.",
+      "variant_id": null
+    },
+    {
+      "classification": "NO_DEVELOPMENT_HYPOTHESIS",
+      "criteria": [],
+      "failures": [
+        "development_selection_threshold"
+      ],
+      "market": "FUTURES",
+      "mode": "SHORT",
+      "rationale": "No pullback hypothesis qualified in development; validation ran the original baseline only.",
+      "variant_id": null
+    },
+    {
+      "classification": "NO_DEVELOPMENT_HYPOTHESIS",
+      "criteria": [],
+      "failures": [
+        "development_selection_threshold"
+      ],
+      "market": "FUTURES",
+      "mode": "LONG_SHORT",
+      "rationale": "No pullback hypothesis qualified in development; validation ran the original baseline only.",
+      "variant_id": null
+    }
+  ],
+  "candidate_frozen": false,
+  "development_selections": [
+    {
+      "market": "SPOT",
+      "mode": "LONG",
+      "ranked_variant_ids": [],
+      "rationale": "No pullback variant had non-negative development median return and at least 50% positive BASE walk-forward folds.",
+      "selected_variant_ids": [],
+      "status": "NO_DEVELOPMENT_HYPOTHESIS"
+    },
+    {
+      "market": "FUTURES",
+      "mode": "LONG",
+      "ranked_variant_ids": [],
+      "rationale": "No pullback variant had non-negative development median return and at least 50% positive BASE walk-forward folds.",
+      "selected_variant_ids": [],
+      "status": "NO_DEVELOPMENT_HYPOTHESIS"
+    },
+    {
+      "market": "FUTURES",
+      "mode": "SHORT",
+      "ranked_variant_ids": [],
+      "rationale": "No pullback variant had non-negative development median return and at least 50% positive BASE walk-forward folds.",
+      "selected_variant_ids": [],
+      "status": "NO_DEVELOPMENT_HYPOTHESIS"
+    },
+    {
+      "market": "FUTURES",
+      "mode": "LONG_SHORT",
+      "ranked_variant_ids": [],
+      "rationale": "No pullback variant had non-negative development median return and at least 50% positive BASE walk-forward folds.",
+      "selected_variant_ids": [],
+      "status": "NO_DEVELOPMENT_HYPOTHESIS"
+    }
+  ],
+  "selection_after_validation": false,
+  "validation_locks": [
+    {
+      "catalog_hash": "49301c90ded03eb83da6245e47b824931f11a7afdf6e427f88ca809362d42d8b",
+      "development_fingerprint": "adf2893969373af3148146b3565e75a16e2567d16ad4a0e140103a395f4206bc",
+      "market": "SPOT",
+      "mode": "LONG",
+      "variant_ids": [
+        "ORIGINAL_BASELINE"
+      ]
+    },
+    {
+      "catalog_hash": "49301c90ded03eb83da6245e47b824931f11a7afdf6e427f88ca809362d42d8b",
+      "development_fingerprint": "7701c0313ee2c144830abb0c77e6f8e34210ed2941288f699a235570aefd5c75",
+      "market": "FUTURES",
+      "mode": "LONG",
+      "variant_ids": [
+        "ORIGINAL_BASELINE"
+      ]
+    },
+    {
+      "catalog_hash": "49301c90ded03eb83da6245e47b824931f11a7afdf6e427f88ca809362d42d8b",
+      "development_fingerprint": "e79dc345c8ab119a8b4e96a0f4098abcc9fcf16b283218084a1dedbb9a77af11",
+      "market": "FUTURES",
+      "mode": "SHORT",
+      "variant_ids": [
+        "ORIGINAL_BASELINE"
+      ]
+    },
+    {
+      "catalog_hash": "49301c90ded03eb83da6245e47b824931f11a7afdf6e427f88ca809362d42d8b",
+      "development_fingerprint": "ac261e8306064cd300cb7a1fcf9cc1271cd379627eb58c72d13de435a5f8d881",
+      "market": "FUTURES",
+      "mode": "LONG_SHORT",
+      "variant_ids": [
+        "ORIGINAL_BASELINE"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+[
+  {
+    "criteria_order": [
+      "folds_with_trades",
+      "zero_trade_fold_percent",
+      "target_range_distance",
+      "conceptual_modification",
+      "catalog_order"
+    ],
+    "market": "SPOT",
+    "mode": "LONG",
+    "return_metrics_used": false,
+    "selected_variant_ids": [],
+    "selection_source": "DEVELOPMENT_2022_2023_FREQUENCY_ONLY",
+    "validation_2024_used": false
+  },
+  {
+    "criteria_order": [
+      "folds_with_trades",
+      "zero_trade_fold_percent",
+      "target_range_distance",
+      "conceptual_modification",
+      "catalog_order"
+    ],
+    "market": "FUTURES",
+    "mode": "LONG",
+    "return_metrics_used": false,
+    "selected_variant_ids": [],
+    "selection_source": "DEVELOPMENT_2022_2023_FREQUENCY_ONLY",
+    "validation_2024_used": false
+  },
+  {
+    "criteria_order": [
+      "folds_with_trades",
+      "zero_trade_fold_percent",
+      "target_range_distance",
+      "conceptual_modification",
+      "catalog_order"
+    ],
+    "market": "FUTURES",
+    "mode": "SHORT",
+    "return_metrics_used": false,
+    "selected_variant_ids": [],
+    "selection_source": "DEVELOPMENT_2022_2023_FREQUENCY_ONLY",
+    "validation_2024_used": false
+  },
+  {
+    "criteria_order": [
+      "folds_with_trades",
+      "zero_trade_fold_percent",
+      "target_range_distance",
+      "conceptual_modification",
+      "catalog_order"
+    ],
+    "market": "FUTURES",
+    "mode": "LONG_SHORT",
+    "return_metrics_used": false,
+    "selected_variant_ids": [],
+    "selection_source": "DEVELOPMENT_2022_2023_FREQUENCY_ONLY",
+    "validation_2024_used": false
+  }
+]

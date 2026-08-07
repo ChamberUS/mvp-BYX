@@ -1,0 +1,8 @@
+{
+  "combined_dataset_hash": "b4c9674c45ef10c96b68a72d84790aedfe6b93f638f23c63d4612ec61b6c570a",
+  "funding_hash": "b8936cf7f526e0b2766f04998dc3a282e6a5e421509fe954d1b26b3262570da8",
+  "futures_candle_hash": "fe2e3e11d5fd62da0d96ea48d1985b379b2bd8ed427af58212b4e49ec404c38f",
+  "mark_price_hash": "959fab5e1d4f88c01291f889c92d5b6f6cad678cb28b859703c1990108572f31",
+  "period_end": "2025-12-31T23:00:00+00:00",
+  "period_start": "2022-01-01T00:00:00+00:00"
+}

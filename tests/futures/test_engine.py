@@ -174,6 +174,32 @@ def test_positive_funding_long_pays_short_receives(
         assert result.metrics.funding_received > 0
 
 
+def test_funding_without_event_mark_uses_current_mark_open_without_lookahead(
+    futures_config,
+    start_time,
+) -> None:
+    candles = make_candles(start_time)
+    marks = make_marks(
+        candles,
+        closes=("100", "101", "200", "110", "112", "115"),
+        highs=("101", "102", "201", "111", "113", "116"),
+    )
+    event = FundingRate(
+        symbol="ETHUSDT",
+        funding_time=start_time + timedelta(hours=2, minutes=30),
+        funding_rate=Decimal("0.001"),
+        mark_price=None,
+    )
+    config = replace(
+        futures_config,
+        funding_enabled=True,
+        funding_missing_policy=FundingMissingPolicy.FAIL,
+    )
+    result = run_engine(config, candles, marks, funding=(event,))
+    expected = result.trades[0].quantity * marks[2].open * event.funding_rate
+    assert result.metrics.funding_paid == expected
+
+
 @pytest.mark.parametrize("side", [PositionSide.LONG, PositionSide.SHORT])
 def test_liquidation_uses_mark_price_first_and_never_hides_negative_wallet(
     futures_config,
@@ -216,7 +242,7 @@ def test_mark_price_is_not_silently_replaced_by_close(futures_config, start_time
     result = run_engine(futures_config, candles, marks)
     assert result.trades[0].exit_reason is FuturesExitReason.LIQUIDATION
     with pytest.raises(ValueError, match="MARK_PRICE_MISSING"):
-        run_engine(futures_config, candles, marks[:-1])
+        run_engine(futures_config, candles, marks[:-2])
 
 
 def test_forced_end_manual_exit_warmup_and_no_lookahead(

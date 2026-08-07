@@ -1,0 +1,161 @@
+{
+  "scorecards": [
+    {
+      "configuration": "FUTURES_LONG_BASELINE_1X",
+      "dimension_counts": {
+        "INCONCLUSIVE": 0,
+        "MIXED": 7,
+        "STABLE": 2,
+        "UNSTABLE": 4
+      },
+      "dimensions": {
+        "boundary_stability": "STABLE",
+        "concentration": "UNSTABLE",
+        "cost_stability": "UNSTABLE",
+        "funding_stability": "STABLE",
+        "quarterly_consistency": "UNSTABLE",
+        "regime_stability": "MIXED",
+        "rolling_window_consistency": "MIXED",
+        "sample_size": "MIXED",
+        "side_stability": "UNSTABLE",
+        "uncertainty": "MIXED",
+        "volatility_stability": "MIXED",
+        "walk_forward_design_stability": "MIXED",
+        "yearly_consistency": "MIXED"
+      },
+      "overall": "UNSTABLE",
+      "single_score_used": false
+    },
+    {
+      "configuration": "FUTURES_SHORT_MIRRORED_1X",
+      "dimension_counts": {
+        "INCONCLUSIVE": 0,
+        "MIXED": 4,
+        "STABLE": 2,
+        "UNSTABLE": 7
+      },
+      "dimensions": {
+        "boundary_stability": "STABLE",
+        "concentration": "UNSTABLE",
+        "cost_stability": "UNSTABLE",
+        "funding_stability": "STABLE",
+        "quarterly_consistency": "UNSTABLE",
+        "regime_stability": "UNSTABLE",
+        "rolling_window_consistency": "UNSTABLE",
+        "sample_size": "MIXED",
+        "side_stability": "UNSTABLE",
+        "uncertainty": "MIXED",
+        "volatility_stability": "MIXED",
+        "walk_forward_design_stability": "UNSTABLE",
+        "yearly_consistency": "MIXED"
+      },
+      "overall": "UNSTABLE",
+      "single_score_used": false
+    },
+    {
+      "configuration": "FUTURES_LONG_SHORT_BASELINE_1X",
+      "dimension_counts": {
+        "INCONCLUSIVE": 0,
+        "MIXED": 3,
+        "STABLE": 2,
+        "UNSTABLE": 8
+      },
+      "dimensions": {
+        "boundary_stability": "UNSTABLE",
+        "concentration": "UNSTABLE",
+        "cost_stability": "UNSTABLE",
+        "funding_stability": "STABLE",
+        "quarterly_consistency": "UNSTABLE",
+        "regime_stability": "MIXED",
+        "rolling_window_consistency": "UNSTABLE",
+        "sample_size": "STABLE",
+        "side_stability": "UNSTABLE",
+        "uncertainty": "MIXED",
+        "volatility_stability": "MIXED",
+        "walk_forward_design_stability": "UNSTABLE",
+        "yearly_consistency": "UNSTABLE"
+      },
+      "overall": "UNSTABLE",
+      "single_score_used": false
+    },
+    {
+      "configuration": "FUTURES_LONG_SHORT_TIME_EXIT_12_1X",
+      "dimension_counts": {
+        "INCONCLUSIVE": 0,
+        "MIXED": 3,
+        "STABLE": 3,
+        "UNSTABLE": 7
+      },
+      "dimensions": {
+        "boundary_stability": "UNSTABLE",
+        "concentration": "UNSTABLE",
+        "cost_stability": "UNSTABLE",
+        "funding_stability": "STABLE",
+        "quarterly_consistency": "UNSTABLE",
+        "regime_stability": "MIXED",
+        "rolling_window_consistency": "UNSTABLE",
+        "sample_size": "STABLE",
+        "side_stability": "UNSTABLE",
+        "uncertainty": "MIXED",
+        "volatility_stability": "MIXED",
+        "walk_forward_design_stability": "STABLE",
+        "yearly_consistency": "UNSTABLE"
+      },
+      "overall": "UNSTABLE",
+      "single_score_used": false
+    },
+    {
+      "configuration": "FUTURES_LONG_SHORT_TIME_EXIT_24_1X",
+      "dimension_counts": {
+        "INCONCLUSIVE": 0,
+        "MIXED": 3,
+        "STABLE": 2,
+        "UNSTABLE": 8
+      },
+      "dimensions": {
+        "boundary_stability": "UNSTABLE",
+        "concentration": "UNSTABLE",
+        "cost_stability": "UNSTABLE",
+        "funding_stability": "STABLE",
+        "quarterly_consistency": "UNSTABLE",
+        "regime_stability": "MIXED",
+        "rolling_window_consistency": "UNSTABLE",
+        "sample_size": "STABLE",
+        "side_stability": "UNSTABLE",
+        "uncertainty": "MIXED",
+        "volatility_stability": "MIXED",
+        "walk_forward_design_stability": "UNSTABLE",
+        "yearly_consistency": "UNSTABLE"
+      },
+      "overall": "UNSTABLE",
+      "single_score_used": false
+    },
+    {
+      "configuration": "FUTURES_LONG_SHORT_TARGET_R_2_5_1X",
+      "dimension_counts": {
+        "INCONCLUSIVE": 0,
+        "MIXED": 4,
+        "STABLE": 3,
+        "UNSTABLE": 6
+      },
+      "dimensions": {
+        "boundary_stability": "UNSTABLE",
+        "concentration": "UNSTABLE",
+        "cost_stability": "UNSTABLE",
+        "funding_stability": "STABLE",
+        "quarterly_consistency": "MIXED",
+        "regime_stability": "MIXED",
+        "rolling_window_consistency": "UNSTABLE",
+        "sample_size": "STABLE",
+        "side_stability": "UNSTABLE",
+        "uncertainty": "MIXED",
+        "volatility_stability": "MIXED",
+        "walk_forward_design_stability": "STABLE",
+        "yearly_consistency": "UNSTABLE"
+      },
+      "overall": "UNSTABLE",
+      "single_score_used": false
+    }
+  ],
+  "single_score_used": false
+}

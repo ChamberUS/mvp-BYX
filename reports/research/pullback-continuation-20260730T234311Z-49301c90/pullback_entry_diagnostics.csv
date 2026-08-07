@@ -1,0 +1,1 @@
+market,mode,variant_id,period,side,entry_time,exit_time,trend_persistence,pullback_candles,pullback_depth_atr,distance_to_short_ema,distance_to_long_ema,atr_relative,volume_ratio,mfe,mae,holding_candles,gross_pnl,fees,funding,net_pnl,exit_reason

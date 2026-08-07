@@ -132,7 +132,7 @@ def test_dataset_missing_data_policies(futures_candles, mark_prices) -> None:
     with pytest.raises(ValueError, match="MARK_PRICE_MISSING"):
         validate_futures_dataset(
             futures_candles,
-            mark_prices[:-1],
+            mark_prices[:-2],
             (),
             source="fixture",
             funding_enabled=False,

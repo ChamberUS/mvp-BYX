@@ -102,6 +102,31 @@ def test_public_futures_client_bounded_rate_limit_retry() -> None:
     assert calls == 2
 
 
+def test_public_funding_parser_accepts_empty_optional_mark_price() -> None:
+    async def run():
+        async with httpx.AsyncClient(
+            base_url="https://test",
+            transport=httpx.MockTransport(
+                lambda _: httpx.Response(
+                    200,
+                    json=[
+                        {
+                            "symbol": "ETHUSDT",
+                            "fundingTime": 1_735_693_200_006,
+                            "fundingRate": "0.0001",
+                            "markPrice": "",
+                        }
+                    ],
+                )
+            ),
+        ) as http_client:
+            client = BinanceFuturesPublicClient(http_client=http_client)
+            return await client.fetch_funding_rates("ETHUSDT")
+
+    funding = asyncio.run(run())
+    assert funding[0].mark_price is None
+
+
 def test_futures_downloads_are_idempotent_and_inclusive(
     tmp_path: Path,
     futures_candles,

@@ -1,8 +1,9 @@
 # Adaptive Trader
 
 Núcleo determinístico para coleta pública, pesquisa e backtest de `ETHUSDT` em Binance Spot e
-Binance USD-M Futures. Futures existe somente como simulação histórica local com margem isolada
-e alavancagem limitada a `3x`. Esta sprint não implementa autenticação, Testnet, paper trading,
+Binance USD-M Futures. Futures existe somente como simulação histórica local com margem isolada.
+A validação real desta sprint aceita exclusivamente `1x`. Esta sprint não implementa autenticação,
+Testnet, paper trading,
 ordens, IA, notícias, interface web ou operações reais.
 
 ## Pipeline
@@ -203,13 +204,13 @@ O fluxo Futures é deliberadamente separado do `BacktestEngine` Spot:
 - funding ausente falha por padrão; zero implícito é proibido;
 - manutenção usa taxa fixa explícita e aproximada;
 - em ambiguidade OHLC, liquidação tem prioridade `LIQUIDATION_FIRST`;
-- leverage padrão é `1x`, margem é somente `ISOLATED` e valores acima de `3x` são rejeitados;
+- leverage da validação real é exatamente `1x` e margem é somente `ISOLATED`;
 - `SPOT_PROXY_FOR_TESTS_ONLY` invalida o relatório e existe apenas para fixtures.
 
 Spot e Futures possuem datasets, contabilidade, métricas e resultados separados. A comparação
-gera `market_comparison.csv`, `market_comparison.json` e `market_comparison.md`; resultados nunca
-são somados. O período consumido de `2026-01-01` a `2026-07-01` é removido de toda seleção.
-Uma estratégia `NOT_CANDIDATE` em `1x` não pode virar candidata por amplificação de exposição.
+real 1x gera `spot_futures_1x_comparison.csv`, `.json` e `.md`; resultados nunca são somados.
+O período consumido de `2026-01-01` a `2026-07-01` é registrado somente como excluído e não é
+baixado ou carregado. Nenhuma variante 2x/3x é executada nesta sprint.
 
 Coleta pública explícita:
 
@@ -227,6 +228,13 @@ adaptive-trader market futures status --symbol ETHUSDT --interval 1h
 ```
 
 `--start` e `--end` são inclusivos. Pesquisa nunca inicia esses downloads automaticamente.
+Cada comando registra páginas, requests, retries, duração, timestamps, duplicatas, hash e warnings
+em `data/futures_download_audit.json`.
+
+O inspect aplica `GapPolicy=WARN`, exige funding real e alinha mark pelo mesmo `open_time` ou pelo
+último mark anterior com atraso máximo de um intervalo. Mark futuro, fallback silencioso para
+close Futures e nearest bidirecional são proibidos. O resultado é `READY`,
+`READY_WITH_WARNINGS` ou `NOT_READY`.
 
 Pesquisa local:
 
@@ -234,22 +242,128 @@ Pesquisa local:
 adaptive-trader research futures inspect \
   --symbol ETHUSDT --interval 1h \
   --start 2022-01-01T00:00:00Z --end 2025-12-31T23:00:00Z
-adaptive-trader research futures backtest \
-  --symbol ETHUSDT --interval 1h --mode long-short --leverage 1 \
-  --start 2022-01-01T00:00:00Z --end 2025-12-31T23:00:00Z \
-  --output-dir reports/research/futures
-adaptive-trader research futures walk-forward \
-  --symbol ETHUSDT --interval 1h --mode long-short --leverage 1 \
-  --train-days 365 --validation-days 90 --step-days 90 \
-  --start 2022-01-01T00:00:00Z --end 2025-12-31T23:00:00Z \
-  --output-dir reports/research/futures-walk-forward
-adaptive-trader research market compare \
-  --symbol ETHUSDT --interval 1h --markets spot,futures \
-  --futures-modes long,short,long-short --leverages 1,2,3 \
-  --start 2022-01-01T00:00:00Z --end 2026-07-01T00:00:00Z \
-  --exclude-start 2026-01-01T00:00:00Z \
-  --exclude-end 2026-07-01T00:00:00Z \
-  --output-dir reports/research/market-comparison --yes
+adaptive-trader research futures validate-real \
+  --symbol ETHUSDT --interval 1h \
+  --development-start 2022-01-01T00:00:00Z \
+  --development-end 2024-12-31T23:00:00Z \
+  --validation-start 2025-01-01T00:00:00Z \
+  --validation-end 2025-12-31T23:00:00Z \
+  --consumed-test-start 2026-01-01T00:00:00Z \
+  --consumed-test-end 2026-07-01T00:00:00Z \
+  --leverage 1 --output-dir reports/research --yes
+adaptive-trader research futures validation-show \
+  --experiment reports/research/<futures-real-experiment-id>
 ```
 
-Detalhes e limitações estão em `docs/FUTURES_RESEARCH_METHODOLOGY.md`.
+`validate-real` nunca baixa dados, rejeita leverage diferente de 1, rejeita uso de 2026 e falha
+quando readiness, mark ou funding são inválidos. As seis variantes são pré-definidas, os folds
+rolling usam 365/90/90 e não existe freeze automático. Detalhes e limitações estão em
+`docs/FUTURES_RESEARCH_METHODOLOGY.md`.
+
+## Robustez temporal Futures 1x
+
+A Sprint 3A.6 reutiliza exclusivamente o dataset local e as seis variantes fixadas na Sprint
+3A.5. Ela decompõe trades por ano, trimestre, janelas móveis, desenhos walk-forward, fronteiras,
+lado, regime, volatilidade, funding, custos e concentração. Métricas de trade são atribuídas pelo
+timestamp de saída; candles anteriores usados como warmup não entram nas métricas.
+
+Os quantis de ATR relativo são definidos somente em 2022-2024 e aplicados sem recalibração a
+2025. Retornos de mercado, distância e slope da EMA e persistência direcional são diagnósticos
+pós-backtest e não alteram sinais. O bootstrap usa somente trades já fechados, seed explícita e
+no máximo 10.000 iterações; candles nunca são embaralhados nem reapresentados à estratégia.
+
+```bash
+adaptive-trader research futures temporal-robustness \
+  --symbol ETHUSDT --interval 1h \
+  --start 2022-01-01T00:00:00Z --end 2025-12-31T23:00:00Z \
+  --dataset-hash b4c9674c45ef10c96b68a72d84790aedfe6b93f638f23c63d4612ec61b6c570a \
+  --leverage 1 --bootstrap-iterations 2000 --bootstrap-seed 42 \
+  --output-dir reports/research --yes
+
+adaptive-trader research futures temporal-show \
+  --experiment reports/research/<temporal-robustness-id>
+```
+
+Os comandos são offline, não baixam dados, rejeitam 2026 e leverage diferente de `1x`, não
+selecionam parâmetros e não congelam candidata. As classificações de robustez são diagnósticos de
+pesquisa; não declaram lucratividade nem habilitam paper trading ou produção.
+
+## Hipótese de continuação após pullback
+
+A Sprint 3B.1 cria `PullbackContinuationAnalyzer` como estratégia research-only separada. O
+catálogo imutável `pullback-hypotheses-v1.toml` contém somente baseline, pullback base,
+persistência 6, time exit 24, regime-loss exit e a combinação persistência 6 + regime-loss.
+As regras são point-in-time: tendência estabelecida, pullback de `0.10` a `1.0 ATR` por um a seis
+candles, retomada confirmada no fechamento e extensão máxima de `1.0 ATR`.
+
+Development usa exclusivamente 2022-2023 e BASE para selecionar no máximo duas variantes por
+Spot long, Futures long, Futures short e Futures long-short. O lock é criado antes de validation,
+que usa somente 2024. Todo o intervalo 2025-01-01 a 2026-07-01 é referência consumida proibida:
+não é consultado nem executado. Futures usa somente `1x`; Spot e Futures permanecem separados.
+
+```bash
+adaptive-trader research pullback run \
+  --symbol ETHUSDT \
+  --interval 1h \
+  --development-start 2022-01-01T00:00:00Z \
+  --development-end 2023-12-31T23:00:00Z \
+  --validation-start 2024-01-01T00:00:00Z \
+  --validation-end 2024-12-31T23:00:00Z \
+  --consumed-start 2025-01-01T00:00:00Z \
+  --consumed-end 2026-07-01T00:00:00Z \
+  --markets spot,futures \
+  --futures-modes long,short,long-short \
+  --leverage 1 \
+  --output-dir reports/research \
+  --yes
+
+adaptive-trader research pullback show \
+  --experiment reports/research/<pullback-experiment-id>
+```
+
+O comando é totalmente offline, não baixa dados, não autentica, não envia ordens e não cria
+candidata. Gera exatamente 18 artefatos com funil, reason codes, development, validation,
+walk-forward, custos, funding, lados, entradas, saídas por perda de regime, concentração,
+bootstrap, assessment e plano de holdout. Metodologia completa:
+`docs/PULLBACK_HYPOTHESIS_METHODOLOGY.md`.
+
+## Calibração de frequência de pullbacks
+
+A Sprint 3B.2 audita o resultado sem trades antes de calcular retornos. O trace separa regime
+estabelecido, alinhamento de EMAs, lado da EMA longa, persistência, início/idade/profundidade do
+pullback, cruzamento de retomada, fechamento direcional, extensão, volume e volatilidade. A
+revalidação do regime no candle de retomada foi removida como requisito redundante e
+incompatível com o estado de tendência já travado no início do pullback.
+
+`pullback-calibration-v1.toml` contém somente a base e sete mudanças unitárias pré-registradas.
+Viabilidade usa sinais, trades e cobertura dos folds em 2022–2023; retorno não participa da
+seleção. No máximo duas definições por mercado/modo entram no lock imutável e só então são
+reportadas financeiramente e validadas em 2024. Ablação remove uma regra por vez. Pós-eventos
+recebem `POST_EVENT_ONLY_NO_STRATEGY_ACCESS`. Busca ampla e combinações continuam proibidas.
+
+```bash
+adaptive-trader research pullback calibrate \
+  --symbol ETHUSDT --interval 1h \
+  --development-start 2022-01-01T00:00:00Z \
+  --development-end 2023-12-31T23:00:00Z \
+  --validation-start 2024-01-01T00:00:00Z \
+  --validation-end 2024-12-31T23:00:00Z \
+  --consumed-start 2025-01-01T00:00:00Z \
+  --consumed-end 2026-07-01T00:00:00Z \
+  --markets spot,futures --futures-modes long,short,long-short \
+  --leverage 1 --output-dir reports/research --yes
+
+adaptive-trader research pullback calibration-show \
+  --experiment reports/research/<experiment-id>
+```
+
+## Trend following diário pré-registrado
+
+A Sprint 3C.1 testa, de forma offline e separada das estratégias anteriores, SMA 200 diária,
+entrada Donchian 20, saídas Donchian 10/20 e risco fixo ou defensivo. Development usa 2022–2023,
+o lock precede validation 2024 e todo o intervalo 2025–2026 permanece proibido; Futures opera
+somente em `1x`, com funding e mark `1h` preservados.
+
+O contrato completo de agregação UTC, regras point-in-time, execução no dia seguinte, catálogo,
+seleção, artefatos e limites de segurança está em
+[`docs/TREND_FOLLOWING_METHODOLOGY.md`](docs/TREND_FOLLOWING_METHODOLOGY.md).

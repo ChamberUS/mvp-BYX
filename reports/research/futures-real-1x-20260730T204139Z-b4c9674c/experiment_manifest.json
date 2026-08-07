@@ -1,0 +1,209 @@
+{
+  "alignment_policy": "SAME_OPEN_TIME_OR_LAST_KNOWN_PREVIOUS_MAX_ONE_INTERVAL",
+  "api_key_used": false,
+  "authenticated_api_used": false,
+  "automatic_download": false,
+  "candidate_frozen": false,
+  "completed_at": "2026-07-30T20:45:53.517413+00:00",
+  "configurations": [
+    "FUTURES_LONG_BASELINE_1X",
+    "FUTURES_SHORT_MIRRORED_1X",
+    "FUTURES_LONG_SHORT_BASELINE_1X",
+    "FUTURES_LONG_SHORT_TIME_EXIT_12_1X",
+    "FUTURES_LONG_SHORT_TIME_EXIT_24_1X",
+    "FUTURES_LONG_SHORT_TARGET_R_2_5_1X"
+  ],
+  "contract_type": "PERPETUAL",
+  "cost_scenarios": [
+    "LOW_COST",
+    "BASE_COST",
+    "HIGH_COST",
+    "STRESS_COST"
+  ],
+  "counts": {
+    "candles": 35064,
+    "funding_events": 4383,
+    "mark_prices": 35064
+  },
+  "download_audit": {
+    "api_key_used": false,
+    "authenticated": false,
+    "downloads": {
+      "download-funding": {
+        "authenticated": false,
+        "endpoint": "GET /fapi/v1/fundingRate",
+        "interval": null,
+        "orders_sent": false,
+        "requested_end": "2025-12-31T23:00:00+00:00",
+        "requested_start": "2022-01-01T00:00:00+00:00",
+        "stats": {
+          "content_hash": "b8936cf7f526e0b2766f04998dc3a282e6a5e421509fe954d1b26b3262570da8",
+          "duplicate_count": 0,
+          "duration_seconds": "1.5696765419997973",
+          "first_timestamp": "2022-01-01T00:00:00.006000+00:00",
+          "ignored": 0,
+          "last_timestamp": "2025-12-31T16:00:00.001000+00:00",
+          "pages": 5,
+          "persisted": 4383,
+          "range_semantics": "start_and_end_inclusive",
+          "received": 4383,
+          "requests": 5,
+          "retries": 0,
+          "warnings": []
+        },
+        "symbol": "ETHUSDT"
+      },
+      "download-klines": {
+        "authenticated": false,
+        "endpoint": "GET /fapi/v1/klines",
+        "interval": "1h",
+        "orders_sent": false,
+        "requested_end": "2025-12-31T23:00:00+00:00",
+        "requested_start": "2022-01-01T00:00:00+00:00",
+        "stats": {
+          "content_hash": "fe2e3e11d5fd62da0d96ea48d1985b379b2bd8ed427af58212b4e49ec404c38f",
+          "duplicate_count": 0,
+          "duration_seconds": "10.746920995996334",
+          "first_timestamp": "2022-01-01T00:00:00+00:00",
+          "ignored": 0,
+          "last_timestamp": "2025-12-31T23:00:00+00:00",
+          "pages": 24,
+          "persisted": 35064,
+          "range_semantics": "start_and_end_inclusive",
+          "received": 35064,
+          "requests": 24,
+          "retries": 0,
+          "warnings": []
+        },
+        "symbol": "ETHUSDT"
+      },
+      "download-mark-price": {
+        "authenticated": false,
+        "endpoint": "GET /fapi/v1/markPriceKlines",
+        "interval": "1h",
+        "orders_sent": false,
+        "requested_end": "2025-12-31T23:00:00+00:00",
+        "requested_start": "2022-01-01T00:00:00+00:00",
+        "stats": {
+          "content_hash": "959fab5e1d4f88c01291f889c92d5b6f6cad678cb28b859703c1990108572f31",
+          "duplicate_count": 0,
+          "duration_seconds": "9.138040978999925",
+          "first_timestamp": "2022-01-01T00:00:00+00:00",
+          "ignored": 0,
+          "last_timestamp": "2025-12-31T23:00:00+00:00",
+          "pages": 24,
+          "persisted": 35064,
+          "range_semantics": "start_and_end_inclusive",
+          "received": 35064,
+          "requests": 24,
+          "retries": 0,
+          "warnings": []
+        },
+        "symbol": "ETHUSDT"
+      }
+    },
+    "orders_sent": false,
+    "source": "BINANCE_USD_M_PUBLIC",
+    "updated_at": "2026-07-30T20:30:50.533042+00:00"
+  },
+  "duration_seconds": "254.27645684900926",
+  "endpoints": [
+    "GET /fapi/v1/klines",
+    "GET /fapi/v1/markPriceKlines",
+    "GET /fapi/v1/fundingRate"
+  ],
+  "event_priority": [
+    "FUNDING",
+    "MARK_UPDATE",
+    "LIQUIDATION",
+    "STOP",
+    "TAKE_PROFIT",
+    "TIME_EXIT",
+    "SIGNAL_EXIT",
+    "FORCED_END"
+  ],
+  "excluded_consumed_test": {
+    "downloaded": false,
+    "end": "2026-07-01T00:00:00+00:00",
+    "loaded": false,
+    "start": "2026-01-01T00:00:00+00:00",
+    "used": false
+  },
+  "experiment_id": "futures-real-1x-20260730T204139Z-b4c9674c",
+  "experiment_version": "FUTURES_REAL_VALIDATION_1X_V1",
+  "external_orders_sent": false,
+  "funding_diagnostic": {
+    "candidate_assessment_eligible": false,
+    "scenario": "FUNDING_DISABLED_EXPLICITLY",
+    "warning": "FUNDING_DISABLED_DIAGNOSTIC_ONLY"
+  },
+  "funding_missing_policy": "FAIL",
+  "funding_policy": "REAL_FUNDING_ENABLED",
+  "gap_policy": "WARN",
+  "git_commit": "a889362effe0745ac06ce42ae82cadf16a91bdee",
+  "git_dirty": true,
+  "hashes": {
+    "combined_dataset_hash": "b4c9674c45ef10c96b68a72d84790aedfe6b93f638f23c63d4612ec61b6c570a",
+    "funding_hash": "b8936cf7f526e0b2766f04998dc3a282e6a5e421509fe954d1b26b3262570da8",
+    "futures_candle_hash": "fe2e3e11d5fd62da0d96ea48d1985b379b2bd8ed427af58212b4e49ec404c38f",
+    "mark_price_hash": "959fab5e1d4f88c01291f889c92d5b6f6cad678cb28b859703c1990108572f31"
+  },
+  "interval": "1h",
+  "leverage": "1",
+  "leverages_executed": [
+    "1"
+  ],
+  "liquidation_policy": "LIQUIDATION_FIRST_THEN_STOP_FIRST",
+  "maintenance_model": "FIXED_RATE_APPROXIMATION",
+  "mark_missing_policy": "FAIL",
+  "market_type": "USD_M_FUTURES",
+  "paper_trading_enabled": false,
+  "periods": {
+    "consumed_test_end": "2026-07-01T00:00:00+00:00",
+    "consumed_test_start": "2026-01-01T00:00:00+00:00",
+    "development_end": "2024-12-31T23:00:00+00:00",
+    "development_start": "2022-01-01T00:00:00+00:00",
+    "validation_end": "2025-12-31T23:00:00+00:00",
+    "validation_start": "2025-01-01T00:00:00+00:00"
+  },
+  "readiness": "READY",
+  "reproducibility_hash": "30757a54259590b01a9eb154f93196971041fbfdeccb8613ef8f0cdc98a85b0d",
+  "research_only": true,
+  "schema_version": 4,
+  "source": "BINANCE_USD_M_PUBLIC_SQLITE",
+  "started_at": "2026-07-30T20:41:39.235680+00:00",
+  "symbol": "ETHUSDT",
+  "test_results": {
+    "baseline": "178 passed before Sprint 3A.5 changes",
+    "final": "195 passed; coverage 81.49%; ruff and mypy passed"
+  },
+  "walk_forward": {
+    "adaptive_selection": false,
+    "fixed_parameters": true,
+    "mode": "ROLLING",
+    "step_days": 90,
+    "train_days": 365,
+    "validation_days": 90
+  },
+  "warnings": [
+    "LIQUIDATION_MODEL_APPROXIMATE",
+    "MAINTENANCE_MARGIN_APPROXIMATE",
+    "FUNDING_DISABLED_DIAGNOSTIC_ONLY"
+  ],
+  "result_affecting_corrections": [
+    {
+      "issue": "historical funding markPrice may be an empty string",
+      "correction": "parse empty optional markPrice as absent instead of rejecting the page"
+    },
+    {
+      "issue": "absent funding markPrice previously fell back to mark close",
+      "correction": "use current mark open to prevent hourly look-ahead"
+    }
+  ],
+  "report_corrections": [
+    {
+      "issue": "benchmark rows were repeated once per strategy variant",
+      "correction": "emit each period and benchmark pair exactly once"
+    }
+  ]
+}

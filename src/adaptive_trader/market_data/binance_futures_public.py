@@ -60,6 +60,16 @@ class BinanceFuturesPublicClient:
         self._maximum_retries = maximum_retries
         self._sleep = sleep
         self._clock = clock or (lambda: datetime.now(tz=UTC))
+        self._request_count = 0
+        self._retry_count = 0
+
+    @property
+    def request_count(self) -> int:
+        return self._request_count
+
+    @property
+    def retry_count(self) -> int:
+        return self._retry_count
 
     async def __aenter__(self) -> BinanceFuturesPublicClient:
         return self
@@ -168,6 +178,9 @@ class BinanceFuturesPublicClient:
 
     async def _request(self, path: str, params: dict[str, str | int]) -> Any:
         for attempt in range(self._maximum_retries + 1):
+            self._request_count += 1
+            if attempt:
+                self._retry_count += 1
             try:
                 response = await self._client.get(
                     path,
@@ -278,7 +291,11 @@ class BinanceFuturesPublicClient:
             funding_time = datetime.fromtimestamp(int(payload["fundingTime"]) / 1000, tz=UTC)
             rate = Decimal(str(payload["fundingRate"]))
             mark_value = payload.get("markPrice")
-            mark_price = Decimal(str(mark_value)) if mark_value is not None else None
+            mark_price = (
+                Decimal(str(mark_value))
+                if mark_value not in {None, ""}
+                else None
+            )
         except (KeyError, TypeError, ValueError, InvalidOperation, OverflowError) as exc:
             raise InvalidMarketDataError("funding event contains invalid data") from exc
         if event_symbol != symbol:

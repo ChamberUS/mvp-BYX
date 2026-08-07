@@ -1,0 +1,38 @@
+[
+  {
+    "criterion": "median_walk_forward_net_return",
+    "market": "SPOT",
+    "mode": "LONG",
+    "ranked_variant_ids": [],
+    "rationale": "No operationally viable development configuration had a non-negative median walk-forward return and at least 50% positive folds.",
+    "selected_variant_id": null,
+    "status": "NO_DEVELOPMENT_HYPOTHESIS"
+  },
+  {
+    "criterion": "median_walk_forward_net_return",
+    "market": "FUTURES",
+    "mode": "LONG",
+    "ranked_variant_ids": [],
+    "rationale": "No operationally viable development configuration had a non-negative median walk-forward return and at least 50% positive folds.",
+    "selected_variant_id": null,
+    "status": "NO_DEVELOPMENT_HYPOTHESIS"
+  },
+  {
+    "criterion": "median_walk_forward_net_return",
+    "market": "FUTURES",
+    "mode": "SHORT",
+    "ranked_variant_ids": [],
+    "rationale": "No operationally viable development configuration had a non-negative median walk-forward return and at least 50% positive folds.",
+    "selected_variant_id": null,
+    "status": "NO_DEVELOPMENT_HYPOTHESIS"
+  },
+  {
+    "criterion": "median_walk_forward_net_return",
+    "market": "FUTURES",
+    "mode": "LONG_SHORT",
+    "ranked_variant_ids": [],
+    "rationale": "No operationally viable development configuration had a non-negative median walk-forward return and at least 50% positive folds.",
+    "selected_variant_id": null,
+    "status": "NO_DEVELOPMENT_HYPOTHESIS"
+  }
+]

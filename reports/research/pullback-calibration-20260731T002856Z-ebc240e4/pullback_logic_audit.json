@@ -1,0 +1,190 @@
+[
+  {
+    "depends_on": [],
+    "mutually_exclusive_with": [],
+    "notes": "Established regime is locked at pullback start; it is not re-required on the resumption candle.",
+    "observed_fail_count": 68188,
+    "observed_pass_count": 1490,
+    "order": 1,
+    "redundant_with": [
+      "trend_persistence"
+    ],
+    "required": true,
+    "rule_id": "regime_matched"
+  },
+  {
+    "depends_on": [
+      "regime_matched"
+    ],
+    "mutually_exclusive_with": [],
+    "notes": "Short/long EMA order.",
+    "observed_fail_count": 34762,
+    "observed_pass_count": 34916,
+    "order": 2,
+    "redundant_with": [],
+    "required": true,
+    "rule_id": "ema_alignment"
+  },
+  {
+    "depends_on": [
+      "ema_alignment"
+    ],
+    "mutually_exclusive_with": [],
+    "notes": "Directional close must remain on the trend side of long EMA.",
+    "observed_fail_count": 34450,
+    "observed_pass_count": 35228,
+    "order": 3,
+    "redundant_with": [
+      "long_ema_not_crossed"
+    ],
+    "required": true,
+    "rule_id": "price_long_ema_side"
+  },
+  {
+    "depends_on": [
+      "price_long_ema_side"
+    ],
+    "mutually_exclusive_with": [],
+    "notes": "Consecutive established-trend candles before pullback.",
+    "observed_fail_count": 68698,
+    "observed_pass_count": 980,
+    "order": 4,
+    "redundant_with": [
+      "regime_matched"
+    ],
+    "required": true,
+    "rule_id": "trend_persistence"
+  },
+  {
+    "depends_on": [
+      "trend_persistence"
+    ],
+    "mutually_exclusive_with": [],
+    "notes": "Close reaches the pullback side of short EMA.",
+    "observed_fail_count": 69609,
+    "observed_pass_count": 69,
+    "order": 5,
+    "redundant_with": [],
+    "required": true,
+    "rule_id": "pullback_started"
+  },
+  {
+    "depends_on": [
+      "pullback_started"
+    ],
+    "mutually_exclusive_with": [],
+    "notes": "State age lies inside the pre-registered candle bounds.",
+    "observed_fail_count": 69614,
+    "observed_pass_count": 64,
+    "order": 6,
+    "redundant_with": [],
+    "required": true,
+    "rule_id": "pullback_age_valid"
+  },
+  {
+    "depends_on": [
+      "pullback_started"
+    ],
+    "mutually_exclusive_with": [],
+    "notes": "Maximum observed depth reaches the configured minimum.",
+    "observed_fail_count": 69611,
+    "observed_pass_count": 67,
+    "order": 7,
+    "redundant_with": [],
+    "required": true,
+    "rule_id": "pullback_depth_min"
+  },
+  {
+    "depends_on": [
+      "pullback_depth_min"
+    ],
+    "mutually_exclusive_with": [],
+    "notes": "Maximum observed depth does not exceed the configured maximum.",
+    "observed_fail_count": 69610,
+    "observed_pass_count": 68,
+    "order": 8,
+    "redundant_with": [],
+    "required": true,
+    "rule_id": "pullback_depth_max"
+  },
+  {
+    "depends_on": [
+      "pullback_started"
+    ],
+    "mutually_exclusive_with": [],
+    "notes": "Mirrored directional long-EMA boundary.",
+    "observed_fail_count": 34450,
+    "observed_pass_count": 35228,
+    "order": 9,
+    "redundant_with": [
+      "price_long_ema_side"
+    ],
+    "required": true,
+    "rule_id": "long_ema_not_crossed"
+  },
+  {
+    "depends_on": [
+      "long_ema_not_crossed"
+    ],
+    "mutually_exclusive_with": [],
+    "notes": "Close returns through the short EMA in trend direction.",
+    "observed_fail_count": 69672,
+    "observed_pass_count": 6,
+    "order": 10,
+    "redundant_with": [],
+    "required": true,
+    "rule_id": "resumption_cross"
+  },
+  {
+    "depends_on": [
+      "resumption_cross"
+    ],
+    "mutually_exclusive_with": [],
+    "notes": "Close advances beyond the immediately previous close.",
+    "observed_fail_count": 69672,
+    "observed_pass_count": 6,
+    "order": 11,
+    "redundant_with": [],
+    "required": true,
+    "rule_id": "directional_close_confirmation"
+  },
+  {
+    "depends_on": [
+      "resumption_cross"
+    ],
+    "mutually_exclusive_with": [],
+    "notes": "Directional distance from long EMA in ATR units.",
+    "observed_fail_count": 69678,
+    "observed_pass_count": 0,
+    "order": 12,
+    "redundant_with": [],
+    "required": true,
+    "rule_id": "entry_extension_valid"
+  },
+  {
+    "depends_on": [
+      "entry_extension_valid"
+    ],
+    "mutually_exclusive_with": [],
+    "notes": "Current volume ratio reaches the configured minimum.",
+    "observed_fail_count": 69678,
+    "observed_pass_count": 0,
+    "order": 13,
+    "redundant_with": [],
+    "required": true,
+    "rule_id": "volume_valid"
+  },
+  {
+    "depends_on": [
+      "volume_valid"
+    ],
+    "mutually_exclusive_with": [],
+    "notes": "ATR divided by close does not exceed the configured maximum.",
+    "observed_fail_count": 69672,
+    "observed_pass_count": 6,
+    "order": 14,
+    "redundant_with": [],
+    "required": true,
+    "rule_id": "volatility_valid"
+  }
+]

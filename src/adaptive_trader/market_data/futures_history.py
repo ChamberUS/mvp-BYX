@@ -2,12 +2,17 @@
 
 from __future__ import annotations
 
-import hashlib
+import time
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from decimal import Decimal
 
-from adaptive_trader.domain.models import serialize_model
+from adaptive_trader.futures.integrity import (
+    funding_content_hash,
+    futures_candle_content_hash,
+    mark_price_content_hash,
+)
 from adaptive_trader.futures.models import FundingRate, FuturesCandle, MarkPriceCandle
 from adaptive_trader.market_data.binance_futures_public import BinanceFuturesPublicClient
 from adaptive_trader.market_data.history import _INTERVAL_DELTAS
@@ -21,12 +26,30 @@ class FuturesDownloadStats:
     ignored: int
     persisted: int
     content_hash: str
+    first_timestamp: datetime | None = None
+    last_timestamp: datetime | None = None
+    duplicate_count: int = 0
+    duration_seconds: Decimal = Decimal("0")
+    requests: int = 0
+    retries: int = 0
+    warnings: tuple[str, ...] = ()
     range_semantics: str = "start_and_end_inclusive"
 
 
 def _hash(items: Sequence[object]) -> str:
-    material = "\n".join(str(serialize_model(item)) for item in items)
-    return hashlib.sha256(material.encode("utf-8")).hexdigest()
+    if all(isinstance(item, FuturesCandle) for item in items):
+        return futures_candle_content_hash(
+            tuple(item for item in items if isinstance(item, FuturesCandle))
+        )
+    if all(isinstance(item, MarkPriceCandle) for item in items):
+        return mark_price_content_hash(
+            tuple(item for item in items if isinstance(item, MarkPriceCandle))
+        )
+    if all(isinstance(item, FundingRate) for item in items):
+        return funding_content_hash(
+            tuple(item for item in items if isinstance(item, FundingRate))
+        )
+    raise TypeError("download hash requires one supported Futures data type")
 
 
 class FuturesHistoricalDownloader:
@@ -80,6 +103,9 @@ class FuturesHistoricalDownloader:
         mark_prices: bool,
     ) -> FuturesDownloadStats:
         self._validate_range(start_time, end_time)
+        started = time.monotonic()
+        requests_before = int(getattr(self._client, "request_count", 0))
+        retries_before = int(getattr(self._client, "retry_count", 0))
         current = start_time
         pages = received = ignored = persisted = 0
         downloaded: list[FuturesCandle | MarkPriceCandle] = []
@@ -112,11 +138,17 @@ class FuturesHistoricalDownloader:
             ignored += len(page) - len(eligible)
             if mark_prices:
                 typed_marks = tuple(item for item in eligible if isinstance(item, MarkPriceCandle))
-                persisted += self._repository.upsert_mark_prices(typed_marks)
+                before = self._repository.count_mark_prices(symbol, interval)
+                self._repository.upsert_mark_prices(typed_marks)
+                after = self._repository.count_mark_prices(symbol, interval)
+                persisted += after - before
                 downloaded.extend(typed_marks)
             else:
                 typed_candles = tuple(item for item in eligible if isinstance(item, FuturesCandle))
-                persisted += self._repository.upsert_futures_candles(typed_candles)
+                before = self._repository.count_futures_candles(symbol, interval)
+                self._repository.upsert_futures_candles(typed_candles)
+                after = self._repository.count_futures_candles(symbol, interval)
+                persisted += after - before
                 downloaded.extend(typed_candles)
             last_time = page[-1].open_time
             if last_time >= end_time or len(page) < 1500:
@@ -125,12 +157,20 @@ class FuturesHistoricalDownloader:
             if next_time <= current:
                 raise RuntimeError("futures pagination did not advance")
             current = next_time
+        timestamps = tuple(item.open_time for item in downloaded)
         return FuturesDownloadStats(
             pages=pages,
             received=received,
             ignored=ignored,
             persisted=persisted,
             content_hash=_hash(downloaded),
+            first_timestamp=min(timestamps, default=None),
+            last_timestamp=max(timestamps, default=None),
+            duplicate_count=len(timestamps) - len(set(timestamps)),
+            duration_seconds=Decimal(str(time.monotonic() - started)),
+            requests=int(getattr(self._client, "request_count", 0)) - requests_before,
+            retries=int(getattr(self._client, "retry_count", 0)) - retries_before,
+            warnings=("NO_DATA_DOWNLOADED",) if not downloaded else (),
         )
 
     async def download_funding(
@@ -141,6 +181,9 @@ class FuturesHistoricalDownloader:
         end_time: datetime,
     ) -> FuturesDownloadStats:
         self._validate_range(start_time, end_time)
+        started = time.monotonic()
+        requests_before = int(getattr(self._client, "request_count", 0))
+        retries_before = int(getattr(self._client, "retry_count", 0))
         current = start_time
         pages = received = ignored = persisted = 0
         downloaded: list[FundingRate] = []
@@ -160,7 +203,10 @@ class FuturesHistoricalDownloader:
                 if start_time <= item.funding_time <= end_time
             )
             ignored += len(page) - len(eligible)
-            persisted += self._repository.upsert_funding_rates(eligible)
+            before = self._repository.count_funding_rates(symbol)
+            self._repository.upsert_funding_rates(eligible)
+            after = self._repository.count_funding_rates(symbol)
+            persisted += after - before
             downloaded.extend(eligible)
             last_time = page[-1].funding_time
             if last_time >= end_time or len(page) < 1000:
@@ -169,12 +215,20 @@ class FuturesHistoricalDownloader:
             if next_time <= current:
                 raise RuntimeError("funding pagination did not advance")
             current = next_time
+        timestamps = tuple(item.funding_time for item in downloaded)
         return FuturesDownloadStats(
             pages=pages,
             received=received,
             ignored=ignored,
             persisted=persisted,
             content_hash=_hash(downloaded),
+            first_timestamp=min(timestamps, default=None),
+            last_timestamp=max(timestamps, default=None),
+            duplicate_count=len(timestamps) - len(set(timestamps)),
+            duration_seconds=Decimal(str(time.monotonic() - started)),
+            requests=int(getattr(self._client, "request_count", 0)) - requests_before,
+            retries=int(getattr(self._client, "retry_count", 0)) - retries_before,
+            warnings=("NO_DATA_DOWNLOADED",) if not downloaded else (),
         )
 
     @staticmethod

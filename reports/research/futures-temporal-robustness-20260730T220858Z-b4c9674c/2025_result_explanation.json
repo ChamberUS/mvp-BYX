@@ -1,0 +1,499 @@
+{
+  "causal_claim": false,
+  "explanations": [
+    {
+      "causal_claim": false,
+      "configuration": "FUTURES_LONG_BASELINE_1X",
+      "funding_effect": "-12.0641824702014001340751446",
+      "historical_pattern": "REPEATED_PATTERN",
+      "language_policy": "ASSOCIATED_WITH;CONCENTRATED_IN;NOT_OBSERVED_PREVIOUSLY;REPEATED_PATTERN;INSUFFICIENT_EVIDENCE",
+      "low_cost_minus_base_pnl": "39.9046327120907520120749255",
+      "prior_positive_years": [
+        "2024"
+      ],
+      "result_without_top_5": "-409.8818412047747783613067873",
+      "side_contribution": [
+        [
+          "LONG",
+          "319.1130996791833010173534274"
+        ]
+      ],
+      "top_5_concentration_percent": "89.16472686103647427091159081",
+      "top_quarters": [
+        [
+          "2025-Q2",
+          "232.0032274459072870380630684"
+        ],
+        [
+          "2025-Q3",
+          "163.7379212403073280935760734"
+        ],
+        [
+          "2025-Q1",
+          "0"
+        ],
+        [
+          "2025-Q4",
+          "-76.62804900703131411428571440"
+        ]
+      ],
+      "top_regimes_full_period_diagnostic": [
+        [
+          "TRENDING_UP",
+          "319.1130996791833010173534274"
+        ],
+        [
+          "TRENDING_DOWN",
+          "0"
+        ],
+        [
+          "RANGING",
+          "0"
+        ],
+        [
+          "UNKNOWN",
+          "0"
+        ],
+        [
+          "HIGH_VOLATILITY",
+          "0"
+        ]
+      ],
+      "top_volatility_buckets_full_period_diagnostic": [
+        [
+          "EXTREME",
+          "2.957531337589132709086786698"
+        ],
+        [
+          "HIGH",
+          "0.2335996592027003010867475764"
+        ],
+        [
+          "LOW",
+          "0"
+        ],
+        [
+          "MEDIUM",
+          "0"
+        ],
+        [
+          "UNKNOWN",
+          "0"
+        ]
+      ]
+    },
+    {
+      "causal_claim": false,
+      "configuration": "FUTURES_SHORT_MIRRORED_1X",
+      "funding_effect": "7.0309846173805538776723368",
+      "historical_pattern": "REPEATED_PATTERN",
+      "language_policy": "ASSOCIATED_WITH;CONCENTRATED_IN;NOT_OBSERVED_PREVIOUSLY;REPEATED_PATTERN;INSUFFICIENT_EVIDENCE",
+      "low_cost_minus_base_pnl": "59.5886885268504113039033584",
+      "prior_positive_years": [
+        "2022"
+      ],
+      "result_without_top_5": "-599.4667602849745141801897190",
+      "side_contribution": [
+        [
+          "SHORT",
+          "334.5663510911517954141009062"
+        ]
+      ],
+      "top_5_concentration_percent": "61.92316874918598226698260677",
+      "top_quarters": [
+        [
+          "2025-Q1",
+          "306.5340343072825528793238178"
+        ],
+        [
+          "2025-Q4",
+          "136.9196315921345922546240209"
+        ],
+        [
+          "2025-Q3",
+          "0"
+        ],
+        [
+          "2025-Q2",
+          "-108.8873148082653497198469325"
+        ]
+      ],
+      "top_regimes_full_period_diagnostic": [
+        [
+          "HIGH_VOLATILITY",
+          "192.7940400087060286114285712"
+        ],
+        [
+          "TRENDING_DOWN",
+          "141.7723110824457668026723350"
+        ],
+        [
+          "TRENDING_UP",
+          "0"
+        ],
+        [
+          "RANGING",
+          "0"
+        ],
+        [
+          "UNKNOWN",
+          "0"
+        ]
+      ],
+      "top_volatility_buckets_full_period_diagnostic": [
+        [
+          "EXTREME",
+          "3.950223022716158909712437635"
+        ],
+        [
+          "LOW",
+          "0"
+        ],
+        [
+          "MEDIUM",
+          "0"
+        ],
+        [
+          "UNKNOWN",
+          "0"
+        ],
+        [
+          "HIGH",
+          "-0.6045595118046409555714285727"
+        ]
+      ]
+    },
+    {
+      "causal_claim": false,
+      "configuration": "FUTURES_LONG_SHORT_BASELINE_1X",
+      "funding_effect": "-5.0578961947635298447676772",
+      "historical_pattern": "NOT_OBSERVED_PREVIOUSLY",
+      "language_policy": "ASSOCIATED_WITH;CONCENTRATED_IN;NOT_OBSERVED_PREVIOUSLY;REPEATED_PATTERN;INSUFFICIENT_EVIDENCE",
+      "low_cost_minus_base_pnl": "106.8561602641395246469069309",
+      "prior_positive_years": [],
+      "result_without_top_5": "-286.9924154374234118956781783",
+      "side_contribution": [
+        [
+          "SHORT",
+          "328.8479947159283820760199078"
+        ],
+        [
+          "LONG",
+          "307.9661083542407644563552706"
+        ]
+      ],
+      "top_5_concentration_percent": "40.52766847328406862299749084",
+      "top_quarters": [
+        [
+          "2025-Q1",
+          "298.4815545731945707809977187"
+        ],
+        [
+          "2025-Q3",
+          "157.3519630572267806684486376"
+        ],
+        [
+          "2025-Q2",
+          "116.9279433242565472423296449"
+        ],
+        [
+          "2025-Q4",
+          "64.05264211549124784059917735"
+        ]
+      ],
+      "top_regimes_full_period_diagnostic": [
+        [
+          "TRENDING_UP",
+          "307.9661083542407644563552706"
+        ],
+        [
+          "HIGH_VOLATILITY",
+          "187.7294464897112692114285712"
+        ],
+        [
+          "TRENDING_DOWN",
+          "141.1185482262171128645913366"
+        ],
+        [
+          "RANGING",
+          "0"
+        ],
+        [
+          "UNKNOWN",
+          "0"
+        ]
+      ],
+      "top_volatility_buckets_full_period_diagnostic": [
+        [
+          "EXTREME",
+          "6.756254976042304125001860062"
+        ],
+        [
+          "LOW",
+          "0"
+        ],
+        [
+          "MEDIUM",
+          "0"
+        ],
+        [
+          "UNKNOWN",
+          "0"
+        ],
+        [
+          "HIGH",
+          "-0.3881139453406126596781082767"
+        ]
+      ]
+    },
+    {
+      "causal_claim": false,
+      "configuration": "FUTURES_LONG_SHORT_TIME_EXIT_12_1X",
+      "funding_effect": "-6.061784552321086198892143",
+      "historical_pattern": "NOT_OBSERVED_PREVIOUSLY",
+      "language_policy": "ASSOCIATED_WITH;CONCENTRATED_IN;NOT_OBSERVED_PREVIOUSLY;REPEATED_PATTERN;INSUFFICIENT_EVIDENCE",
+      "low_cost_minus_base_pnl": "150.680902864365546762308505",
+      "prior_positive_years": [],
+      "result_without_top_5": "126.7929384064463255777052787",
+      "side_contribution": [
+        [
+          "SHORT",
+          "642.1515617910042494760120104"
+        ],
+        [
+          "LONG",
+          "355.0334545362144037579529887"
+        ]
+      ],
+      "top_5_concentration_percent": "41.99897350101042578244390593",
+      "top_quarters": [
+        [
+          "2025-Q2",
+          "523.2513390008501194864111944"
+        ],
+        [
+          "2025-Q1",
+          "457.2143137194352402598744673"
+        ],
+        [
+          "2025-Q4",
+          "29.38930311711219767389433360"
+        ],
+        [
+          "2025-Q3",
+          "-12.66993951017890418621499615"
+        ]
+      ],
+      "top_regimes_full_period_diagnostic": [
+        [
+          "TRENDING_DOWN",
+          "461.8778453352370747388691535"
+        ],
+        [
+          "TRENDING_UP",
+          "435.9184221758900274928815599"
+        ],
+        [
+          "HIGH_VOLATILITY",
+          "180.2737164557671747371428569"
+        ],
+        [
+          "UNKNOWN",
+          "0"
+        ],
+        [
+          "RANGING",
+          "-80.88496763967562373492857119"
+        ]
+      ],
+      "top_volatility_buckets_full_period_diagnostic": [
+        [
+          "EXTREME",
+          "11.50833180024449613531791424"
+        ],
+        [
+          "LOW",
+          "0"
+        ],
+        [
+          "MEDIUM",
+          "0"
+        ],
+        [
+          "UNKNOWN",
+          "0"
+        ],
+        [
+          "HIGH",
+          "-1.536481636972309602978264249"
+        ]
+      ]
+    },
+    {
+      "causal_claim": false,
+      "configuration": "FUTURES_LONG_SHORT_TIME_EXIT_24_1X",
+      "funding_effect": "-6.4824932346127481126790331",
+      "historical_pattern": "NOT_OBSERVED_PREVIOUSLY",
+      "language_policy": "ASSOCIATED_WITH;CONCENTRATED_IN;NOT_OBSERVED_PREVIOUSLY;REPEATED_PATTERN;INSUFFICIENT_EVIDENCE",
+      "low_cost_minus_base_pnl": "118.3558009868940216161213797",
+      "prior_positive_years": [],
+      "result_without_top_5": "-192.1829833275647276072270840",
+      "side_contribution": [
+        [
+          "LONG",
+          "354.4430858079461025226396791"
+        ],
+        [
+          "SHORT",
+          "328.9182447127337677011098578"
+        ]
+      ],
+      "top_5_concentration_percent": "46.51427625645072724849854896",
+      "top_quarters": [
+        [
+          "2025-Q2",
+          "400.9435731627471486391889737"
+        ],
+        [
+          "2025-Q1",
+          "198.6501724417050714781793104"
+        ],
+        [
+          "2025-Q3",
+          "42.72594482722252382328051198"
+        ],
+        [
+          "2025-Q4",
+          "41.04164008900512628310074090"
+        ]
+      ],
+      "top_regimes_full_period_diagnostic": [
+        [
+          "TRENDING_UP",
+          "354.4430858079461025226396791"
+        ],
+        [
+          "HIGH_VOLATILITY",
+          "183.4348190295606220799999997"
+        ],
+        [
+          "TRENDING_DOWN",
+          "145.4834256831731456211098582"
+        ],
+        [
+          "RANGING",
+          "0"
+        ],
+        [
+          "UNKNOWN",
+          "0"
+        ]
+      ],
+      "top_volatility_buckets_full_period_diagnostic": [
+        [
+          "EXTREME",
+          "7.275452152024321460775761679"
+        ],
+        [
+          "LOW",
+          "0"
+        ],
+        [
+          "MEDIUM",
+          "0"
+        ],
+        [
+          "UNKNOWN",
+          "0"
+        ],
+        [
+          "HIGH",
+          "-0.4418388468175227585382663098"
+        ]
+      ]
+    },
+    {
+      "causal_claim": false,
+      "configuration": "FUTURES_LONG_SHORT_TARGET_R_2_5_1X",
+      "funding_effect": "-5.946179374568800626632245",
+      "historical_pattern": "NOT_OBSERVED_PREVIOUSLY",
+      "language_policy": "ASSOCIATED_WITH;CONCENTRATED_IN;NOT_OBSERVED_PREVIOUSLY;REPEATED_PATTERN;INSUFFICIENT_EVIDENCE",
+      "low_cost_minus_base_pnl": "112.643481856300757520301358",
+      "prior_positive_years": [],
+      "result_without_top_5": "38.836431544719090563435567",
+      "side_contribution": [
+        [
+          "LONG",
+          "622.3503018203430327462829971"
+        ],
+        [
+          "SHORT",
+          "573.0959257993990001363704689"
+        ]
+      ],
+      "top_5_concentration_percent": "43.38293206389971361567187708",
+      "top_quarters": [
+        [
+          "2025-Q2",
+          "391.3688338812937424373328595"
+        ],
+        [
+          "2025-Q1",
+          "360.4114243437923196021651474"
+        ],
+        [
+          "2025-Q3",
+          "243.7998660190074951730355649"
+        ],
+        [
+          "2025-Q4",
+          "199.8661033756484756701198943"
+        ]
+      ],
+      "top_regimes_full_period_diagnostic": [
+        [
+          "TRENDING_DOWN",
+          "668.8937869244076518615206259"
+        ],
+        [
+          "TRENDING_UP",
+          "622.3503018203430327462829971"
+        ],
+        [
+          "RANGING",
+          "0"
+        ],
+        [
+          "UNKNOWN",
+          "0"
+        ],
+        [
+          "HIGH_VOLATILITY",
+          "-95.79786112500865172515015701"
+        ]
+      ],
+      "top_volatility_buckets_full_period_diagnostic": [
+        [
+          "EXTREME",
+          "12.12596054493979150104074211"
+        ],
+        [
+          "LOW",
+          "0"
+        ],
+        [
+          "MEDIUM",
+          "0"
+        ],
+        [
+          "UNKNOWN",
+          "0"
+        ],
+        [
+          "HIGH",
+          "-0.1714982687423711722142074436"
+        ]
+      ]
+    }
+  ]
+}

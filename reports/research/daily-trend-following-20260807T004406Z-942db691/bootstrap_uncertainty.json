@@ -1,0 +1,596 @@
+[
+  {
+    "confidence_percent": "95",
+    "expectancy_interval": null,
+    "iterations": 2000,
+    "market": "SPOT",
+    "mean_trade_pnl_interval": null,
+    "median_trade_pnl_interval": null,
+    "mode": "LONG",
+    "observed_expectancy": "15.108037729814053500000",
+    "observed_mean_trade_pnl": "15.108037729814053500000",
+    "observed_median_trade_pnl": "22.054771145673639000000",
+    "observed_total_pnl": "60.432150919256214000000",
+    "observed_win_rate_percent": "75.00",
+    "period": "DEVELOPMENT",
+    "sample_size": 4,
+    "seed": 42,
+    "status": "INSUFFICIENT_SAMPLE",
+    "total_pnl_interval": null,
+    "variant_id": "TF_DONCHIAN_20_FIXED_RISK",
+    "win_rate_percent_interval": null
+  },
+  {
+    "confidence_percent": "95",
+    "expectancy_interval": {
+      "lower": "-27.805249892380036800000",
+      "upper": "62.768075124231499200000"
+    },
+    "iterations": 2000,
+    "market": "SPOT",
+    "mean_trade_pnl_interval": {
+      "lower": "-27.805249892380036800000",
+      "upper": "62.768075124231499200000"
+    },
+    "median_trade_pnl_interval": {
+      "lower": "-44.036261286834048000000",
+      "upper": "99.949404651809856000000"
+    },
+    "mode": "LONG",
+    "observed_expectancy": "17.481412615925731200000",
+    "observed_mean_trade_pnl": "17.481412615925731200000",
+    "observed_median_trade_pnl": "31.488346861196472000000",
+    "observed_total_pnl": "87.407063079628656000000",
+    "observed_win_rate_percent": "60.0",
+    "period": "DEVELOPMENT",
+    "sample_size": 5,
+    "seed": 42,
+    "status": "INCLUDES_ZERO",
+    "total_pnl_interval": {
+      "lower": "-139.026249461900184000000",
+      "upper": "313.840375621157496000000"
+    },
+    "variant_id": "TF_DONCHIAN_10_FIXED_RISK",
+    "win_rate_percent_interval": {
+      "lower": "20.0",
+      "upper": "100"
+    }
+  },
+  {
+    "confidence_percent": "95",
+    "expectancy_interval": null,
+    "iterations": 2000,
+    "market": "SPOT",
+    "mean_trade_pnl_interval": null,
+    "median_trade_pnl_interval": null,
+    "mode": "LONG",
+    "observed_expectancy": "15.108037729814053500000",
+    "observed_mean_trade_pnl": "15.108037729814053500000",
+    "observed_median_trade_pnl": "22.054771145673639000000",
+    "observed_total_pnl": "60.432150919256214000000",
+    "observed_win_rate_percent": "75.00",
+    "period": "DEVELOPMENT",
+    "sample_size": 4,
+    "seed": 42,
+    "status": "INSUFFICIENT_SAMPLE",
+    "total_pnl_interval": null,
+    "variant_id": "TF_DONCHIAN_20_DEFENSIVE_RISK",
+    "win_rate_percent_interval": null
+  },
+  {
+    "confidence_percent": "95",
+    "expectancy_interval": {
+      "lower": "-27.805249892380036800000",
+      "upper": "62.768075124231499200000"
+    },
+    "iterations": 2000,
+    "market": "SPOT",
+    "mean_trade_pnl_interval": {
+      "lower": "-27.805249892380036800000",
+      "upper": "62.768075124231499200000"
+    },
+    "median_trade_pnl_interval": {
+      "lower": "-44.036261286834048000000",
+      "upper": "99.949404651809856000000"
+    },
+    "mode": "LONG",
+    "observed_expectancy": "17.481412615925731200000",
+    "observed_mean_trade_pnl": "17.481412615925731200000",
+    "observed_median_trade_pnl": "31.488346861196472000000",
+    "observed_total_pnl": "87.407063079628656000000",
+    "observed_win_rate_percent": "60.0",
+    "period": "DEVELOPMENT",
+    "sample_size": 5,
+    "seed": 42,
+    "status": "INCLUDES_ZERO",
+    "total_pnl_interval": {
+      "lower": "-139.026249461900184000000",
+      "upper": "313.840375621157496000000"
+    },
+    "variant_id": "TF_DONCHIAN_10_DEFENSIVE_RISK",
+    "win_rate_percent_interval": {
+      "lower": "20.0",
+      "upper": "100"
+    }
+  },
+  {
+    "confidence_percent": "95",
+    "expectancy_interval": null,
+    "iterations": 2000,
+    "market": "SPOT",
+    "mean_trade_pnl_interval": null,
+    "median_trade_pnl_interval": null,
+    "mode": "LONG",
+    "observed_expectancy": "15.108037729814053500000",
+    "observed_mean_trade_pnl": "15.108037729814053500000",
+    "observed_median_trade_pnl": "22.054771145673639000000",
+    "observed_total_pnl": "60.432150919256214000000",
+    "observed_win_rate_percent": "75.00",
+    "period": "DEVELOPMENT",
+    "sample_size": 4,
+    "seed": 42,
+    "status": "INSUFFICIENT_SAMPLE",
+    "total_pnl_interval": null,
+    "variant_id": "TF_LONG_ONLY_DONCHIAN_20",
+    "win_rate_percent_interval": null
+  },
+  {
+    "confidence_percent": "95",
+    "expectancy_interval": null,
+    "iterations": 2000,
+    "market": "FUTURES",
+    "mean_trade_pnl_interval": null,
+    "median_trade_pnl_interval": null,
+    "mode": "LONG",
+    "observed_expectancy": "-17.38680455058660383723165",
+    "observed_mean_trade_pnl": "-17.38680455058660383723165",
+    "observed_median_trade_pnl": "8.07655297246787378855325",
+    "observed_total_pnl": "-69.5472182023464153489266",
+    "observed_win_rate_percent": "50.0",
+    "period": "DEVELOPMENT",
+    "sample_size": 4,
+    "seed": 42,
+    "status": "INSUFFICIENT_SAMPLE",
+    "total_pnl_interval": null,
+    "variant_id": "TF_DONCHIAN_20_FIXED_RISK",
+    "win_rate_percent_interval": null
+  },
+  {
+    "confidence_percent": "95",
+    "expectancy_interval": {
+      "lower": "-126.61865567678245699001912",
+      "upper": "104.9169873458414195406904"
+    },
+    "iterations": 2000,
+    "market": "FUTURES",
+    "mean_trade_pnl_interval": {
+      "lower": "-126.61865567678245699001912",
+      "upper": "104.9169873458414195406904"
+    },
+    "median_trade_pnl_interval": {
+      "lower": "-185.7386058917444833767447",
+      "upper": "200.1541324792953108411045"
+    },
+    "mode": "LONG",
+    "observed_expectancy": "-10.27327257674573049262478",
+    "observed_mean_trade_pnl": "-10.27327257674573049262478",
+    "observed_median_trade_pnl": "10.0955712373993548923778",
+    "observed_total_pnl": "-51.3663628837286524631239",
+    "observed_win_rate_percent": "60.0",
+    "period": "DEVELOPMENT",
+    "sample_size": 5,
+    "seed": 42,
+    "status": "INCLUDES_ZERO",
+    "total_pnl_interval": {
+      "lower": "-633.0932783839122849500956",
+      "upper": "524.5849367292070977034520"
+    },
+    "variant_id": "TF_DONCHIAN_10_FIXED_RISK",
+    "win_rate_percent_interval": {
+      "lower": "20.0",
+      "upper": "100"
+    }
+  },
+  {
+    "confidence_percent": "95",
+    "expectancy_interval": null,
+    "iterations": 2000,
+    "market": "FUTURES",
+    "mean_trade_pnl_interval": null,
+    "median_trade_pnl_interval": null,
+    "mode": "LONG",
+    "observed_expectancy": "-17.38680455058660383723165",
+    "observed_mean_trade_pnl": "-17.38680455058660383723165",
+    "observed_median_trade_pnl": "8.07655297246787378855325",
+    "observed_total_pnl": "-69.5472182023464153489266",
+    "observed_win_rate_percent": "50.0",
+    "period": "DEVELOPMENT",
+    "sample_size": 4,
+    "seed": 42,
+    "status": "INSUFFICIENT_SAMPLE",
+    "total_pnl_interval": null,
+    "variant_id": "TF_DONCHIAN_20_DEFENSIVE_RISK",
+    "win_rate_percent_interval": null
+  },
+  {
+    "confidence_percent": "95",
+    "expectancy_interval": {
+      "lower": "-126.61865567678245699001912",
+      "upper": "104.9169873458414195406904"
+    },
+    "iterations": 2000,
+    "market": "FUTURES",
+    "mean_trade_pnl_interval": {
+      "lower": "-126.61865567678245699001912",
+      "upper": "104.9169873458414195406904"
+    },
+    "median_trade_pnl_interval": {
+      "lower": "-185.7386058917444833767447",
+      "upper": "200.1541324792953108411045"
+    },
+    "mode": "LONG",
+    "observed_expectancy": "-10.27327257674573049262478",
+    "observed_mean_trade_pnl": "-10.27327257674573049262478",
+    "observed_median_trade_pnl": "10.0955712373993548923778",
+    "observed_total_pnl": "-51.3663628837286524631239",
+    "observed_win_rate_percent": "60.0",
+    "period": "DEVELOPMENT",
+    "sample_size": 5,
+    "seed": 42,
+    "status": "INCLUDES_ZERO",
+    "total_pnl_interval": {
+      "lower": "-633.0932783839122849500956",
+      "upper": "524.5849367292070977034520"
+    },
+    "variant_id": "TF_DONCHIAN_10_DEFENSIVE_RISK",
+    "win_rate_percent_interval": {
+      "lower": "20.0",
+      "upper": "100"
+    }
+  },
+  {
+    "confidence_percent": "95",
+    "expectancy_interval": null,
+    "iterations": 2000,
+    "market": "FUTURES",
+    "mean_trade_pnl_interval": null,
+    "median_trade_pnl_interval": null,
+    "mode": "LONG",
+    "observed_expectancy": "-17.38680455058660383723165",
+    "observed_mean_trade_pnl": "-17.38680455058660383723165",
+    "observed_median_trade_pnl": "8.07655297246787378855325",
+    "observed_total_pnl": "-69.5472182023464153489266",
+    "observed_win_rate_percent": "50.0",
+    "period": "DEVELOPMENT",
+    "sample_size": 4,
+    "seed": 42,
+    "status": "INSUFFICIENT_SAMPLE",
+    "total_pnl_interval": null,
+    "variant_id": "TF_LONG_ONLY_DONCHIAN_20",
+    "win_rate_percent_interval": null
+  },
+  {
+    "confidence_percent": "95",
+    "expectancy_interval": {
+      "lower": "-72.02035651393029847032334",
+      "upper": "-29.07215488705764426466452"
+    },
+    "iterations": 2000,
+    "market": "FUTURES",
+    "mean_trade_pnl_interval": {
+      "lower": "-72.02035651393029847032334",
+      "upper": "-29.07215488705764426466452"
+    },
+    "median_trade_pnl_interval": {
+      "lower": "-93.2133772396963549268135",
+      "upper": "-25.7918451634422691918995"
+    },
+    "mode": "SHORT",
+    "observed_expectancy": "-47.54624431778184415361616",
+    "observed_mean_trade_pnl": "-47.54624431778184415361616",
+    "observed_median_trade_pnl": "-38.2643483352081690781916",
+    "observed_total_pnl": "-237.7312215889092207680808",
+    "observed_win_rate_percent": "0",
+    "period": "DEVELOPMENT",
+    "sample_size": 5,
+    "seed": 42,
+    "status": "NEGATIVE_UNCERTAIN",
+    "total_pnl_interval": {
+      "lower": "-360.1017825696514923516167",
+      "upper": "-145.3607744352882213233226"
+    },
+    "variant_id": "TF_DONCHIAN_20_FIXED_RISK",
+    "win_rate_percent_interval": {
+      "lower": "0",
+      "upper": "0"
+    }
+  },
+  {
+    "confidence_percent": "95",
+    "expectancy_interval": {
+      "lower": "-89.14616692658983944485416667",
+      "upper": "-24.81583276987588597665553333"
+    },
+    "iterations": 2000,
+    "market": "FUTURES",
+    "mean_trade_pnl_interval": {
+      "lower": "-89.14616692658983944485416667",
+      "upper": "-24.81583276987588597665553333"
+    },
+    "median_trade_pnl_interval": {
+      "lower": "-99.68102658105235101401785",
+      "upper": "-16.56567562818499752953015"
+    },
+    "mode": "SHORT",
+    "observed_expectancy": "-52.5209497541650038048181",
+    "observed_mean_trade_pnl": "-52.5209497541650038048181",
+    "observed_median_trade_pnl": "-41.3161470532576628709063",
+    "observed_total_pnl": "-315.1256985249900228289086",
+    "observed_win_rate_percent": "0",
+    "period": "DEVELOPMENT",
+    "sample_size": 6,
+    "seed": 42,
+    "status": "NEGATIVE_UNCERTAIN",
+    "total_pnl_interval": {
+      "lower": "-534.8770015595390366691250",
+      "upper": "-148.8949966192553158599332"
+    },
+    "variant_id": "TF_DONCHIAN_10_FIXED_RISK",
+    "win_rate_percent_interval": {
+      "lower": "0",
+      "upper": "0"
+    }
+  },
+  {
+    "confidence_percent": "95",
+    "expectancy_interval": {
+      "lower": "-46.92890911246207001558276",
+      "upper": "-22.6223153553402045529977"
+    },
+    "iterations": 2000,
+    "market": "FUTURES",
+    "mean_trade_pnl_interval": {
+      "lower": "-46.92890911246207001558276",
+      "upper": "-22.6223153553402045529977"
+    },
+    "median_trade_pnl_interval": {
+      "lower": "-52.7052829639646706405102",
+      "upper": "-12.8958956490624130253950"
+    },
+    "mode": "SHORT",
+    "observed_expectancy": "-35.65788335554980728658006",
+    "observed_mean_trade_pnl": "-35.65788335554980728658006",
+    "observed_median_trade_pnl": "-38.2643483352081690781916",
+    "observed_total_pnl": "-178.2894167777490364329003",
+    "observed_win_rate_percent": "0",
+    "period": "DEVELOPMENT",
+    "sample_size": 5,
+    "seed": 42,
+    "status": "NEGATIVE_UNCERTAIN",
+    "total_pnl_interval": {
+      "lower": "-234.6445455623103500779138",
+      "upper": "-113.1115767767010227649885"
+    },
+    "variant_id": "TF_DONCHIAN_20_DEFENSIVE_RISK",
+    "win_rate_percent_interval": {
+      "lower": "0",
+      "upper": "0"
+    }
+  },
+  {
+    "confidence_percent": "95",
+    "expectancy_interval": {
+      "lower": "-50.23439577046006231747183333",
+      "upper": "-17.99362911023456934224533333"
+    },
+    "iterations": 2000,
+    "market": "FUTURES",
+    "mean_trade_pnl_interval": {
+      "lower": "-50.23439577046006231747183333",
+      "upper": "-17.99362911023456934224533333"
+    },
+    "median_trade_pnl_interval": {
+      "lower": "-59.3736644054607296587018",
+      "upper": "-10.0089220812046414078361"
+    },
+    "mode": "SHORT",
+    "observed_expectancy": "-33.77948166237469956718326667",
+    "observed_mean_trade_pnl": "-33.77948166237469956718326667",
+    "observed_median_trade_pnl": "-31.9558585004587276350119",
+    "observed_total_pnl": "-202.6768899742481974030996",
+    "observed_win_rate_percent": "0",
+    "period": "DEVELOPMENT",
+    "sample_size": 6,
+    "seed": 42,
+    "status": "NEGATIVE_UNCERTAIN",
+    "total_pnl_interval": {
+      "lower": "-301.4063746227603739048310",
+      "upper": "-107.9617746614074160534720"
+    },
+    "variant_id": "TF_DONCHIAN_10_DEFENSIVE_RISK",
+    "win_rate_percent_interval": {
+      "lower": "0",
+      "upper": "0"
+    }
+  },
+  {
+    "confidence_percent": "95",
+    "expectancy_interval": {
+      "lower": "-72.02035651393029847032334",
+      "upper": "-29.07215488705764426466452"
+    },
+    "iterations": 2000,
+    "market": "FUTURES",
+    "mean_trade_pnl_interval": {
+      "lower": "-72.02035651393029847032334",
+      "upper": "-29.07215488705764426466452"
+    },
+    "median_trade_pnl_interval": {
+      "lower": "-93.2133772396963549268135",
+      "upper": "-25.7918451634422691918995"
+    },
+    "mode": "SHORT",
+    "observed_expectancy": "-47.54624431778184415361616",
+    "observed_mean_trade_pnl": "-47.54624431778184415361616",
+    "observed_median_trade_pnl": "-38.2643483352081690781916",
+    "observed_total_pnl": "-237.7312215889092207680808",
+    "observed_win_rate_percent": "0",
+    "period": "DEVELOPMENT",
+    "sample_size": 5,
+    "seed": 42,
+    "status": "NEGATIVE_UNCERTAIN",
+    "total_pnl_interval": {
+      "lower": "-360.1017825696514923516167",
+      "upper": "-145.3607744352882213233226"
+    },
+    "variant_id": "TF_SHORT_ONLY_DONCHIAN_20",
+    "win_rate_percent_interval": {
+      "lower": "0",
+      "upper": "0"
+    }
+  },
+  {
+    "confidence_percent": "95",
+    "expectancy_interval": {
+      "lower": "-89.96328121660144432413985556",
+      "upper": "3.060252459952176176703755556"
+    },
+    "iterations": 2000,
+    "market": "FUTURES",
+    "mean_trade_pnl_interval": {
+      "lower": "-89.96328121660144432413985556",
+      "upper": "3.060252459952176176703755556"
+    },
+    "median_trade_pnl_interval": {
+      "lower": "-91.1058634710406946144465",
+      "upper": "31.8545656636072323850175"
+    },
+    "mode": "LONG_SHORT",
+    "observed_expectancy": "-41.22561635458020434633157778",
+    "observed_mean_trade_pnl": "-41.22561635458020434633157778",
+    "observed_median_trade_pnl": "-38.2643483352081690781916",
+    "observed_total_pnl": "-371.0305471912218391169842",
+    "observed_win_rate_percent": "22.22222222222222222222222222",
+    "period": "DEVELOPMENT",
+    "sample_size": 9,
+    "seed": 42,
+    "status": "INCLUDES_ZERO",
+    "total_pnl_interval": {
+      "lower": "-809.6695309494129989172587",
+      "upper": "27.5422721395695855903338"
+    },
+    "variant_id": "TF_DONCHIAN_20_FIXED_RISK",
+    "win_rate_percent_interval": {
+      "lower": "0",
+      "upper": "55.55555555555555555555555556"
+    }
+  },
+  {
+    "confidence_percent": "95",
+    "expectancy_interval": {
+      "lower": "-95.01633502594752260370581",
+      "upper": "30.49902384296159535014807"
+    },
+    "iterations": 2000,
+    "market": "FUTURES",
+    "mean_trade_pnl_interval": {
+      "lower": "-95.01633502594752260370581",
+      "upper": "30.49902384296159535014807"
+    },
+    "median_trade_pnl_interval": {
+      "lower": "-109.1315398030556605689205",
+      "upper": "13.51461415806950159256045"
+    },
+    "mode": "LONG_SHORT",
+    "observed_expectancy": "-33.93075497923629496829449",
+    "observed_mean_trade_pnl": "-33.93075497923629496829449",
+    "observed_median_trade_pnl": "-41.3161470532576628709063",
+    "observed_total_pnl": "-339.3075497923629496829449",
+    "observed_win_rate_percent": "30.0",
+    "period": "DEVELOPMENT",
+    "sample_size": 10,
+    "seed": 42,
+    "status": "INCLUDES_ZERO",
+    "total_pnl_interval": {
+      "lower": "-950.1633502594752260370581",
+      "upper": "304.9902384296159535014807"
+    },
+    "variant_id": "TF_DONCHIAN_10_FIXED_RISK",
+    "win_rate_percent_interval": {
+      "lower": "0",
+      "upper": "60.0"
+    }
+  },
+  {
+    "confidence_percent": "95",
+    "expectancy_interval": {
+      "lower": "-51.08013223225790758326973333",
+      "upper": "-2.669354177660662369671422222"
+    },
+    "iterations": 2000,
+    "market": "FUTURES",
+    "mean_trade_pnl_interval": {
+      "lower": "-51.08013223225790758326973333",
+      "upper": "-2.669354177660662369671422222"
+    },
+    "median_trade_pnl_interval": {
+      "lower": "-46.1393833000859227116050",
+      "upper": "15.9272442532227852342350"
+    },
+    "mode": "LONG_SHORT",
+    "observed_expectancy": "-27.21966078225270832510543333",
+    "observed_mean_trade_pnl": "-27.21966078225270832510543333",
+    "observed_median_trade_pnl": "-38.2643483352081690781916",
+    "observed_total_pnl": "-244.9769470402743749259489",
+    "observed_win_rate_percent": "22.22222222222222222222222222",
+    "period": "DEVELOPMENT",
+    "sample_size": 9,
+    "seed": 42,
+    "status": "NEGATIVE_UNCERTAIN",
+    "total_pnl_interval": {
+      "lower": "-459.7211900903211682494276",
+      "upper": "-24.0241875989459613270428"
+    },
+    "variant_id": "TF_DONCHIAN_20_DEFENSIVE_RISK",
+    "win_rate_percent_interval": {
+      "lower": "0",
+      "upper": "55.55555555555555555555555556"
+    }
+  },
+  {
+    "confidence_percent": "95",
+    "expectancy_interval": {
+      "lower": "-52.34257169003066332936381",
+      "upper": "11.9607141072536924790642"
+    },
+    "iterations": 2000,
+    "market": "FUTURES",
+    "mean_trade_pnl_interval": {
+      "lower": "-52.34257169003066332936381",
+      "upper": "11.9607141072536924790642"
+    },
+    "median_trade_pnl_interval": {
+      "lower": "-58.9782165346661731325924",
+      "upper": "5.0312228119226081532092"
+    },
+    "mode": "LONG_SHORT",
+    "observed_expectancy": "-21.38193668891126957887528",
+    "observed_mean_trade_pnl": "-21.38193668891126957887528",
+    "observed_median_trade_pnl": "-31.78684409495183683617765",
+    "observed_total_pnl": "-213.8193668891126957887528",
+    "observed_win_rate_percent": "30.0",
+    "period": "DEVELOPMENT",
+    "sample_size": 10,
+    "seed": 42,
+    "status": "INCLUDES_ZERO",
+    "total_pnl_interval": {
+      "lower": "-523.4257169003066332936381",
+      "upper": "119.6071410725369247906420"
+    },
+    "variant_id": "TF_DONCHIAN_10_DEFENSIVE_RISK",
+    "win_rate_percent_interval": {
+      "lower": "0",
+      "upper": "60.0"
+    }
+  }
+]

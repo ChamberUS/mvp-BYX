@@ -1,0 +1,22 @@
+{
+  "all_closed": true,
+  "all_ohlc_valid": true,
+  "all_timestamps_utc": true,
+  "all_volumes_non_negative": true,
+  "content_hash": "fe2e3e11d5fd62da0d96ea48d1985b379b2bd8ed427af58212b4e49ec404c38f",
+  "contract_type": "PERPETUAL",
+  "count": 35064,
+  "duplicate_count": 0,
+  "first_open_time": "2022-01-01T00:00:00+00:00",
+  "gap_count": 0,
+  "gap_policy": "WARN",
+  "interval": "1h",
+  "last_open_time": "2025-12-31T23:00:00+00:00",
+  "market_type": "USD_M_FUTURES",
+  "missing_candle_count": 0,
+  "spot_storage_collision_count": 0,
+  "strictly_increasing": true,
+  "symbol": "ETHUSDT",
+  "unexplained_gap_count": 0,
+  "warnings": []
+}

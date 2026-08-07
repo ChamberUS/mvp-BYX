@@ -1,0 +1,111 @@
+{
+  "catalog_file_sha256": "dfea3fbf4e5d6a7c2c84493d389a044604816424a5325f55d3f890fe8bbaa598",
+  "catalog_hash": "942db6918c3f41f5a56342c0522b4204fb40bc78447e851e060cf98a838cd9ae",
+  "cost_parameters": [
+    [
+      "base_multiplier",
+      "1"
+    ],
+    [
+      "funding_source",
+      "HISTORICAL_UNCHANGED"
+    ],
+    [
+      "futures_base_fee_bps",
+      "5"
+    ],
+    [
+      "futures_base_slippage_bps",
+      "5"
+    ],
+    [
+      "futures_base_spread_bps",
+      "2"
+    ],
+    [
+      "high_multiplier",
+      "2"
+    ],
+    [
+      "low_multiplier",
+      "0.5"
+    ],
+    [
+      "spot_base_fee_bps",
+      "20"
+    ],
+    [
+      "spot_base_slippage_bps",
+      "5"
+    ],
+    [
+      "spot_base_spread_bps",
+      "2"
+    ],
+    [
+      "stress_multiplier",
+      "4"
+    ]
+  ],
+  "cost_scenarios": [
+    "LOW",
+    "BASE",
+    "HIGH",
+    "STRESS"
+  ],
+  "dataset_hashes": [
+    [
+      "futures_daily",
+      "67ddee3b866d235ef634f0c19c5351232165e9ba21ba8ce45af21b25f50eb4f4"
+    ],
+    [
+      "futures_funding",
+      "377e9dc7ab64ad8a07a69397a7a6178b88361517efe325fdfcf015d7f3d0f9b4"
+    ],
+    [
+      "futures_hourly",
+      "08b78942aa063cc6e32ce43b6ba64e2b91ff0302ca6a2bc38d5786f56f10d899"
+    ],
+    [
+      "futures_mark",
+      "79b61ec895c85a76a2b15ac569932ee4baa913979b95c89a1a48e38d874f246c"
+    ],
+    [
+      "spot_daily",
+      "ffe35a168c1d7daee538c48333b8a3498384bf39bc338746242466e633dd1617"
+    ],
+    [
+      "spot_hourly",
+      "b300aa6553ebd545dd6147c677217075bbfce061e9bdf0ba8841d37032416964"
+    ]
+  ],
+  "development_fingerprint": "388e7137c5a4e8644015cc183e115545b5534513d41ad11cd07e2d230cdcfa59",
+  "git_commit": "a889362effe0745ac06ce42ae82cadf16a91bdee",
+  "git_dirty": true,
+  "leverage": "1",
+  "lock_version": 1,
+  "locked_before_validation": true,
+  "periods": {
+    "consumed_end": "2026-07-01T00:00:00+00:00",
+    "consumed_start": "2025-01-01T00:00:00+00:00",
+    "development_end": "2023-12-31T23:00:00+00:00",
+    "development_start": "2022-01-01T00:00:00+00:00",
+    "validation_end": "2024-12-31T23:00:00+00:00",
+    "validation_start": "2024-01-01T00:00:00+00:00"
+  },
+  "risk_model": "FIXED_AND_DEFENSIVE_PRE_REGISTERED",
+  "selection_criteria": [
+    "median_walk_forward_net_return",
+    "positive_fold_percent",
+    "worst_drawdown_percent",
+    "top_three_concentration_percent",
+    "development_trade_count",
+    "exposure_percent",
+    "complexity_rank",
+    "catalog_order"
+  ],
+  "selection_timestamp": "2026-08-07T00:52:38.248214+00:00",
+  "selections": [],
+  "validation_executed_before_lock": false,
+  "validation_loaded_before_lock": false
+}

@@ -1,0 +1,22 @@
+{
+  "alignment_policy": "SAME_OPEN_TIME_OR_LAST_KNOWN_PREVIOUS_MAX_ONE_INTERVAL",
+  "all_closed": true,
+  "all_prices_positive": true,
+  "all_timestamps_utc": true,
+  "content_hash": "959fab5e1d4f88c01291f889c92d5b6f6cad678cb28b859703c1990108572f31",
+  "count": 35064,
+  "coverage_percent": "100",
+  "duplicate_count": 0,
+  "exact_match_count": 35064,
+  "first_open_time": "2022-01-01T00:00:00+00:00",
+  "future_match_count": 0,
+  "gap_count": 0,
+  "interval": "1h",
+  "last_open_time": "2025-12-31T23:00:00+00:00",
+  "maximum_alignment_delay_seconds": 0,
+  "missing_count": 0,
+  "previous_match_count": 0,
+  "strictly_increasing": true,
+  "symbol": "ETHUSDT",
+  "warnings": []
+}

@@ -1,0 +1,93 @@
+{
+  "canonical_hash": "49301c90ded03eb83da6245e47b824931f11a7afdf6e427f88ca809362d42d8b",
+  "file_sha256": "1abeb7df0f120132702aabd3ce99a540115184157df95832a0c940308cc2d309",
+  "hypotheses": [
+    {
+      "analyzer": "ORIGINAL",
+      "catalog_key": "original_baseline",
+      "complexity_rank": 0,
+      "maximum_entry_extension_atr": "0",
+      "maximum_pullback_depth_atr": "0",
+      "minimum_pullback_depth_atr": "0",
+      "pullback_max_candles": 0,
+      "pullback_min_candles": 0,
+      "regime_loss_exit": false,
+      "time_exit_candles": null,
+      "trend_persistence_candles": 0,
+      "variant_id": "ORIGINAL_BASELINE"
+    },
+    {
+      "analyzer": "PULLBACK",
+      "catalog_key": "pullback_base",
+      "complexity_rank": 1,
+      "maximum_entry_extension_atr": "1.0",
+      "maximum_pullback_depth_atr": "1.0",
+      "minimum_pullback_depth_atr": "0.10",
+      "pullback_max_candles": 6,
+      "pullback_min_candles": 1,
+      "regime_loss_exit": false,
+      "time_exit_candles": null,
+      "trend_persistence_candles": 3,
+      "variant_id": "PULLBACK_BASE"
+    },
+    {
+      "analyzer": "PULLBACK",
+      "catalog_key": "pullback_persistence_6",
+      "complexity_rank": 2,
+      "maximum_entry_extension_atr": "1.0",
+      "maximum_pullback_depth_atr": "1.0",
+      "minimum_pullback_depth_atr": "0.10",
+      "pullback_max_candles": 6,
+      "pullback_min_candles": 1,
+      "regime_loss_exit": false,
+      "time_exit_candles": null,
+      "trend_persistence_candles": 6,
+      "variant_id": "PULLBACK_PERSISTENCE_6"
+    },
+    {
+      "analyzer": "PULLBACK",
+      "catalog_key": "pullback_time_exit_24",
+      "complexity_rank": 2,
+      "maximum_entry_extension_atr": "1.0",
+      "maximum_pullback_depth_atr": "1.0",
+      "minimum_pullback_depth_atr": "0.10",
+      "pullback_max_candles": 6,
+      "pullback_min_candles": 1,
+      "regime_loss_exit": false,
+      "time_exit_candles": 24,
+      "trend_persistence_candles": 3,
+      "variant_id": "PULLBACK_TIME_EXIT_24"
+    },
+    {
+      "analyzer": "PULLBACK",
+      "catalog_key": "pullback_regime_loss_exit",
+      "complexity_rank": 3,
+      "maximum_entry_extension_atr": "1.0",
+      "maximum_pullback_depth_atr": "1.0",
+      "minimum_pullback_depth_atr": "0.10",
+      "pullback_max_candles": 6,
+      "pullback_min_candles": 1,
+      "regime_loss_exit": true,
+      "time_exit_candles": null,
+      "trend_persistence_candles": 3,
+      "variant_id": "PULLBACK_REGIME_LOSS_EXIT"
+    },
+    {
+      "analyzer": "PULLBACK",
+      "catalog_key": "pullback_persistence_6_regime_loss_exit",
+      "complexity_rank": 4,
+      "maximum_entry_extension_atr": "1.0",
+      "maximum_pullback_depth_atr": "1.0",
+      "minimum_pullback_depth_atr": "0.10",
+      "pullback_max_candles": 6,
+      "pullback_min_candles": 1,
+      "regime_loss_exit": true,
+      "time_exit_candles": null,
+      "trend_persistence_candles": 6,
+      "variant_id": "PULLBACK_PERSISTENCE_6_REGIME_LOSS_EXIT"
+    }
+  ],
+  "immutable_during_execution": true,
+  "path": "pullback-hypotheses-v1.toml",
+  "version": 1
+}

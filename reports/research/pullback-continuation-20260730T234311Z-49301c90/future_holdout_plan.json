@@ -1,0 +1,6 @@
+{
+  "candidate_created": false,
+  "execution_started": false,
+  "reason": "No configuration met all pre-registered continuation criteria.",
+  "status": "NO_HOLDOUT_PLAN"
+}

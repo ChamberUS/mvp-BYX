@@ -49,6 +49,7 @@ class FuturesExitReason(StrEnum):
     LIQUIDATION = "LIQUIDATION"
     STOP_LOSS = "STOP_LOSS"
     TAKE_PROFIT = "TAKE_PROFIT"
+    REGIME_LOSS_EXIT = "REGIME_LOSS_EXIT"
     TIME_EXIT = "TIME_EXIT"
     FORCED_END = "FORCED_END"
     MANUAL_SIMULATED_EXIT = "MANUAL_SIMULATED_EXIT"
@@ -492,6 +493,11 @@ class FuturesTrade:
     exit_reason: FuturesExitReason
     holding_candles: int
     intrabar_ambiguous: bool
+    liquidation_price: Decimal | None = None
+    mark_at_exit: Decimal | None = None
+    maintenance_margin_at_exit: Decimal | None = None
+    wallet_before_exit: Decimal | None = None
+    wallet_after_exit: Decimal | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -543,6 +549,7 @@ class FuturesDecisionTrace:
     risk_reason_code: FuturesRiskReasonCode | None
     position_side: PositionSide | None
     mark_price: Decimal
+    regime: MarketRegime = MarketRegime.UNKNOWN
 
 
 @dataclass(frozen=True, slots=True)

@@ -1,0 +1,246 @@
+{
+  "api_key_used": false,
+  "artifacts": [
+    "experiment_manifest.json",
+    "hypothesis_catalog.json",
+    "pullback_decision_funnel.csv",
+    "pullback_reason_codes.csv",
+    "development_results.csv",
+    "development_walk_forward.csv",
+    "validation_results.csv",
+    "validation_walk_forward.csv",
+    "market_comparison.csv",
+    "side_contribution.csv",
+    "cost_scenarios.csv",
+    "pullback_entry_diagnostics.csv",
+    "regime_loss_exit_diagnostics.csv",
+    "concentration_analysis.csv",
+    "bootstrap_uncertainty.json",
+    "hypothesis_assessment.json",
+    "future_holdout_plan.json",
+    "pullback_hypothesis_report.md"
+  ],
+  "authenticated_api_used": false,
+  "automatic_download": false,
+  "candidate_frozen": false,
+  "catalog": {
+    "canonical_hash": "49301c90ded03eb83da6245e47b824931f11a7afdf6e427f88ca809362d42d8b",
+    "changed_during_execution": false,
+    "file_sha256": "1abeb7df0f120132702aabd3ce99a540115184157df95832a0c940308cc2d309",
+    "path": "pullback-hypotheses-v1.toml",
+    "variant_count": 6,
+    "version": 1
+  },
+  "completed_at": "2026-07-30T23:49:53.588682+00:00",
+  "consumed_reference": {
+    "end": "2026-07-01T00:00:00+00:00",
+    "loaded": false,
+    "start": "2025-01-01T00:00:00+00:00",
+    "used_for_backtest": false,
+    "used_for_selection": false
+  },
+  "cost_scenarios": [
+    "LOW",
+    "BASE",
+    "HIGH",
+    "STRESS"
+  ],
+  "datasets": {
+    "consumed_reference": {
+      "end": "2026-07-01T00:00:00+00:00",
+      "loaded": false,
+      "purpose": "EXCLUDED_REFERENCE_ONLY",
+      "start": "2025-01-01T00:00:00+00:00",
+      "used": false
+    },
+    "futures": {
+      "all_closed": true,
+      "candle_count": 26304,
+      "candle_hash": "0871c9440448e8562cab05838b9d3e4eb508f001d88f3107bb23e9ac5b7d0100",
+      "combined_dataset_hash": "b014bce7ffc78d68a5afa70a05733233d5926541242b3e139277728d730d7373",
+      "duplicate_count": 0,
+      "first_open_time": "2022-01-01T00:00:00+00:00",
+      "funding_event_count": 3288,
+      "funding_gap_count": 0,
+      "funding_hash": "c0d6cf1c033f43138aba2027e553c4f87db756b9c5babcbb4abdf0a9f509d99e",
+      "gap_count": 0,
+      "last_open_time": "2024-12-31T23:00:00+00:00",
+      "mark_price_count": 26304,
+      "mark_price_hash": "c163e473c132ccd810e091f20e9b80aeb0284dd7c2ca9848c1916b707d575ec9",
+      "mark_price_missing_count": 0,
+      "source": "BINANCE_USD_M_PUBLIC_SQLITE",
+      "warnings": []
+    },
+    "query_end": "2024-12-31T23:00:00+00:00",
+    "query_start": "2022-01-01T00:00:00+00:00",
+    "spot": {
+      "all_closed": true,
+      "candle_count": 26303,
+      "content_hash": "d6b0c4f83ce86397fbd015986798bb7f23657e1d8a9b10c53a4fedce6a665273",
+      "development_hash": "510cb81d88bb2fd33f4aec1ea4a2f3f263aa795548b1b47dc1d014bc72a2b23d",
+      "duplicate_count": 0,
+      "first_open_time": "2022-01-01T00:00:00+00:00",
+      "gap_count": 1,
+      "gap_details": [
+        {
+          "explanation": "Candle absent from the persisted public Spot dataset; not fabricated or forward-filled; accepted under WARN.",
+          "missing_open_time": "2023-03-24T13:00:00+00:00",
+          "next_open_time": "2023-03-24T14:00:00+00:00",
+          "previous_open_time": "2023-03-24T12:00:00+00:00"
+        }
+      ],
+      "last_open_time": "2024-12-31T23:00:00+00:00",
+      "missing_candle_count": 1,
+      "source": "BINANCE_SPOT_PUBLIC_SQLITE",
+      "validation_hash": "afdfbc5a0f680e1144370729cdf00f07e4edb2da1f2a8bdb28d8d2d8793a7df2",
+      "warnings": [
+        "GAPS_DETECTED: count=1 missing=1",
+        "gap policy WARN accepted missing candles without filling"
+      ]
+    }
+  },
+  "development_policy": {
+    "maximum_pullback_variants_selected_per_market_mode": 2,
+    "mode": "ROLLING",
+    "selection_source": "2022_2023_BASE_COST_ONLY",
+    "step_days": 90,
+    "train_days": 365,
+    "validation_days": 90
+  },
+  "development_selections": [
+    {
+      "market": "SPOT",
+      "mode": "LONG",
+      "ranked_variant_ids": [],
+      "rationale": "No pullback variant had non-negative development median return and at least 50% positive BASE walk-forward folds.",
+      "selected_variant_ids": [],
+      "status": "NO_DEVELOPMENT_HYPOTHESIS"
+    },
+    {
+      "market": "FUTURES",
+      "mode": "LONG",
+      "ranked_variant_ids": [],
+      "rationale": "No pullback variant had non-negative development median return and at least 50% positive BASE walk-forward folds.",
+      "selected_variant_ids": [],
+      "status": "NO_DEVELOPMENT_HYPOTHESIS"
+    },
+    {
+      "market": "FUTURES",
+      "mode": "SHORT",
+      "ranked_variant_ids": [],
+      "rationale": "No pullback variant had non-negative development median return and at least 50% positive BASE walk-forward folds.",
+      "selected_variant_ids": [],
+      "status": "NO_DEVELOPMENT_HYPOTHESIS"
+    },
+    {
+      "market": "FUTURES",
+      "mode": "LONG_SHORT",
+      "ranked_variant_ids": [],
+      "rationale": "No pullback variant had non-negative development median return and at least 50% positive BASE walk-forward folds.",
+      "selected_variant_ids": [],
+      "status": "NO_DEVELOPMENT_HYPOTHESIS"
+    }
+  ],
+  "duration_seconds": "401.9197567200026",
+  "experiment_id": "pullback-continuation-20260730T234311Z-49301c90",
+  "experiment_version": "PULLBACK_CONTINUATION_V1",
+  "external_orders_sent": false,
+  "funding_policy": "REAL_FUNDING_UNCHANGED_ACROSS_COST_SCENARIOS",
+  "futures_exit_priority": [
+    "FUNDING",
+    "MARK_UPDATE",
+    "LIQUIDATION",
+    "STOP_LOSS",
+    "TAKE_PROFIT",
+    "REGIME_LOSS_EXIT",
+    "TIME_EXIT",
+    "FORCED_END"
+  ],
+  "futures_liquidation_policy": "LIQUIDATION_FIRST",
+  "futures_modes": [
+    "long",
+    "short",
+    "long-short"
+  ],
+  "git_commit": "a889362effe0745ac06ce42ae82cadf16a91bdee",
+  "git_dirty": true,
+  "initial_commit": "a889362effe0745ac06ce42ae82cadf16a91bdee",
+  "interval": "1h",
+  "intrabar_policy": "STOP_FIRST",
+  "leverages_executed": [
+    "1"
+  ],
+  "markets": [
+    "spot",
+    "futures"
+  ],
+  "network_used": false,
+  "paper_trading_enabled": false,
+  "periods": {
+    "consumed_end": "2026-07-01T00:00:00+00:00",
+    "consumed_start": "2025-01-01T00:00:00+00:00",
+    "development_end": "2023-12-31T23:00:00+00:00",
+    "development_start": "2022-01-01T00:00:00+00:00",
+    "validation_end": "2024-12-31T23:00:00+00:00",
+    "validation_start": "2024-01-01T00:00:00+00:00"
+  },
+  "spot_exit_priority": [
+    "STOP_LOSS",
+    "TAKE_PROFIT",
+    "REGIME_LOSS_EXIT",
+    "TIME_EXIT",
+    "FORCED_END"
+  ],
+  "started_at": "2026-07-30T23:43:11.682775+00:00",
+  "symbol": "ETHUSDT",
+  "validation_locks": [
+    {
+      "catalog_hash": "49301c90ded03eb83da6245e47b824931f11a7afdf6e427f88ca809362d42d8b",
+      "development_fingerprint": "adf2893969373af3148146b3565e75a16e2567d16ad4a0e140103a395f4206bc",
+      "market": "SPOT",
+      "mode": "LONG",
+      "variant_ids": [
+        "ORIGINAL_BASELINE"
+      ]
+    },
+    {
+      "catalog_hash": "49301c90ded03eb83da6245e47b824931f11a7afdf6e427f88ca809362d42d8b",
+      "development_fingerprint": "7701c0313ee2c144830abb0c77e6f8e34210ed2941288f699a235570aefd5c75",
+      "market": "FUTURES",
+      "mode": "LONG",
+      "variant_ids": [
+        "ORIGINAL_BASELINE"
+      ]
+    },
+    {
+      "catalog_hash": "49301c90ded03eb83da6245e47b824931f11a7afdf6e427f88ca809362d42d8b",
+      "development_fingerprint": "e79dc345c8ab119a8b4e96a0f4098abcc9fcf16b283218084a1dedbb9a77af11",
+      "market": "FUTURES",
+      "mode": "SHORT",
+      "variant_ids": [
+        "ORIGINAL_BASELINE"
+      ]
+    },
+    {
+      "catalog_hash": "49301c90ded03eb83da6245e47b824931f11a7afdf6e427f88ca809362d42d8b",
+      "development_fingerprint": "ac261e8306064cd300cb7a1fcf9cc1271cd379627eb58c72d13de435a5f8d881",
+      "market": "FUTURES",
+      "mode": "LONG_SHORT",
+      "variant_ids": [
+        "ORIGINAL_BASELINE"
+      ]
+    }
+  ],
+  "validation_policy": {
+    "parameters_locked": true,
+    "period": "2024_ONLY",
+    "selection_after_validation": false,
+    "window_days": 90
+  },
+  "warnings": [
+    "STRESS_COLLAPSE",
+    "RESEARCH_ONLY_NO_ORDERS",
+    "CONSUMED_2025_2026_EXCLUDED",
+    "NO_CANDIDATE_FROZEN"
+  ]
+}

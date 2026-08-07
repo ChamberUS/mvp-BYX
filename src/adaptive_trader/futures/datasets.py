@@ -9,6 +9,12 @@ from datetime import timedelta
 
 from adaptive_trader.domain.market import ContractType, MarketType
 from adaptive_trader.domain.models import serialize_model
+from adaptive_trader.futures.integrity import (
+    align_mark_prices,
+    funding_content_hash,
+    futures_candle_content_hash,
+    mark_price_content_hash,
+)
 from adaptive_trader.futures.models import (
     FundingMissingPolicy,
     FundingRate,
@@ -110,8 +116,8 @@ def validate_futures_dataset(
         raise ValueError("duplicate mark-price candles")
     if len(funding_rates) != len({item.funding_time for item in funding_rates}):
         raise ValueError("duplicate funding events")
-    mark_times = {item.open_time for item in mark_prices}
-    missing_marks = sum(item.open_time not in mark_times for item in ordered)
+    alignment = align_mark_prices(ordered, mark_prices)
+    missing_marks = sum(item.match_type == "MISSING" for item in alignment)
     warnings: list[str] = []
     if gap_count:
         warnings.append("FUTURES_CANDLE_GAPS")
@@ -151,9 +157,11 @@ def validate_futures_dataset(
         raise ValueError("mixed mark price symbols")
     if any(item.symbol != first.symbol for item in funding_rates):
         raise ValueError("mixed funding symbols")
-    candle_hash = _content_hash(ordered)
-    mark_hash = _content_hash(tuple(sorted(mark_prices, key=lambda item: item.open_time)))
-    funding_hash = _content_hash(
+    candle_hash = futures_candle_content_hash(ordered)
+    mark_hash = mark_price_content_hash(
+        tuple(sorted(mark_prices, key=lambda item: item.open_time))
+    )
+    funding_hash = funding_content_hash(
         tuple(sorted(funding_rates, key=lambda item: item.funding_time))
     )
     combined = _content_hash(
@@ -163,6 +171,8 @@ def validate_futures_dataset(
             "symbol": first.symbol,
             "interval": first.interval,
             "source": source,
+            "period_start": ordered[0].open_time,
+            "period_end": ordered[-1].open_time,
             "candle_hash": candle_hash,
             "mark_price_hash": mark_hash,
             "funding_hash": funding_hash,

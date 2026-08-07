@@ -1,0 +1,52 @@
+[metadata]
+version = 1
+symbol = "ETHUSDT"
+interval = "1h"
+development_start = "2022-01-01T00:00:00Z"
+development_end = "2023-12-31T23:00:00Z"
+validation_start = "2024-01-01T00:00:00Z"
+validation_end = "2024-12-31T23:00:00Z"
+consumed_start = "2025-01-01T00:00:00Z"
+consumed_end = "2026-07-01T00:00:00Z"
+selection_basis = "OPERATIONAL_FREQUENCY_ONLY"
+
+[variants.calibration_base]
+variant_id = "CALIBRATION_BASE"
+trend_persistence_candles = 3
+pullback_min_candles = 1
+pullback_max_candles = 6
+minimum_pullback_depth_atr = "0.10"
+maximum_pullback_depth_atr = "1.00"
+maximum_entry_extension_atr = "1.00"
+minimum_volume_ratio = "1.00"
+maximum_atr_relative = "0.05"
+directional_close_confirmation = true
+complexity_rank = 0
+
+[variants.extension_1_5]
+variant_id = "EXTENSION_1_5"
+maximum_entry_extension_atr = "1.50"
+
+[variants.extension_2_0]
+variant_id = "EXTENSION_2_0"
+maximum_entry_extension_atr = "2.00"
+
+[variants.no_minimum_depth]
+variant_id = "NO_MINIMUM_DEPTH"
+minimum_pullback_depth_atr = "0"
+
+[variants.volume_relaxed]
+variant_id = "VOLUME_RELAXED"
+minimum_volume_ratio = "0.8"
+
+[variants.volatility_relaxed]
+variant_id = "VOLATILITY_RELAXED"
+maximum_atr_relative = "0.07"
+
+[variants.persistence_2]
+variant_id = "PERSISTENCE_2"
+trend_persistence_candles = 2
+
+[variants.directional_close_relaxed]
+variant_id = "DIRECTIONAL_CLOSE_RELAXED"
+directional_close_confirmation = false

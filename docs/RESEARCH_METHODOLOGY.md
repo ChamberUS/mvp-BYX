@@ -89,11 +89,83 @@ Spot e USD-M Futures são experimentos distintos com datasets, hashes, custos e 
 separados. A comparação usa o mesmo símbolo, intervalo, período, warmup e hipótese conceitual,
 mas nunca soma resultados. Futures registra também funding, margem, leverage e liquidação.
 
-A ordem de pesquisa é fixa: primeiro `1x`, depois custos/funding, consistência e liquidações; só
-então `2x` e `3x`. Leverage não participa de seleção no teste consumido e não converte
-automaticamente uma hipótese sem vantagem em candidata. Os modos long, short espelhado e
-long-short são relatados separadamente, sem escolha automática.
+A Sprint 3A.5 executa somente `1x`, seguida de custos/funding, consistência e liquidações.
+`2x` e `3x` permanecem fora do escopo. Leverage não participa de seleção no teste consumido e não
+converte automaticamente uma hipótese sem vantagem em candidata. Os modos long, short espelhado
+e long-short são relatados separadamente, sem escolha automática.
 
 O hash combinado Futures incorpora market type, contract type, candles, mark prices, funding,
 símbolo, intervalo e fonte. Alterar um evento de funding altera o hash combinado. Consulte
 `FUTURES_RESEARCH_METHODOLOGY.md` para as fórmulas e limitações específicas.
+
+## Futures temporal robustness
+
+Sprint 3A.6 does not create hypotheses or choose a better historical split. It keeps the six
+Sprint 3A.5 variants fixed and evaluates calendar years, civil quarters, rolling windows,
+predefined walk-forward designs, temporal boundaries, and leave-one-year-out diagnostics.
+
+The chronological backtest remains point-in-time. Temporal aggregation assigns a closed trade to
+its exit timestamp and excludes technical warmup from metrics. This convention is explicit
+because a trade may begin in one period and exit in another. Regime transitions, MFE, MAE,
+market returns, EMA distance, EMA slope, and directional persistence are attached only after a
+trade closes and never enter strategy decisions.
+
+Relative-ATR quantiles use only the initial development interval ending in 2024. The same
+boundaries are applied to 2025. Trade bootstrap is deterministic under an explicit seed, operates
+only on closed-trade outcomes, and never reorders candles or feeds resampled observations into
+the strategy.
+
+The scorecard has independent dimensions rather than one optimization score. Final labels
+`ROBUSTNESS_SIGNAL`, `REGIME_SPECIFIC_SIGNAL`, `NON_STATIONARY`, `NO_EDGE`, and `INCONCLUSIVE`
+remain research descriptions. None approves a candidate, leverage, paper trading, or production.
+
+## Pre-registered pullback continuation
+
+Sprint 3B.1 starts a new research line instead of modifying `DeterministicAnalyzer`. The fixed
+`pullback-hypotheses-v1.toml` catalog contains the original reference and exactly five pullback
+variants. Long and mirrored short logic use only data through `T`: established regime and EMA
+trend, fixed persistence, a 0.10-to-1.0 ATR pullback lasting one-to-six candles, close-confirmed
+resumption, no long-EMA cross, no extension above 1.0 ATR, and the existing volume/volatility
+filters.
+
+Development is now 2022-2023. It uses rolling 365/90/90 folds and BASE costs only for selection.
+A pullback variant needs non-negative median fold return and at least 50% positive folds; no more
+than two variants per market/mode can enter the immutable validation lock. Validation uses only
+2024 and cannot rank, tune, change exits, or mutate the catalog. If no variant qualifies,
+validation runs only the baseline and records `NO_DEVELOPMENT_HYPOTHESIS`.
+
+The entire interval from 2025-01-01 through 2026-07-01 is consumed and explicitly forbidden.
+The experiment does not query or backtest it. LOW, BASE, HIGH, and STRESS are separate executions;
+real stored Futures funding remains unchanged. Post-event MFE, MAE, regime-loss counterfactuals,
+and 6/12/24-candle returns are diagnostic only.
+
+Trade bootstrap uses seed 42 and 2,000 iterations; it never bootstraps candles. A future holdout
+may only be planned after 2026-07-01 and is never executed or frozen in this sprint. Full rules,
+reason codes, priorities, criteria, and limitations are documented in
+`PULLBACK_HYPOTHESIS_METHODOLOGY.md`.
+
+## Pullback frequency calibration
+
+Sprint 3B.2 treats the zero-trade outcome as a funnel-audit problem. It records the actual
+sequential checks and rejected resumptions, then performs single-rule counterfactual ablations.
+Ablations never execute signals and cannot automatically remove a rule.
+
+The immutable catalog has one base and seven one-dimensional changes. Only operational
+sufficiency in 2022–2023 selects at most two variants per market/mode. Selection code has no
+return argument, and validation 2024 runs only after the parameter, catalog, dataset, frequency,
+and commit lock exists. Financial metrics cannot cause reselection.
+
+Post-event returns, MFE, and MAE are generated after strategy execution and marked
+`POST_EVENT_ONLY_NO_STRATEGY_ACCESS`. Broad search, combinations, new indicators, consumed
+2025–2026 data, downloads, authentication, external orders, and Futures leverage other than 1x
+remain prohibited.
+
+## Pre-registered daily trend following
+
+Sprint 3C.1 is a separate daily experiment with a fixed SMA 200, Donchian 20 entry, Donchian
+10/20 exits, and fixed or defensive risk. Development 2022–2023 selects at most one configuration
+per market/mode before the immutable lock; 2024 only validates, while 2025–2026 cannot be loaded.
+
+Daily aggregation, point-in-time rules, next-day execution, Futures intraday accounting,
+selection, uncertainty, artifacts, and the no-production boundary are specified in
+[`TREND_FOLLOWING_METHODOLOGY.md`](TREND_FOLLOWING_METHODOLOGY.md).
