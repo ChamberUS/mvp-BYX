@@ -1,0 +1,23 @@
+{
+  "status": "PASS",
+  "new_tests": 0,
+  "total_tests": 594,
+  "coverage_percent": 81.48,
+  "suite_results": {
+    "microstructure": "134 passed",
+    "execution": "42 passed",
+    "research": "255 passed",
+    "futures": "101 passed",
+    "backtest": "10 passed",
+    "full": "594 passed",
+    "full_with_explicit_coverage": "594 passed"
+  },
+  "ruff": "PASS",
+  "mypy": "PASS: 135 source files",
+  "doctor": "PASS: research-only, trading disabled, no authenticated Binance configuration",
+  "git_diff_check": "PASS",
+  "json_validation": "PASS",
+  "csv_column_validation": "PASS",
+  "coverage_warning": "Non-blocking module-not-measured warning on the second in-process coverage run; final measured coverage remained 81.48%.",
+  "code_changed": false
+}

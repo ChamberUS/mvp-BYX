@@ -1,0 +1,25 @@
+{
+  "new_sessions": 2,
+  "new_recovered_incidents": 14,
+  "new_unresolved_incidents": 0,
+  "new_incident_classifications": {
+    "THRESHOLD_TOO_STRICT": 9,
+    "NORMAL_NO_UPDATE": 5
+  },
+  "new_incident_streams": {
+    "depth": 11,
+    "markPrice": 3
+  },
+  "maximum_new_incident_duration_ms": 5723.523224,
+  "campaign_recovered_incidents": 20,
+  "campaign_incident_classifications": {
+    "THRESHOLD_TOO_STRICT": 14,
+    "NORMAL_NO_UPDATE": 6
+  },
+  "campaign_unresolved_incidents": 0,
+  "incidents_causing_gap": 0,
+  "incidents_causing_resync": 0,
+  "incidents_causing_invalid_book": 0,
+  "new_session_runtime_status": "READY",
+  "admission_impact": "NONE"
+}

@@ -1,0 +1,15 @@
+{
+  "raw_root_bytes": 233689088,
+  "raw_root_mib": 222.863,
+  "raw_root_gib": 0.217640,
+  "raw_delta_bytes": 44793856,
+  "new_event_files_compressed_bytes": 44049819,
+  "new_event_files_uncompressed_bytes": 347703041,
+  "filesystem_available_bytes": 159810990080,
+  "filesystem_available_gib": 148.836,
+  "projected_24h_bytes": 2065412353,
+  "projected_24h_gib": 1.924,
+  "storage_risk": false,
+  "raw_git_ignored": true,
+  "raw_destroyed_or_recompressed": false
+}

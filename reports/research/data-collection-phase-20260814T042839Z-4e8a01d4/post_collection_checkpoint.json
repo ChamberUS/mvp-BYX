@@ -1,0 +1,33 @@
+{
+  "checkpoint": "POST_COLLECTION_CHECKPOINT",
+  "campaign_hash": "4e8a01d441a24fedc268d16f2fca20f603340048371a595990bdf62248d5c431",
+  "operational_sessions": 9,
+  "scientific_sessions": 8,
+  "rejected_sessions": 1,
+  "scientific_valid_duration_seconds": 5624.936,
+  "scientific_hours": 1.562482,
+  "scientific_event_count": 823399,
+  "scientific_stream_counts": {
+    "aggTrade": 23721,
+    "bookTicker": 738964,
+    "depth": 55065,
+    "markPrice": 5625
+  },
+  "internal_event_count": 24,
+  "utc_dates": ["2026-08-07", "2026-08-14"],
+  "duration_per_utc_date_seconds": {
+    "2026-08-07": 59.016,
+    "2026-08-14": 5565.920
+  },
+  "seconds_to_six_hours": 15975.064,
+  "seconds_to_twelve_hours": 37575.064,
+  "seconds_to_eighteen_hours": 59175.064,
+  "seconds_to_twenty_four_hours": 80775.064,
+  "six_hour_checkpoint_reached": false,
+  "twelve_hour_checkpoint_reached": false,
+  "eighteen_hour_checkpoint_reached": false,
+  "discovery_ready": false,
+  "dataset_status": "ENGINEERING_ONLY",
+  "phase_status": "DATA_COLLECTION_IN_PROGRESS",
+  "scientific_answer": "MORE_DATA_REQUIRED"
+}

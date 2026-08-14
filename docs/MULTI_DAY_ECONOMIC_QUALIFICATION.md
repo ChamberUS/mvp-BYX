@@ -110,3 +110,18 @@ chunk were recovered without a gap, resync or invalid book. No economic result w
 phase status remains `DATA_COLLECTION_IN_PROGRESS`, holdout is locked and the scientific answer is
 `MORE_DATA_REQUIRED`. Operational evidence is in
 `reports/research/data-collection-phase-20260814T033111Z-3eb38725/`.
+
+### Data Collection Phase — continuation at 04:28 UTC
+
+The campaign added another 1,842.685 scientifically valid seconds under clean commit
+`f9526aeb00a565a51dba3bcb139d67c7ac7d6a1c`. It now contains 5,624.936 seconds (1.562482 h),
+eight admitted sessions, two UTC dates and 823,399 scientific events. The six-hour checkpoint
+lacks 15,975.064 seconds and discovery readiness lacks 80,775.064 seconds.
+
+Both new sessions passed admission and deterministic replay. The long chunk's 14 liveness
+incidents were all recovered and caused no real gap, resync, invalid book or unresolved state.
+The campaign hash is `4e8a01d441a24fedc268d16f2fca20f603340048371a595990bdf62248d5c431`.
+No maker/taker economics, LONG/SHORT result, notional, exit or runner result was inspected;
+discovery/confirmation remain unavailable, holdout remains locked and the scientific answer is
+`MORE_DATA_REQUIRED`. Operational evidence is in
+`reports/research/data-collection-phase-20260814T042839Z-4e8a01d4/`.

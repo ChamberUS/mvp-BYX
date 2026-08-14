@@ -1,0 +1,27 @@
+{
+  "checkpoint": "PRE_COLLECTION_CHECKPOINT",
+  "campaign_hash": "3eb387258276637bae94be4387f5b16cd76020c20c4c2ea11149af76530165eb",
+  "operational_sessions": 7,
+  "scientific_sessions": 6,
+  "rejected_sessions": 1,
+  "scientific_valid_duration_seconds": 3782.251,
+  "scientific_hours": 1.050625,
+  "scientific_event_count": 579827,
+  "scientific_stream_counts": {
+    "aggTrade": 16502,
+    "bookTicker": 522497,
+    "depth": 37028,
+    "markPrice": 3782
+  },
+  "internal_event_count": 18,
+  "utc_dates": ["2026-08-07", "2026-08-14"],
+  "duration_per_utc_date_seconds": {
+    "2026-08-07": 59.016,
+    "2026-08-14": 3723.235
+  },
+  "seconds_to_six_hours": 17817.749,
+  "seconds_to_twelve_hours": 39417.749,
+  "seconds_to_eighteen_hours": 61017.749,
+  "seconds_to_twenty_four_hours": 82617.749,
+  "dataset_status": "ENGINEERING_ONLY"
+}

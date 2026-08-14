@@ -113,3 +113,33 @@ Status therefore remains `DATA_COLLECTION_IN_PROGRESS`, dataset `ENGINEERING_ONL
 `MORE_DATA_REQUIRED`. The current bundle is
 `reports/research/data-collection-phase-20260814T033111Z-3eb38725/`. No economics was run and the
 holdout remained locked.
+
+## Data Collection Phase — continuation at 04:28 UTC
+
+Collection resumed again from a clean `main` worktree at commit
+`f9526aeb00a565a51dba3bcb139d67c7ac7d6a1c`. One complete requested 1,800-second chunk added
+1,798.255 valid seconds and a safely interrupted follow-up chunk added 44.430 seconds. Both were
+`COMPLETE` and admitted with full provenance, four public streams, zero gaps/drops/parser errors,
+synchronized books and deterministic replay. No capture or admission semantics changed.
+
+Scientific coverage is now 5,624.936 seconds (1.562482 h), eight admitted sessions, two UTC dates
+and 823,399 session events. Stream delivery contains 23,721 aggTrade, 738,964 bookTicker, 55,065
+depth and 5,625 markPrice events, plus 24 internal connection/snapshot events. Date coverage is
+59.016 seconds on 2026-08-07 and 5,565.920 seconds on 2026-08-14; the formal date gate is met, but
+the concentration remains an explicit diagnostic.
+
+The complete chunk recorded 14 recovered liveness incidents: nine `THRESHOLD_TOO_STRICT` and five
+`NORMAL_NO_UPDATE`, with 11 on depth and three on markPrice. None caused a gap, resync, invalid
+book or unresolved state. Liveness thresholds remained frozen. All 15 event files in the campaign
+were rechecked against their persisted SHA-256 hashes.
+
+Raw occupies 233,689,088 bytes (222.863 MiB), with 148.836 GiB available and an observed 24-hour
+projection of about 1.924 GiB. The campaign hash is
+`4e8a01d441a24fedc268d16f2fca20f603340048371a595990bdf62248d5c431`. The six-hour checkpoint
+still lacks 15,975.064 seconds; 12 h lacks 37,575.064 seconds, 18 h lacks 59,175.064 seconds and
+24 h lacks 80,775.064 seconds.
+
+Status remains `DATA_COLLECTION_IN_PROGRESS`, dataset `ENGINEERING_ONLY`, discovery unavailable,
+holdout locked and scientific answer `MORE_DATA_REQUIRED`. The current bundle is
+`reports/research/data-collection-phase-20260814T042839Z-4e8a01d4/`. No economics or runner result
+was calculated or inspected.

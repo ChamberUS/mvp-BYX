@@ -1,0 +1,47 @@
+{
+  "status": "DETERMINISTIC_FOR_ALL_ADMITTED_SESSIONS",
+  "admitted_sessions_replayed": 8,
+  "non_deterministic_sessions": 0,
+  "admitted_replays": [
+    {
+      "session_id": "microstructure-20260807T225438Z-usd_m_futures",
+      "replay_hash": "3bd879742e92870f829429e82b873f96bf29200027e72d17cf83961b23f85c73"
+    },
+    {
+      "session_id": "microstructure-20260814T011521Z-usd_m_futures",
+      "replay_hash": "9f65d33203e943c6799a781ae23a45a0848594f980ee0d9f2fc374d12e9fbcb5"
+    },
+    {
+      "session_id": "microstructure-20260814T014523Z-usd_m_futures",
+      "replay_hash": "c5d74358be428fe3176a2195854c6a47015a3956a89358a34d239d172bd0e3c9"
+    },
+    {
+      "session_id": "microstructure-20260814T021620Z-usd_m_futures",
+      "replay_hash": "87717fc471c77df18b6067db103e2702287315372396747d4d1b179e8af5024d"
+    },
+    {
+      "session_id": "microstructure-20260814T025642Z-usd_m_futures",
+      "replay_hash": "91911e9b7c11fc2f98673cdab92068776989266f75d97959336a6c9eff39409c"
+    },
+    {
+      "session_id": "microstructure-20260814T032745Z-usd_m_futures",
+      "replay_hash": "3babbae4f02755604b3d171b49fcef8d2b46a40f9ec1407909822ea3708cbd8e"
+    },
+    {
+      "session_id": "microstructure-20260814T035126Z-usd_m_futures",
+      "replay_hash": "f0aaa6125702cd25f897f09807135ce05fe7de34374a0664d2afb6d1f14ef37b"
+    },
+    {
+      "session_id": "microstructure-20260814T042226Z-usd_m_futures",
+      "replay_hash": "a103966edd7a40a8de4dc5358f267a5bc3a1cc6e6dbac1872abb25e87f4d1b09"
+    }
+  ],
+  "new_integrity": {
+    "gaps": 0,
+    "drops": 0,
+    "parser_errors": 0,
+    "resyncs": 0,
+    "disconnects": 0,
+    "book_status": "SYNCHRONIZED"
+  }
+}
