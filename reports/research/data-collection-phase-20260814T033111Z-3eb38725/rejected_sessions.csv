@@ -1,0 +1,2 @@
+session_id,status,reasons,raw_preserved,retrospectively_repaired
+microstructure-20260807T072555Z-usd_m_futures,REJECT_FROM_SCIENTIFIC_DATASET,BOOK_NOT_SYNCHRONIZED|PROVENANCE_INCOMPLETE,True,False

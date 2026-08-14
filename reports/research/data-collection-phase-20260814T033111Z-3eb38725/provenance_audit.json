@@ -1,0 +1,24 @@
+{
+  "status": "COMPLETE_FOR_ALL_ADMITTED_SESSIONS",
+  "admitted_sessions": 6,
+  "rejected_sessions": 1,
+  "dirty_admitted_sessions": 0,
+  "unknown_commit_admitted_sessions": 0,
+  "new_capture_commit": "33236a27908d97e4faf933753d4b73ec39d210d5",
+  "new_capture_branch": "main",
+  "new_capture_dirty_worktree": false,
+  "new_recorder_version": "PUBLIC_MICROSTRUCTURE_RECORDER_V1",
+  "new_operational_config_hash": "8a6f459323958517c345c82418f2c16d9e293f4c351d41aa4a9ce6091b561dec",
+  "historical_rejected_session_unchanged": true,
+  "historical_raw_rewritten": false,
+  "admitted_software_commits": [
+    "5d2aa404f43fd873d484ba9d1843c6667acfe8f9",
+    "bdb02ff1bb3e51d9b754a66e45ab5aff31baf847",
+    "80c2bd48b3d8b4b197845174afee6e1f336e4177",
+    "33236a27908d97e4faf933753d4b73ec39d210d5"
+  ],
+  "admitted_operational_config_hashes": [
+    "40597ddb04e6e6b84d7f02bb89ce6c1c69b48551d30c85cc3e87fcbee20cb613",
+    "8a6f459323958517c345c82418f2c16d9e293f4c351d41aa4a9ce6091b561dec"
+  ]
+}

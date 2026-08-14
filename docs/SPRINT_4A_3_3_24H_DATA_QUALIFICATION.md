@@ -85,3 +85,31 @@ The resume counter was corrected in this sprint to sum admitted scientific event
 not requested wall-clock duration. While the gate is incomplete, the recorder requests another
 full configured chunk instead of creating a tiny residual chunk. Existing raw remains valid and was
 not rewritten; this change only prevents an early stop below 86,400 valid seconds.
+
+## Data Collection Phase — continuation at 03:31 UTC
+
+Collection resumed from a clean `main` worktree at commit
+`33236a27908d97e4faf933753d4b73ec39d210d5`. One complete requested 1,800-second chunk added
+1,798.969 valid seconds and a safely interrupted follow-up chunk added 30.422 seconds. Both were
+`COMPLETE` and admitted with complete provenance, four public streams, zero gaps/drops/parser
+errors, synchronized books and deterministic replay.
+
+Scientific coverage is now 3,782.251 seconds (1.050625 h), six admitted sessions, two UTC dates
+and 579,827 session events. Stream delivery contains 16,502 aggTrade, 522,497 bookTicker, 37,028
+depth and 3,782 markPrice events. Date coverage remains asymmetric: 59.016 seconds on 2026-08-07
+and 3,723.235 seconds on 2026-08-14. The formal date gate is satisfied, but this distribution is
+retained as a temporal-coverage diagnostic.
+
+The complete chunk recorded four recovered liveness incidents: three
+`THRESHOLD_TOO_STRICT` and one `NORMAL_NO_UPDATE`, split evenly between depth and markPrice. None
+caused a real gap, resync or invalid book, and none remained unresolved. All 11 event files in the
+campaign were rechecked against their persisted SHA-256 hashes. Raw occupies 180.145 MiB, with
+150.073 GiB available and a current 24-hour projection of about 2.149 GiB.
+
+The campaign hash is
+`3eb387258276637bae94be4387f5b16cd76020c20c4c2ea11149af76530165eb`. The six-hour checkpoint
+was not reached: 17,817.749 seconds remain to 21,600. The 24-hour gate lacks 82,617.749 seconds.
+Status therefore remains `DATA_COLLECTION_IN_PROGRESS`, dataset `ENGINEERING_ONLY`, and answer
+`MORE_DATA_REQUIRED`. The current bundle is
+`reports/research/data-collection-phase-20260814T033111Z-3eb38725/`. No economics was run and the
+holdout remained locked.

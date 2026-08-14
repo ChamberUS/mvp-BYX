@@ -490,16 +490,17 @@ em [`docs/MULTI_DAY_ECONOMIC_QUALIFICATION.md`](docs/MULTI_DAY_ECONOMIC_QUALIFIC
 
 ## Aquisição 24h — Sprint 4A.3.3
 
-O campaign científico avançou para quatro sessões admitidas, 1.952,860 segundos válidos, duas
-datas UTC e 306.138 eventos científicos. A condição de datas foi atingida, mas ainda faltam
-84.447,140 segundos para 24h; portanto o estado é `DATA_COLLECTION_IN_PROGRESS`,
+O campaign científico avançou para seis sessões admitidas, 3.782,251 segundos válidos, duas
+datas UTC e 579.827 eventos científicos. A condição de datas foi atingida, mas ainda faltam
+82.617,749 segundos para 24h; portanto o estado é `DATA_COLLECTION_IN_PROGRESS`,
 discovery/confirmation continuam fechados, o holdout permanece `LOCKED` e a resposta é
 `MORE_DATA_REQUIRED`. Nenhum resultado financeiro foi inspecionado para seleção prematura.
 
-O checkpoint atual adicionou um chunk completo de 1.798,923 s e um segundo chunk encerrado com
-`SIGINT` de forma segura, com 36,160 s. Ambos foram admitidos com provenance completa, zero gaps,
-drops e erros de parser, book sincronizado e replay determinístico. O raw ocupa 133,090 MiB,
-permanece ignorado pelo Git e há 150,257 GiB livres.
+O checkpoint mais recente adicionou um chunk completo de 1.798,969 s e um segundo chunk encerrado
+com `SIGINT` de forma segura, com 30,422 s. Ambos foram admitidos com provenance completa, zero
+gaps, drops e erros de parser, book sincronizado e replay determinístico. O raw ocupa 180,145 MiB,
+permanece ignorado pelo Git e há 150,073 GiB livres. Ainda faltam 17.817,749 s para o checkpoint
+operacional de 6 h.
 
 O checkpoint, hashes congelados e comando resumível estão em
 [`docs/SPRINT_4A_3_3_24H_DATA_QUALIFICATION.md`](docs/SPRINT_4A_3_3_24H_DATA_QUALIFICATION.md).

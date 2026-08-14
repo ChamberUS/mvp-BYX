@@ -97,3 +97,16 @@ liveness incidents, daily coverage, storage and deterministic replay are recorde
 
 Resume now compares `--total-seconds` with admitted scientific event-interval duration rather than
 requested wall-clock duration and records full chunks until the valid-duration gate is reached.
+
+### Data Collection Phase — continuation
+
+The next operational continuation added 1,829.391 valid seconds under clean commit
+`33236a27908d97e4faf933753d4b73ec39d210d5`. Campaign coverage is now 3,782.251 seconds
+(1.050625 h), six admitted sessions and 579,827 scientific events. The six-hour checkpoint still
+lacks 17,817.749 seconds and discovery readiness lacks 82,617.749 seconds.
+
+Both new sessions passed admission and deterministic replay. Four liveness incidents in the long
+chunk were recovered without a gap, resync or invalid book. No economic result was inspected;
+phase status remains `DATA_COLLECTION_IN_PROGRESS`, holdout is locked and the scientific answer is
+`MORE_DATA_REQUIRED`. Operational evidence is in
+`reports/research/data-collection-phase-20260814T033111Z-3eb38725/`.

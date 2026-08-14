@@ -1,0 +1,20 @@
+{
+  "new_sessions": 2,
+  "new_recovered_incidents": 4,
+  "new_unresolved_incidents": 0,
+  "new_incident_classifications": {
+    "THRESHOLD_TOO_STRICT": 3,
+    "NORMAL_NO_UPDATE": 1
+  },
+  "new_incident_streams": {
+    "depth": 2,
+    "markPrice": 2
+  },
+  "campaign_recovered_incidents": 6,
+  "campaign_unresolved_incidents": 0,
+  "incidents_causing_gap": 0,
+  "incidents_causing_resync": 0,
+  "incidents_causing_invalid_book": 0,
+  "new_session_runtime_status": "READY",
+  "admission_impact": "NONE"
+}

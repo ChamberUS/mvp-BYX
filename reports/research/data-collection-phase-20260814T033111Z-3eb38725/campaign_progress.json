@@ -1,0 +1,22 @@
+{
+  "campaign_id": "ethusdt-futures-intraday-discovery-v1",
+  "initial_campaign_hash": "016ef99a5001b5468e0d42915ecaf5e7d04a5fa2179f3e120a4b458931411963",
+  "final_campaign_hash": "3eb387258276637bae94be4387f5b16cd76020c20c4c2ea11149af76530165eb",
+  "initial_valid_seconds": 1952.86,
+  "final_valid_seconds": 3782.251,
+  "added_valid_seconds": 1829.391,
+  "final_hours": 1.050625,
+  "progress_to_24h_fraction": 0.0437761,
+  "seconds_to_6h": 17817.749,
+  "seconds_to_24h": 82617.749,
+  "new_sessions": 2,
+  "new_admitted": 2,
+  "new_rejected": 0,
+  "utc_dates": ["2026-08-07", "2026-08-14"],
+  "formal_date_gate_satisfied": true,
+  "temporal_coverage_diagnostic": "Highly concentrated on 2026-08-14; 2026-08-07 contributes only 59.016 seconds.",
+  "operational_capture_breaks": 6,
+  "scientific_capture_breaks": 5,
+  "six_hour_checkpoint_reached": false,
+  "discovery_ready": false
+}

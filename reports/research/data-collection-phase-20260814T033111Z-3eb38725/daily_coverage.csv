@@ -1,0 +1,4 @@
+utc_date,scientific_sessions,scientific_seconds,scientific_hours,scientific_events,aggTrade,bookTicker,depth,markPrice,internal_events
+2026-08-07,1,59.016,0.016393,2656,93,1925,576,59,3
+2026-08-14,5,3723.235,1.034232,577171,16409,520572,36452,3723,15
+TOTAL,6,3782.251,1.050625,579827,16502,522497,37028,3782,18

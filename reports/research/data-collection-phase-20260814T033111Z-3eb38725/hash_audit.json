@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "campaign_event_files_checked": 11,
+  "campaign_event_files_matching_manifest": 11,
+  "campaign_event_files_mismatched": 0,
+  "campaign_hash": "3eb387258276637bae94be4387f5b16cd76020c20c4c2ea11149af76530165eb",
+  "session_ordering_deterministic": true,
+  "new_event_hashes": [
+    "dcd41cf40ce5ac89f3cb0fca4007d4761dd2a26b08d971c5e65fff02ae440927",
+    "a8022719cffd8cc6928c072268c294323b1524671fdce38710e0cb26867fff5e",
+    "67d1e22574975e6dbd5f6ee3eefeddb5aaf51c594b448111e8af8d3de3dc3eda",
+    "f80e199e41738416c64957885f6322e2bbc79334f85c4635444bf63531b87fa6"
+  ],
+  "raw_modified_by_audit": false
+}
