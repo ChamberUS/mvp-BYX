@@ -80,3 +80,14 @@ adaptive-trader research execution build-multi-day-economics \
 
 The current report is under
 `reports/research/multi-day-economic-qualification-20260807T230125Z-88fc458a/`.
+
+## Sprint 4A.3.3 checkpoint
+
+A second clean-provenance session was admitted on 2026-08-14. Scientific coverage is now 117.777
+seconds across two UTC dates, with 18,765 events. The date condition is satisfied but the 24-hour
+duration condition still lacks 86,282.223 seconds. The new eligible hash is
+`7fd8c942433071bceb31e76e282310917d996595e9bf097e8c5e8649fc1a6db4`.
+
+No financial selection was opened: discovery/confirmation remain unavailable, holdout stays
+locked, and all policy/notional/runner economics remain null with `MORE_DATA_REQUIRED`. See
+`SPRINT_4A_3_3_24H_DATA_QUALIFICATION.md` and the `24h-multi-day-qualification-...` bundle.

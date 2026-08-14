@@ -1,0 +1,4 @@
+execution_policy,maker_wait_ms,queue_model,opportunities,hypothetical_orders_posted,fills,full_fills,partial_fills,no_fills,fill_rate,full_fill_rate,partial_fill_rate,queue_ahead_quantity,missed_opportunity_rate,missed_favorable_moves,mean_time_to_fill_ms,mean_queue_time_ms,cancel_count,fallback_taker_rate,adverse_selection_bps,markout_after_fill_bps,touch_counted_as_fill,fill_confidence
+MAKER_TAKER_V1,250,CONSERVATIVE_FIFO_APPROXIMATION,0,0,0,0,0,0,,,,,,,,,0,,,,False,INSUFFICIENT_NEW_DATA
+TAKER_MAKER_V1,250,CONSERVATIVE_FIFO_APPROXIMATION,0,0,0,0,0,0,,,,,,,,,0,,,,False,INSUFFICIENT_NEW_DATA
+MAKER_MAKER_V1,250,CONSERVATIVE_FIFO_APPROXIMATION,0,0,0,0,0,0,,,,,,,,,0,,,,False,INSUFFICIENT_NEW_DATA

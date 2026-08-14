@@ -1,0 +1,10 @@
+{
+  "minimum_discovery_seconds": 86400,
+  "minimum_discovery_utc_dates": 2,
+  "next_step": "MORE_DATA_REQUIRED",
+  "requirements_reduced_after_results": false,
+  "seconds_missing_for_discovery": 86282.223,
+  "utc_dates_covered": 2,
+  "utc_dates_missing_for_discovery": 0,
+  "valid_duration_seconds": 117.777
+}

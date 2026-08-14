@@ -34,6 +34,13 @@ replay. The old UNKNOWN-provenance session is preserved but rejected. The curren
 59.016-second session remains below discovery readiness, so no 60/20/20 split or financial
 relationship was opened and the holdout remains locked.
 
+## Sprint 4A.3.3: two dates without duration readiness
+
+The campaign now spans 2026-08-07 and 2026-08-14, but contains only 117.777 scientifically valid
+seconds. Two dates alone do not release discovery: 86,400 valid seconds are also mandatory. No
+feature relationship, quantile, policy, side, notional or exit variant was inspected for selection;
+the 60/20/20 split was not created and the holdout remains `LOCKED`.
+
 ## Campaign consumido e sucessor
 
 Sprint 4A.3.1 congela este campaign como `ENGINEERING_CONSUMED`: seus resultados continuam como

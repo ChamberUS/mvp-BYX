@@ -1,0 +1,10 @@
+{
+  "capture_breaks_are_market_gaps": false,
+  "consumed_campaign_hash": "999dc176fb76d0cc3f3d85541dc9dbe08333028f163b657813f5a09bec1ac27b",
+  "consumed_engineering_campaign_excluded": true,
+  "invalid_long_horizon_labels_repaired": false,
+  "new_campaign_only": true,
+  "receive_wall_minus_exchange_time_used": false,
+  "session_count": 2,
+  "warnings": []
+}

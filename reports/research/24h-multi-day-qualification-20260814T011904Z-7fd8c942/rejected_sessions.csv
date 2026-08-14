@@ -1,0 +1,2 @@
+session_id,path,admitted,status,reasons,duration_seconds,event_count,replay_status,replay_hash,software_commit,dirty_worktree,branch,recorder_version,recorder_config_hash
+microstructure-20260807T072555Z-usd_m_futures,data/microstructure/futures/ETHUSDT/2026-08-07/microstructure-20260807T072555Z-usd_m_futures,False,REJECT_FROM_SCIENTIFIC_DATASET,BOOK_NOT_SYNCHRONIZED|PROVENANCE_INCOMPLETE,0.0,10209,DETERMINISTIC,f72f86b7f16ace5e365bf33375f0ccc5d0143c9c2ee1bcd5143afd31a11f3060,UNKNOWN,,UNKNOWN,UNKNOWN,UNKNOWN

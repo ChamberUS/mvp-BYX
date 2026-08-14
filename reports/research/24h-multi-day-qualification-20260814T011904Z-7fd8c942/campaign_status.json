@@ -1,0 +1,21 @@
+{
+  "campaign_hash": "7fd8c942433071bceb31e76e282310917d996595e9bf097e8c5e8649fc1a6db4",
+  "campaign_id": "ethusdt-futures-intraday-discovery-v1",
+  "capture_breaks": [],
+  "dataset_status": "ENGINEERING_ONLY",
+  "events": {
+    "aggTrade": 499,
+    "bookTicker": 16991,
+    "depth": 1152,
+    "markPrice": 117
+  },
+  "quality": "CLEAN",
+  "seconds_missing_for_discovery": 86282.223,
+  "sessions": 2,
+  "utc_dates": [
+    "2026-08-07",
+    "2026-08-14"
+  ],
+  "utc_dates_missing_for_discovery": 0,
+  "valid_duration_seconds": 117.777
+}

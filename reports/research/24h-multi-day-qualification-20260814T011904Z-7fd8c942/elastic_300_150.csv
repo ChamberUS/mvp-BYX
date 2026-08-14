@@ -1,0 +1,3 @@
+side,exit_variant,entry_edge_bps,exit_increment_bps,activations,completed_episodes,max_hold_ms,reversal_exits,hard_floor_exits,liquidity_failsafes,giveback_bps,incremental_edge_bps,time_in_market_seconds,useful,status,elastic_parameters_modified,dataset_status
+LONG,ELASTIC_300_150_V0,,,0,0,,0,0,0,,,0,False,MORE_DATA_REQUIRED,False,ENGINEERING_ONLY
+SHORT,ELASTIC_300_150_V0,,,0,0,,0,0,0,,,0,False,MORE_DATA_REQUIRED,False,ENGINEERING_ONLY

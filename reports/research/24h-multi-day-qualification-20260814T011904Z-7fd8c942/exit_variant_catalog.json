@@ -1,0 +1,14 @@
+{
+  "elastic_300_150_v0_modified": false,
+  "runner_10m_max_hold_ms": 600000,
+  "runner_15m_max_hold_ms": 900000,
+  "runner_has_300ms_no_new_peak_timeout": false,
+  "runner_reversal_confirmation_ms": 150,
+  "thresholds_selected_from_pnl": false,
+  "variants": [
+    "IMMEDIATE_PROFIT_EXIT",
+    "ELASTIC_300_150_V0",
+    "MULTI_MINUTE_RUNNER_10M_V0",
+    "MULTI_MINUTE_RUNNER_15M_V0"
+  ]
+}

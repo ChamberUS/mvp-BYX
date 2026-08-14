@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
 import subprocess
 from dataclasses import replace
@@ -105,13 +106,18 @@ class MultiDayExecutionEconomicsService:
         campaign = eligible_campaign
         catalog = load_execution_policy_catalog(policy_catalog_path)
         experiment_id = (
-            f"multi-day-economic-qualification-{datetime.now(tz=UTC).strftime('%Y%m%dT%H%M%SZ')}-"
+            f"24h-multi-day-qualification-{datetime.now(tz=UTC).strftime('%Y%m%dT%H%M%SZ')}-"
             f"{campaign.campaign_hash[:8]}"
         )
         output = output_dir / experiment_id
         output.mkdir(parents=True, exist_ok=False)
 
         _json(output / "engineering_consumed_manifest.json", consumed)
+        _json(output / "campaign_snapshot.json", campaign.as_dict())
+        _json(
+            output / "methodology_freeze.json",
+            self._methodology_freeze(catalog_path=policy_catalog_path),
+        )
         _json(
             output / "provenance_audit.json",
             {
@@ -123,6 +129,10 @@ class MultiDayExecutionEconomicsService:
             },
         )
         _csv(output / "session_admission.csv", [item.as_dict() for item in admissions])
+        _csv(
+            output / "rejected_sessions.csv",
+            [item.as_dict() for item in admissions if not item.admitted],
+        )
         _json(output / "campaign_manifest.json", campaign.as_dict())
         _json(output / "campaign_status.json", self._campaign_status(campaign))
         _json(output / "campaign_progress.json", self._campaign_status(campaign))
@@ -151,6 +161,7 @@ class MultiDayExecutionEconomicsService:
         _csv(output / "runner_10m.csv", self._exit_rows(campaign, ExitVariantId.RUNNER_10M))
         _csv(output / "runner_15m.csv", self._exit_rows(campaign, ExitVariantId.RUNNER_15M))
         _csv(output / "elastic_300_150.csv", self._exit_rows(campaign, ExitVariantId.ELASTIC))
+        _csv(output / "immediate_exit.csv", self._exit_rows(campaign, ExitVariantId.IMMEDIATE))
         comparison = self._runner_comparison(campaign)
         _json(output / "runner_comparison.json", comparison)
         _json(output / "block_bootstrap.json", episode_block_bootstrap(()))
@@ -193,12 +204,25 @@ class MultiDayExecutionEconomicsService:
                 "alpha_v1_selected": False,
             },
         )
+        limitations = ["DATASET_BELOW_DISCOVERY_READY"]
+        if len(campaign.utc_dates_covered) < 2:
+            limitations.append("FEWER_THAN_TWO_UTC_DATES")
+        limitations.extend(
+            (
+                "INSUFFICIENT_INDEPENDENT_EPISODES",
+                "INSUFFICIENT_MAKER_FILL_OBSERVATIONS",
+                "RUNNER_SAMPLE_INSUFFICIENT",
+            )
+        )
         central_answer = {
             "question": (
                 "Existe uma combinação de microestrutura + execução maker/taker que produz edge "
                 "líquido em vários dias, usando condições acessíveis a uma conta pequena?"
             ),
             "answer": decision.value,
+            "dataset_status": campaign.status.value,
+            "valid_duration_seconds": campaign.total_duration_seconds,
+            "utc_dates": list(campaign.utc_dates_covered),
             "best_supported_side": None,
             "supported_execution_policy": None,
             "supported_notional_range": None,
@@ -206,13 +230,7 @@ class MultiDayExecutionEconomicsService:
             "confirmation_result": "NOT_AVAILABLE",
             "holdout_status": "LOCKED",
             "evidence_strength": "INSUFFICIENT_MULTI_DAY_EVIDENCE",
-            "limitations": [
-                "DATASET_BELOW_DISCOVERY_READY",
-                "FEWER_THAN_TWO_UTC_DATES",
-                "INSUFFICIENT_INDEPENDENT_EPISODES",
-                "INSUFFICIENT_MAKER_FILL_OBSERVATIONS",
-                "RUNNER_SAMPLE_INSUFFICIENT",
-            ],
+            "limitations": limitations,
         }
         _json(output / "accessible_intraday_edge_answer.json", central_answer)
         manifest: dict[str, object] = {
@@ -244,6 +262,12 @@ class MultiDayExecutionEconomicsService:
         (output / "multi_day_economic_qualification_report.md").write_text(
             (output / "multi_day_execution_economics_report.md").read_text(encoding="utf-8")
             + "\n## Central scientific answer\n\n**MORE_DATA_REQUIRED**\n",
+            encoding="utf-8",
+        )
+        (output / "multi_day_24h_qualification_report.md").write_text(
+            (output / "multi_day_economic_qualification_report.md").read_text(
+                encoding="utf-8"
+            ),
             encoding="utf-8",
         )
         return output
@@ -280,6 +304,54 @@ class MultiDayExecutionEconomicsService:
             "dataset_status": campaign.status.value,
             "seconds_missing_for_discovery": max(0.0, 86_400 - duration),
             "utc_dates_missing_for_discovery": max(0, 2 - len(dates)),
+        }
+
+    @staticmethod
+    def _methodology_freeze(*, catalog_path: Path) -> dict[str, object]:
+        paths = {
+            "feature_source": Path("src/adaptive_trader/microstructure/features.py"),
+            "anchor_source": Path(
+                "src/adaptive_trader/research/microstructure_edge_dataset.py"
+            ),
+            "fee_source": Path("src/adaptive_trader/execution/fees.py"),
+            "latency_source": Path("src/adaptive_trader/execution/latency.py"),
+            "elastic_source": Path("src/adaptive_trader/execution/elastic.py"),
+            "runner_source": Path(
+                "src/adaptive_trader/microstructure/multi_minute_runner.py"
+            ),
+        }
+        return {
+            "status": "FROZEN_UNCHANGED_FROM_SPRINT_4A_3_2",
+            "anchor_config_hash": stable_hash({"anchor_interval_ms": 250}),
+            "feature_config_hash": _file_hash(paths["feature_source"]),
+            "execution_policy_catalog_hash": _file_hash(catalog_path),
+            "fee_profile_hash": stable_hash(
+                {
+                    "id": "RESEARCH_FEE_PROFILE_V1",
+                    "maker_fee_bps": "2",
+                    "taker_fee_bps": "5",
+                }
+            ),
+            "latency_profile_hash": stable_hash(
+                {"baseline": "NORMAL", "source_hash": _file_hash(paths["latency_source"])}
+            ),
+            "runner_catalog_hash": stable_hash(
+                {
+                    "variants": [item.value for item in ExitVariantId],
+                    "runner_source_hash": _file_hash(paths["runner_source"]),
+                    "elastic_source_hash": _file_hash(paths["elastic_source"]),
+                }
+            ),
+            "notional_catalog_hash": stable_hash([str(item) for item in ACCOUNT_NOTIONALS]),
+            "horizon_catalog_hash": stable_hash(list(LONG_HORIZONS_MS)),
+            "bootstrap_config_hash": stable_hash(
+                {"block_minutes": 30, "iterations": 2000, "seed": 42}
+            ),
+            "temporal_split_config_hash": stable_hash(
+                {"discovery": 60, "confirmation": 20, "locked_holdout": 20}
+            ),
+            "source_hashes": {name: _file_hash(path) for name, path in paths.items()},
+            "methodology_changed": False,
         }
 
     @staticmethod
@@ -675,7 +747,7 @@ class MultiDayExecutionEconomicsService:
         requirements: dict[str, object],
     ) -> None:
         incomplete = sum(row["status"] == "LABEL_INCOMPLETE" for row in labels)
-        text = f"""# Multi-day economic qualification — Sprint 4A.3.2
+        text = f"""# 24h multi-day data acquisition — Sprint 4A.3.3
 
 ## Decision
 
@@ -688,7 +760,8 @@ class MultiDayExecutionEconomicsService:
 The prior campaign is formally `ENGINEERING_CONSUMED` and excluded from selection. Campaign
 `{campaign.campaign_id}` contains {len(campaign.sessions)} new session(s),
 {campaign.total_duration_seconds:.3f} valid seconds and
-{len(campaign.utc_dates_covered)} UTC date(s). It remains below 24 hours/two dates.
+{len(campaign.utc_dates_covered)} UTC date(s). It remains below the complete discovery gate;
+the duration is below 24 hours even when the two-date condition is already satisfied.
 
 All {incomplete} extended-horizon availability rows are `LABEL_INCOMPLETE`; no candle, mark price,
 capture break or consumed session was used to fill missing future state. The four immutable policies
@@ -739,6 +812,10 @@ def _event_counts(sessions: tuple[CampaignSession, ...]) -> dict[str, int]:
             if isinstance(value, int) and not isinstance(value, bool):
                 counts[name] = counts.get(name, 0) + value
     return counts
+
+
+def _file_hash(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def _json(path: Path, payload: object) -> None:

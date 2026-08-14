@@ -487,3 +487,13 @@ campaign ainda tem somente uma data e permanece `ENGINEERING_ONLY`.
 A resposta científica central é **MORE_DATA_REQUIRED**; nenhum lado, policy, notional ou runner foi
 declarado vencedor, e o holdout permanece fechado. Critérios, operação resumível e limitações estão
 em [`docs/MULTI_DAY_ECONOMIC_QUALIFICATION.md`](docs/MULTI_DAY_ECONOMIC_QUALIFICATION.md).
+
+## Aquisição 24h — Sprint 4A.3.3
+
+O campaign científico avançou para duas sessões admitidas, 117,777 segundos válidos, duas datas
+UTC e 18.765 eventos. A condição de datas foi atingida, mas ainda faltam 86.282,223 segundos para
+24h; portanto discovery/confirmation continuam fechados, o holdout permanece `LOCKED` e a resposta
+é `MORE_DATA_REQUIRED`. Nenhum resultado financeiro foi inspecionado para seleção prematura.
+
+O checkpoint, hashes congelados e comando resumível estão em
+[`docs/SPRINT_4A_3_3_24H_DATA_QUALIFICATION.md`](docs/SPRINT_4A_3_3_24H_DATA_QUALIFICATION.md).

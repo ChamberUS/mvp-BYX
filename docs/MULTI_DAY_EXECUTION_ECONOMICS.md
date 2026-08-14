@@ -110,3 +110,11 @@ The recorder now captures commit, dirty flag, branch, version and config hash be
 A new clean 59.016-second session was admitted; scientific progress is therefore 59.016 seconds and
 one UTC date, with 86,340.984 seconds and one date still missing. The central qualification remains
 `MORE_DATA_REQUIRED`; see `MULTI_DAY_ECONOMIC_QUALIFICATION.md`.
+
+## 24h acquisition checkpoint
+
+Sprint 4A.3.3 added one admitted 58.761-second session without changing this execution methodology.
+Scientific totals are 117.777 seconds, two UTC dates and 18,765 events. Duration remains below
+`DISCOVERY_READY`, so maker/taker economics, LONG/SHORT, Immediate, Elastic and runner increments
+are intentionally null. The exact methodology hashes and resume command are recorded in
+`SPRINT_4A_3_3_24H_DATA_QUALIFICATION.md`.

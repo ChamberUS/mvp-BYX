@@ -337,14 +337,20 @@ def test_multi_day_service_writes_complete_more_data_report(
     assert (output / "multi_day_execution_economics_report.md").is_file()
     answer = json.loads((output / "accessible_intraday_edge_answer.json").read_text())
     assert answer["answer"] == "MORE_DATA_REQUIRED"
+    assert answer["dataset_status"] == "ENGINEERING_ONLY"
+    assert answer["valid_duration_seconds"] == 0
+    assert answer["utc_dates"] == []
     assert answer["best_supported_side"] is None
     assert json.loads((output / "holdout_lock.json").read_text())["status"] == "LOCKED"
     assert (output / "multi_day_economic_qualification_report.md").is_file()
     required = {
         "experiment_manifest.json",
+        "campaign_snapshot.json",
+        "methodology_freeze.json",
         "provenance_audit.json",
         "campaign_manifest.json",
         "session_admission.csv",
+        "rejected_sessions.csv",
         "dataset_quality.json",
         "campaign_progress.json",
         "execution_policy_economics.csv",
@@ -361,10 +367,12 @@ def test_multi_day_service_writes_complete_more_data_report(
         "runner_10m.csv",
         "runner_15m.csv",
         "elastic_300_150.csv",
+        "immediate_exit.csv",
         "discovery_confirmation.json",
         "holdout_lock.json",
         "accessible_intraday_edge_answer.json",
         "multi_day_economic_qualification_report.md",
+        "multi_day_24h_qualification_report.md",
     }
     assert required <= {item.name for item in output.iterdir()}
     with (output / "maker_fill_quality.csv").open(newline="") as handle:

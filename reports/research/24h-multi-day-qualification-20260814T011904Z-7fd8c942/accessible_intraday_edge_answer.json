@@ -1,0 +1,23 @@
+{
+  "answer": "MORE_DATA_REQUIRED",
+  "best_supported_side": null,
+  "confirmation_result": "NOT_AVAILABLE",
+  "dataset_status": "ENGINEERING_ONLY",
+  "discovery_result": "NOT_AVAILABLE",
+  "evidence_strength": "INSUFFICIENT_MULTI_DAY_EVIDENCE",
+  "holdout_status": "LOCKED",
+  "limitations": [
+    "DATASET_BELOW_DISCOVERY_READY",
+    "INSUFFICIENT_INDEPENDENT_EPISODES",
+    "INSUFFICIENT_MAKER_FILL_OBSERVATIONS",
+    "RUNNER_SAMPLE_INSUFFICIENT"
+  ],
+  "question": "Existe uma combina\u00e7\u00e3o de microestrutura + execu\u00e7\u00e3o maker/taker que produz edge l\u00edquido em v\u00e1rios dias, usando condi\u00e7\u00f5es acess\u00edveis a uma conta pequena?",
+  "supported_execution_policy": null,
+  "supported_notional_range": null,
+  "utc_dates": [
+    "2026-08-07",
+    "2026-08-14"
+  ],
+  "valid_duration_seconds": 117.777
+}
