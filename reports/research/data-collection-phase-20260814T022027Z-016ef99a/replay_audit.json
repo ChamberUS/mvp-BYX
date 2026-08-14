@@ -1,0 +1,46 @@
+{
+  "status": "DETERMINISTIC_FOR_ALL_ADMITTED_SESSIONS",
+  "admitted_sessions_replayed": 4,
+  "non_deterministic_sessions": 0,
+  "new_event_file_hashes_verified_against_disk": true,
+  "sessions": [
+    {
+      "session_id": "microstructure-20260807T225438Z-usd_m_futures",
+      "replay_status": "DETERMINISTIC",
+      "replay_hash": "3bd879742e92870f829429e82b873f96bf29200027e72d17cf83961b23f85c73"
+    },
+    {
+      "session_id": "microstructure-20260814T011521Z-usd_m_futures",
+      "replay_status": "DETERMINISTIC",
+      "replay_hash": "9f65d33203e943c6799a781ae23a45a0848594f980ee0d9f2fc374d12e9fbcb5"
+    },
+    {
+      "session_id": "microstructure-20260814T014523Z-usd_m_futures",
+      "replay_status": "DETERMINISTIC",
+      "replay_hash": "c5d74358be428fe3176a2195854c6a47015a3956a89358a34d239d172bd0e3c9",
+      "event_file_hashes": [
+        "a0e066e0cf5fc1f554dc139ca5e1f8dbc0de6e87ccce99021dfafe284d853573",
+        "f8ec8b90c6761f5ef2b8866e693564d46762a9623559dbf513ee6958a45aabcb",
+        "ae5936dcc3fe1d40f178e0fa7e6781601b083de3ff145bdf6b75daf073a9afd4"
+      ]
+    },
+    {
+      "session_id": "microstructure-20260814T021620Z-usd_m_futures",
+      "replay_status": "DETERMINISTIC",
+      "replay_hash": "87717fc471c77df18b6067db103e2702287315372396747d4d1b179e8af5024d",
+      "event_file_hashes": [
+        "493aca8edfd4daec378a11b045e26c815e552c7dd8a6342cb064ba3702cfaa5e"
+      ]
+    }
+  ],
+  "new_session_integrity": {
+    "gaps": 0,
+    "dropped_events": 0,
+    "parser_errors": 0,
+    "resyncs": 0,
+    "disconnects": 0,
+    "unresolved_liveness_incidents": 0,
+    "recovered_liveness_incidents": 2,
+    "final_book_status": "SYNCHRONIZED"
+  }
+}

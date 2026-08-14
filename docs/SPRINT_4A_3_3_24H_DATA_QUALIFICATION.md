@@ -14,23 +14,34 @@ NORMAL latency, runners, notionals, horizons, 30-minute/2,000/seed-42 bootstrap 
 
 ## Acquisition checkpoint
 
-The campaign `ethusdt-futures-intraday-discovery-v1` now contains three operational sessions.
-Two are scientifically admitted and one historical session remains rejected without raw rewrite.
-The new session `microstructure-20260814T011521Z-usd_m_futures` was captured from clean `main` at
-commit `bdb02ff1bb3e51d9b754a66e45ab5aff31baf847`. It contributes 58.761 valid seconds and 16,109
-events with all four streams, synchronized book, deterministic replay, complete provenance and no
-admission reason.
+The campaign `ethusdt-futures-intraday-discovery-v1` now contains five operational sessions. Four
+are scientifically admitted and one historical session remains rejected without raw rewrite. This
+checkpoint added two sessions from clean `main` at commit
+`80c2bd48b3d8b4b197845174afee6e1f336e4177`: a complete requested 1,800-second chunk that
+contributes 1,798.923 valid seconds, and a safely interrupted follow-up chunk that contributes
+36.160 valid seconds. Both have complete provenance, all four streams, synchronized book, zero
+gaps/drops/parser errors and deterministic replay.
 
-The scientific checkpoint totals 117.777 seconds, two UTC dates and 18,765 events: 499 aggTrade,
-16,991 bookTicker, 1,152 depth and 117 markPrice. The eligible campaign hash is
-`7fd8c942433071bceb31e76e282310917d996595e9bf097e8c5e8649fc1a6db4`. The duration gate still
-needs 86,282.223 seconds; the two-date gate is satisfied.
+The scientific checkpoint totals 1,952.860 seconds (0.542461 h), two UTC dates and 306,138 session
+events. Stream delivery contains 7,836 aggTrade, 277,221 bookTicker, 19,117 depth and 1,952
+markPrice events; the remaining 12 are internal connection/snapshot events. Coverage is 59.016 s
+on 2026-08-07 and 1,893.844 s on 2026-08-14. The operational campaign hash is
+`016ef99a5001b5468e0d42915ecaf5e7d04a5fa2179f3e120a4b458931411963`. The duration gate still
+needs 84,447.140 seconds; the two-date gate is satisfied.
+
+The long chunk recorded recovered liveness incidents for depth and markPrice. Both were classified
+as `THRESHOLD_TOO_STRICT`, remained resolved, and caused no gap, resync or invalid book. Admission
+therefore remained unchanged and automatic. The recorder config hash changed to
+`8a6f459323958517c345c82418f2c16d9e293f4c351d41aa4a9ce6091b561dec` because it includes the
+operational requested duration (1,800 s rather than the earlier 60 s); no frozen methodology
+changed.
 
 ## Scientific decision
 
-Status remains `ENGINEERING_ONLY`. Discovery and confirmation are unavailable; holdout remains
-`LOCKED`. Financial fields for maker/taker policies, LONG/SHORT, notionals and exit variants remain
-null. No winner was selected and no intermediate checkpoint was used to inspect edge.
+Status remains `ENGINEERING_ONLY`, and the phase status is `DATA_COLLECTION_IN_PROGRESS`.
+Discovery and confirmation are unavailable; holdout remains `LOCKED`. No economics command was
+run and no maker/taker policy, LONG/SHORT side, notional, feature condition, horizon or exit variant
+was inspected for selection.
 
 The only valid central answer is **MORE_DATA_REQUIRED**. This is caused by duration below 24 hours,
 insufficient independent episodes, insufficient maker observations and unavailable bootstrap and
@@ -38,10 +49,15 @@ confirmation. It is neither evidence for YES nor evidence for NO.
 
 ## Bundle and continuation
 
-The checkpoint bundle is
-`reports/research/24h-multi-day-qualification-20260814T011904Z-7fd8c942/`. It includes the campaign
-snapshot, provenance/admission/rejection evidence, methodology hashes, null-safe economics,
-Immediate/Elastic/Runner10/Runner15 reports, holdout lock and central answer.
+The current operational bundle is
+`reports/research/data-collection-phase-20260814T022027Z-016ef99a/`. It includes pre/post
+checkpoints, collection manifest, admission and rejection tables, daily/stream coverage, storage,
+provenance, replay and methodology-freeze audits. It deliberately contains no financial result and
+no discovery-ready snapshot.
+
+The raw root occupies 133.090 MiB, with 150.257 GiB available. Observed storage projects to about
+2.323 GiB for 24 h, so collection is not storage constrained. Raw remains ignored and untracked.
+No collection-semantic bug was found and no code changed in this checkpoint.
 
 Continue only from a clean worktree. The source of truth is `scientific_valid_duration_seconds`
 reported by `campaign-status`, not wall time or requested duration.

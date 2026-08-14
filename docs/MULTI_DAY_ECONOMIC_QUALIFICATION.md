@@ -83,14 +83,17 @@ The current report is under
 
 ## Sprint 4A.3.3 checkpoint
 
-A second clean-provenance session was admitted on 2026-08-14. Scientific coverage is now 117.777
-seconds across two UTC dates, with 18,765 events. The date condition is satisfied but the 24-hour
-duration condition still lacks 86,282.223 seconds. The new eligible hash is
-`7fd8c942433071bceb31e76e282310917d996595e9bf097e8c5e8649fc1a6db4`.
+A 1,800-second chunk and a safely interrupted follow-up chunk were admitted on 2026-08-14.
+Scientific coverage is now 1,952.860 seconds across two UTC dates, with 306,138 scientific session
+events. The date condition is satisfied but the 24-hour duration condition still lacks 84,447.140
+seconds. The operational campaign hash is
+`016ef99a5001b5468e0d42915ecaf5e7d04a5fa2179f3e120a4b458931411963`.
 
 No financial selection was opened: discovery/confirmation remain unavailable, holdout stays
-locked, and all policy/notional/runner economics remain null with `MORE_DATA_REQUIRED`. See
-`SPRINT_4A_3_3_24H_DATA_QUALIFICATION.md` and the `24h-multi-day-qualification-...` bundle.
+locked, and the scientific answer remains `MORE_DATA_REQUIRED`. Feed admission, recovered
+liveness incidents, daily coverage, storage and deterministic replay are recorded in
+`SPRINT_4A_3_3_24H_DATA_QUALIFICATION.md` and the
+`data-collection-phase-20260814T022027Z-016ef99a` bundle.
 
 Resume now compares `--total-seconds` with admitted scientific event-interval duration rather than
 requested wall-clock duration and records full chunks until the valid-duration gate is reached.

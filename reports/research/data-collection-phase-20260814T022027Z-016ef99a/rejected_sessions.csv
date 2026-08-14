@@ -1,0 +1,2 @@
+session_id,start_utc,end_utc,event_count,status,reasons,software_commit,recorder_config_hash,raw_preserved,retrospectively_repaired
+microstructure-20260807T072555Z-usd_m_futures,2026-08-07T07:25:56.274000+00:00,2026-08-07T07:26:55.286000+00:00,10209,REJECT_FROM_SCIENTIFIC_DATASET,BOOK_NOT_SYNCHRONIZED|PROVENANCE_INCOMPLETE,UNKNOWN,UNKNOWN,True,False

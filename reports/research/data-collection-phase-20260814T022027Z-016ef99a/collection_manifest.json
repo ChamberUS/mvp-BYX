@@ -1,0 +1,43 @@
+{
+  "phase": "SPRINT_4A_3_3_DATA_COLLECTION_PHASE",
+  "collection_id": "data-collection-phase-20260814T022027Z-016ef99a",
+  "generated_at_utc": "2026-08-14T02:20:27Z",
+  "campaign_id": "ethusdt-futures-intraday-discovery-v1",
+  "market": "USD_M_FUTURES",
+  "symbol": "ETHUSDT",
+  "initial_software_commit": "80c2bd48b3d8b4b197845174afee6e1f336e4177",
+  "branch_at_capture": "main",
+  "dirty_worktree_at_capture": false,
+  "recorder_version": "PUBLIC_MICROSTRUCTURE_RECORDER_V1",
+  "recorder_config_hash_for_new_sessions": "8a6f459323958517c345c82418f2c16d9e293f4c351d41aa4a9ce6091b561dec",
+  "streams": [
+    "aggTrade",
+    "bookTicker",
+    "depth@100ms",
+    "markPrice@1s"
+  ],
+  "requested_chunk_seconds": 1800,
+  "target_scientific_seconds": 86400,
+  "leverage": "1x",
+  "public_data_only": true,
+  "authentication_used": false,
+  "orders_used": false,
+  "private_streams_used": false,
+  "sessions_started": 2,
+  "sessions_completed": 2,
+  "sessions_admitted": 2,
+  "sessions_rejected": 0,
+  "safe_interruption": {
+    "signal": "SIGINT",
+    "reason": "The resumable command automatically began the next full chunk after completing the first; the environment could not remain attached for 24 hours.",
+    "manifest_closed": true,
+    "event_file_closed": true,
+    "hashes_persisted": true,
+    "admission_completed": true
+  },
+  "financial_analysis_executed": false,
+  "holdout_accessed": false,
+  "methodology_changed": false,
+  "dataset_status": "DATA_COLLECTION_IN_PROGRESS",
+  "scientific_answer": "MORE_DATA_REQUIRED"
+}

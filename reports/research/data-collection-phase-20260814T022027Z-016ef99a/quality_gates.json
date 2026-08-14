@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "new_tests": 0,
+  "total_tests": 594,
+  "coverage_percent": 81.48,
+  "coverage_requirement_percent": 80,
+  "suite_results": {
+    "tests/microstructure": "134 passed",
+    "tests/execution": "42 passed",
+    "tests/research": "255 passed",
+    "tests/futures": "101 passed",
+    "tests/backtest": "10 passed",
+    "pytest": "594 passed",
+    "pytest_with_coverage": "594 passed"
+  },
+  "ruff": "PASS",
+  "mypy": "PASS: 135 source files",
+  "doctor": "PASS: research-only, trading disabled, no authenticated Binance configuration",
+  "git_diff_check": "PASS",
+  "code_changed": false
+}

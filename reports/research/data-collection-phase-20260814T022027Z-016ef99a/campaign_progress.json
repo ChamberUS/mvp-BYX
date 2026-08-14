@@ -1,0 +1,40 @@
+{
+  "campaign_id": "ethusdt-futures-intraday-discovery-v1",
+  "initial_campaign_hash": "77eda2a3be2d42fc43021139145b69a3e034e25c01cc33664caa4d09486e63f3",
+  "final_campaign_hash": "016ef99a5001b5468e0d42915ecaf5e7d04a5fa2179f3e120a4b458931411963",
+  "initial_scientific_valid_duration_seconds": 117.777,
+  "final_scientific_valid_duration_seconds": 1952.86,
+  "scientific_duration_added_seconds": 1835.083,
+  "scientific_duration_hours": 0.542461,
+  "target_scientific_duration_seconds": 86400,
+  "progress_fraction": 0.0226025,
+  "seconds_remaining": 84447.14,
+  "utc_dates": [
+    "2026-08-07",
+    "2026-08-14"
+  ],
+  "utc_date_gate_satisfied": true,
+  "duration_gate_satisfied": false,
+  "operational_sessions_before": 3,
+  "operational_sessions_after": 5,
+  "scientific_sessions_before": 2,
+  "scientific_sessions_after": 4,
+  "rejected_sessions_before": 1,
+  "rejected_sessions_after": 1,
+  "new_sessions": 2,
+  "new_sessions_admitted": 2,
+  "new_sessions_rejected": 0,
+  "operational_capture_breaks": 4,
+  "scientific_capture_breaks_between_admitted_sessions": 3,
+  "scientific_event_count": 306138,
+  "scientific_stream_counts": {
+    "aggTrade": 7836,
+    "bookTicker": 277221,
+    "depth": 19117,
+    "markPrice": 1952
+  },
+  "dataset_status": "ENGINEERING_ONLY",
+  "collection_phase_status": "DATA_COLLECTION_IN_PROGRESS",
+  "discovery_ready": false,
+  "scientific_answer": "MORE_DATA_REQUIRED"
+}

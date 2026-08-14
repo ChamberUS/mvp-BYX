@@ -1,0 +1,14 @@
+{
+  "anchor_config_hash": "980991b804b9b05edc15682ce7401c6a78fbd3d994a81ccd111fa161da1e9492",
+  "bootstrap_config_hash": "8de1907a8aa47ddf822a037ebc98520ae1017561e4bc052827061f0912b37728",
+  "execution_policy_catalog_hash": "8bf28d3e52c5b2b4aa0f098664673f11d20fa15aae02820edcef3d4d2296b7f8",
+  "feature_config_hash": "74226f9240b5749599a128615aedfaac06d42b72e5bb33174dd26233ea108270",
+  "fee_profile_hash": "5afcd92ec560e40896851be8ffdeed0a78fb4afa420bfe89d283c23375971155",
+  "horizon_catalog_hash": "cd0a073c2e4f9c06487ec967fdda33108adc44c5e9cf42434a76241cf1b3c50c",
+  "latency_profile_hash": "c511a3e16cfa0764f0237ee0ea3aa39f59cb02fd26424a6403385dd49517858f",
+  "methodology_changed": false,
+  "notional_catalog_hash": "59cbdac849cccbf496e50ed2bb39dd18b866e86494327072aa55f5025d1cd865",
+  "runner_catalog_hash": "618b9082278367a0b5721ac03f8f8c4b98941433096f59ddc9dde1f34db78fbd",
+  "temporal_split_config_hash": "e4779bde57059924713b4931de7e3df0f7d7386eddf3ba93c50df7eb26ea8df1",
+  "status": "FROZEN_UNCHANGED_FROM_SPRINT_4A_3_2"
+}

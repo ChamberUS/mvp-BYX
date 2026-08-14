@@ -1,0 +1,19 @@
+{
+  "measured_at_utc": "2026-08-14T02:20:27Z",
+  "raw_root": "data/microstructure",
+  "raw_root_bytes": 139554816,
+  "raw_root_mib": 133.09,
+  "new_session_directories_bytes": 52973568,
+  "new_event_files_compressed_bytes": 50769363,
+  "new_event_files_uncompressed_bytes": 405636657,
+  "observed_new_bytes_per_scientific_second": 28867.124,
+  "projected_24h_bytes": 2494119490,
+  "projected_24h_gib": 2.323,
+  "filesystem_available_bytes": 161336725504,
+  "filesystem_available_gib": 150.257,
+  "filesystem_capacity_percent": 67,
+  "storage_risk": false,
+  "raw_git_ignored": true,
+  "raw_git_tracked_files": 0,
+  "raw_destroyed_or_recompressed": false
+}
