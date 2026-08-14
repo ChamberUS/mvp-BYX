@@ -1,0 +1,8 @@
+{
+  "confirmation": "NOT_AVAILABLE",
+  "discovery": "NOT_AVAILABLE",
+  "reason": "DATASET_BELOW_DISCOVERY_READY",
+  "split_created": false,
+  "split_hashes": null,
+  "temporal_split": "60/20/20"
+}

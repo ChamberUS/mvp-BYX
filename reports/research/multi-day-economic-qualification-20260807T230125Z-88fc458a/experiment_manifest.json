@@ -1,0 +1,33 @@
+{
+  "alpha_v1_implemented": false,
+  "authentication_used": false,
+  "campaign_hash": "88fc458a1161700dfbb0ad7746963bdba67f9748e7f9d0dabfd87131f30c9634",
+  "campaign_id": "ethusdt-futures-intraday-discovery-v1",
+  "central_answer": "MORE_DATA_REQUIRED",
+  "consumed_campaign_hash": "999dc176fb76d0cc3f3d85541dc9dbe08333028f163b657813f5a09bec1ac27b",
+  "consumed_campaign_id": "ethusdt-futures-intraday-v1",
+  "created_at": "2026-08-07T23:01:25.744146+00:00",
+  "dataset_status": "ENGINEERING_ONLY",
+  "execution_policy_catalog_hash": "8bf28d3e52c5b2b4aa0f098664673f11d20fa15aae02820edcef3d4d2296b7f8",
+  "exit_variant_catalog_hash": "a72d969a43d13750a7e97f991035e3440ed6aa22e5506ffcb9ea2485e7d0c5e7",
+  "experiment_id": "multi-day-economic-qualification-20260807T230125Z-88fc458a",
+  "extended_horizons_ms": [
+    120000,
+    300000,
+    600000,
+    900000
+  ],
+  "external_orders_sent": false,
+  "holdout_accessed": false,
+  "leverage": "1",
+  "next_step": "MORE_DATA_REQUIRED",
+  "notionals_usdt": [
+    "100",
+    "500",
+    "1000"
+  ],
+  "research_only": true,
+  "scientific_sessions_admitted": 1,
+  "scientific_sessions_rejected": 1,
+  "software_commit": "5d2aa404f43fd873d484ba9d1843c6667acfe8f9"
+}

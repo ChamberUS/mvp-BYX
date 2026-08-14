@@ -101,3 +101,12 @@ not inferred.
 The correct result is `ENGINEERING_ONLY`: every policy and runner status is
 `MORE_DATA_REQUIRED`. Discovery still needs 86,340.988 valid seconds and at least one additional
 UTC date. No Alpha V1 was created.
+
+## Sprint 4A.3.2 provenance correction
+
+The historical 59.012-second raw session remains immutable but is no longer scientifically
+admitted because its manifest has `software_commit=UNKNOWN` and no persisted final book status.
+The recorder now captures commit, dirty flag, branch, version and config hash before every session.
+A new clean 59.016-second session was admitted; scientific progress is therefore 59.016 seconds and
+one UTC date, with 86,340.984 seconds and one date still missing. The central qualification remains
+`MORE_DATA_REQUIRED`; see `MULTI_DAY_ECONOMIC_QUALIFICATION.md`.

@@ -26,6 +26,14 @@ These requirements must not be reduced after inspecting edge. The current one-se
 `ENGINEERING_ONLY`; all financial outputs are diagnostics and the decision is
 `MORE_DATA_REQUIRED`.
 
+## Sprint 4A.3.2 admission boundary
+
+Discovery now consumes only sessions passing `scientific_admission`: complete Git provenance with
+a clean worktree, four live streams, clean feed counters, synchronized book and deterministic
+replay. The old UNKNOWN-provenance session is preserved but rejected. The currently admitted
+59.016-second session remains below discovery readiness, so no 60/20/20 split or financial
+relationship was opened and the holdout remains locked.
+
 ## Campaign consumido e sucessor
 
 Sprint 4A.3.1 congela este campaign como `ENGINEERING_CONSUMED`: seus resultados continuam como

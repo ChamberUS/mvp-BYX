@@ -6,7 +6,10 @@ from pathlib import Path
 
 from adaptive_trader.domain.market import MarketType
 from adaptive_trader.microstructure.provenance import capture_recorder_provenance
-from adaptive_trader.microstructure.scientific_admission import qualify_session
+from adaptive_trader.microstructure.scientific_admission import (
+    qualify_session,
+    reject_duplicate_sessions,
+)
 from tests.microstructure.helpers import write_session
 
 
@@ -102,6 +105,11 @@ def test_scientific_admission_accepts_clean_and_rejects_dirty_or_unknown(
     unknown = qualify_session(session, expected_market="USD_M_FUTURES", expected_symbol="ETHUSDT")
     assert unknown.admitted is False
     assert "PROVENANCE_INCOMPLETE" in unknown.reasons
+
+    duplicate = reject_duplicate_sessions((admitted, admitted))
+    assert duplicate[0].admitted is True
+    assert duplicate[1].admitted is False
+    assert "OVERLAPPING_DUPLICATE_SESSION" in duplicate[1].reasons
 
 
 def _git(repository: Path, *arguments: str) -> None:

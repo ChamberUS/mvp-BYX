@@ -1,0 +1,35 @@
+{
+  "cancel_outbound_latency_ms": 12,
+  "cancel_processing_latency_ms": 3,
+  "catalog_hash": "8bf28d3e52c5b2b4aa0f098664673f11d20fa15aae02820edcef3d4d2296b7f8",
+  "catalog_id": "INTRADAY_EXECUTION_POLICIES_V1",
+  "fallback_behavior": "CANCEL_THEN_TAKER_REMAINDER",
+  "fee_profile": "RESEARCH_FEE_PROFILE_V1",
+  "latency_profile": "NORMAL",
+  "leverage": "1",
+  "maker_wait_ms": 250,
+  "maximum_slippage_bps": "10",
+  "policies": [
+    {
+      "entry": "TAKER",
+      "exit": "TAKER",
+      "id": "TAKER_TAKER_V1"
+    },
+    {
+      "entry": "MAKER_FIRST_V0",
+      "exit": "TAKER",
+      "id": "MAKER_TAKER_V1"
+    },
+    {
+      "entry": "TAKER",
+      "exit": "MAKER_FIRST_V0",
+      "id": "TAKER_MAKER_V1"
+    },
+    {
+      "entry": "MAKER_FIRST_V0",
+      "exit": "MAKER_FIRST_V0",
+      "id": "MAKER_MAKER_V1"
+    }
+  ],
+  "queue_model": "CONSERVATIVE_FIFO_APPROXIMATION"
+}

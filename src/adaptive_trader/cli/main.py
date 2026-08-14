@@ -778,6 +778,13 @@ async def _microstructure_campaign_record(args: argparse.Namespace) -> int:
             raise ValueError("campaign resume symbol differs from existing campaign")
         paths.extend(Path(item.path) for item in existing.sessions)
         for path in paths:
+            admission = qualify_session(
+                path,
+                expected_market=existing.market,
+                expected_symbol=existing.symbol,
+            )
+            if not admission.admitted:
+                continue
             requested = inspect_session(path).get("requested_duration_seconds", 0)
             if isinstance(requested, (int, float)) and not isinstance(requested, bool):
                 captured += float(requested)

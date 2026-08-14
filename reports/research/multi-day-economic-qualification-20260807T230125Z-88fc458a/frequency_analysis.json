@@ -1,0 +1,11 @@
+{
+  "average_holding_duration_seconds": null,
+  "capital_reuse_count": null,
+  "dataset_status": "ENGINEERING_ONLY",
+  "episodes_per_hour": null,
+  "executed_episodes_per_day": null,
+  "median_opportunities_per_day": null,
+  "no_trade_time_seconds": null,
+  "status": "MORE_DATA_REQUIRED",
+  "target_5_to_20_trades_is_selection_criterion": false
+}

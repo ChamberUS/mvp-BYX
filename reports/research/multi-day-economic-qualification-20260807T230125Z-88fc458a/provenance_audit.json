@@ -1,0 +1,40 @@
+{
+  "admissions": [
+    {
+      "admitted": false,
+      "branch": "UNKNOWN",
+      "dirty_worktree": null,
+      "duration_seconds": 0.0,
+      "event_count": 10209,
+      "path": "data/microstructure/futures/ETHUSDT/2026-08-07/microstructure-20260807T072555Z-usd_m_futures",
+      "reasons": "BOOK_NOT_SYNCHRONIZED|PROVENANCE_INCOMPLETE",
+      "recorder_config_hash": "UNKNOWN",
+      "recorder_version": "UNKNOWN",
+      "replay_hash": "f72f86b7f16ace5e365bf33375f0ccc5d0143c9c2ee1bcd5143afd31a11f3060",
+      "replay_status": "DETERMINISTIC",
+      "session_id": "microstructure-20260807T072555Z-usd_m_futures",
+      "software_commit": "UNKNOWN",
+      "status": "REJECT_FROM_SCIENTIFIC_DATASET"
+    },
+    {
+      "admitted": true,
+      "branch": "main",
+      "dirty_worktree": false,
+      "duration_seconds": 59.016,
+      "event_count": 2656,
+      "path": "data/microstructure/futures/ETHUSDT/2026-08-07/microstructure-20260807T225438Z-usd_m_futures",
+      "reasons": "",
+      "recorder_config_hash": "40597ddb04e6e6b84d7f02bb89ce6c1c69b48551d30c85cc3e87fcbee20cb613",
+      "recorder_version": "PUBLIC_MICROSTRUCTURE_RECORDER_V1",
+      "replay_hash": "3bd879742e92870f829429e82b873f96bf29200027e72d17cf83961b23f85c73",
+      "replay_status": "DETERMINISTIC",
+      "session_id": "microstructure-20260807T225438Z-usd_m_futures",
+      "software_commit": "5d2aa404f43fd873d484ba9d1843c6667acfe8f9",
+      "status": "ADMITTED"
+    }
+  ],
+  "historical_raw_rewritten": false,
+  "sessions_admitted": 1,
+  "sessions_rejected": 1,
+  "status": "COMPLETE"
+}

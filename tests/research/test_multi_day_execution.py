@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import csv
+import json
 from dataclasses import replace
 from decimal import Decimal
 from pathlib import Path
@@ -18,16 +20,21 @@ from adaptive_trader.research.multi_day_execution import (
     ACCOUNT_NOTIONALS,
     EXTENDED_HORIZONS_MS,
     LONG_HORIZONS_MS,
+    AccessibleEdgeAnswer,
     EpisodeKey,
     ExecutionPolicyId,
     ExitVariantId,
     NonOverlappingExecutionEpisodeSampler,
+    QualificationEvidence,
+    accessible_edge_answer,
     consumed_campaign_manifest,
     episode_block_bootstrap,
     execution_policy_fee_bps,
+    exit_increment_is_useful,
     extended_horizon_availability,
     load_execution_policy_catalog,
     runner_status,
+    small_account_feasibility,
     validate_new_campaign,
 )
 from adaptive_trader.research.multi_day_execution_service import (
@@ -199,6 +206,74 @@ def test_engineering_dataset_never_classifies_runner_helpful() -> None:
     assert runner_status(DatasetSufficiency.DISCOVERY_READY, 2) == "INSUFFICIENT_SAMPLE"
 
 
+def test_yes_no_and_more_data_qualification_are_unambiguous() -> None:
+    passing = QualificationEvidence(
+        dataset_status=DatasetSufficiency.DISCOVERY_READY,
+        utc_dates=2,
+        quality_sufficient=True,
+        independent_episodes_sufficient=True,
+        maker_observations_sufficient=True,
+        all_structures_evaluable=True,
+        accessible_candidate_count=1,
+        normal_latency_positive=True,
+        confirmation_same_direction=True,
+        temporally_distributed=True,
+        bootstrap_supportive=True,
+    )
+    assert accessible_edge_answer(passing) is AccessibleEdgeAnswer.YES
+    assert (
+        accessible_edge_answer(replace(passing, accessible_candidate_count=0))
+        is AccessibleEdgeAnswer.NO
+    )
+    assert (
+        accessible_edge_answer(
+            replace(passing, dataset_status=DatasetSufficiency.EXPLORATORY, utc_dates=1)
+        )
+        is AccessibleEdgeAnswer.MORE_DATA_REQUIRED
+    )
+    assert (
+        accessible_edge_answer(replace(passing, normal_latency_positive=False))
+        is AccessibleEdgeAnswer.NO
+    )
+    assert (
+        accessible_edge_answer(replace(passing, temporally_distributed=False))
+        is AccessibleEdgeAnswer.NO
+    )
+
+
+def test_small_account_and_runner_exit_gates_do_not_invent_edge() -> None:
+    assert (
+        small_account_feasibility(
+            dataset_ready=False,
+            execution_possible=True,
+            costs_destroy_edge=False,
+            liquidity_sufficient=True,
+            fills_plausible=True,
+        )
+        == "MORE_DATA_REQUIRED"
+    )
+    assert (
+        small_account_feasibility(
+            dataset_ready=True,
+            execution_possible=True,
+            costs_destroy_edge=False,
+            liquidity_sufficient=True,
+            fills_plausible=True,
+        )
+        == "SMALL_ACCOUNT_FEASIBLE"
+    )
+    assert not exit_increment_is_useful(
+        entry_edge_bps=Decimal("-1"),
+        exit_increment_bps=Decimal("5"),
+        temporally_stable=True,
+    )
+    assert exit_increment_is_useful(
+        entry_edge_bps=Decimal("1"),
+        exit_increment_bps=Decimal("0.5"),
+        temporally_stable=True,
+    )
+
+
 def test_multi_day_cli_has_only_frozen_catalog_options() -> None:
     args = _parser().parse_args(
         [
@@ -260,4 +335,38 @@ def test_multi_day_service_writes_complete_more_data_report(
     assert shown["dataset_status"] == "ENGINEERING_ONLY"
     assert shown["next_step"] == "MORE_DATA_REQUIRED"
     assert (output / "multi_day_execution_economics_report.md").is_file()
-    assert "LABEL_INCOMPLETE" in (output / "extended_horizon_labels.csv").read_text()
+    answer = json.loads((output / "accessible_intraday_edge_answer.json").read_text())
+    assert answer["answer"] == "MORE_DATA_REQUIRED"
+    assert answer["best_supported_side"] is None
+    assert json.loads((output / "holdout_lock.json").read_text())["status"] == "LOCKED"
+    assert (output / "multi_day_economic_qualification_report.md").is_file()
+    required = {
+        "experiment_manifest.json",
+        "provenance_audit.json",
+        "campaign_manifest.json",
+        "session_admission.csv",
+        "dataset_quality.json",
+        "campaign_progress.json",
+        "execution_policy_economics.csv",
+        "maker_fill_quality.csv",
+        "maker_adverse_selection.csv",
+        "taker_execution_quality.csv",
+        "long_economics.csv",
+        "short_economics.csv",
+        "small_account_feasibility.csv",
+        "temporal_stability.csv",
+        "block_bootstrap.json",
+        "frequency_analysis.json",
+        "no_trade_contexts.csv",
+        "runner_10m.csv",
+        "runner_15m.csv",
+        "elastic_300_150.csv",
+        "discovery_confirmation.json",
+        "holdout_lock.json",
+        "accessible_intraday_edge_answer.json",
+        "multi_day_economic_qualification_report.md",
+    }
+    assert required <= {item.name for item in output.iterdir()}
+    with (output / "maker_fill_quality.csv").open(newline="") as handle:
+        maker_rows = list(csv.DictReader(handle))
+    assert maker_rows and all(row["touch_counted_as_fill"] == "False" for row in maker_rows)

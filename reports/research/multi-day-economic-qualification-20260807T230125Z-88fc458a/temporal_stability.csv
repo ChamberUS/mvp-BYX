@@ -1,0 +1,7 @@
+aggregation,utc_date,bucket,side,episode_count,mean_net_edge_bps,median_net_edge_bps,positive_rate,mean_incremental_pnl_bps,single_short_block_dependency,status
+UTC_DAY,2026-08-07,,LONG,0,,,,,,INSUFFICIENT_EPISODES
+SIX_HOUR_BLOCK,2026-08-07,,LONG,0,,,,,,INSUFFICIENT_EPISODES
+UTC_HOUR,2026-08-07,,LONG,0,,,,,,INSUFFICIENT_EPISODES
+UTC_DAY,2026-08-07,,SHORT,0,,,,,,INSUFFICIENT_EPISODES
+SIX_HOUR_BLOCK,2026-08-07,,SHORT,0,,,,,,INSUFFICIENT_EPISODES
+UTC_HOUR,2026-08-07,,SHORT,0,,,,,,INSUFFICIENT_EPISODES

@@ -1,0 +1,5 @@
+side,exit_variant,activation_count,completed_episode_count,immediate_pnl_bps,runner_pnl_bps,incremental_pnl_bps,holding_duration_seconds,peak_pnl_bps,giveback_bps,mfe_bps,mae_bps,hard_floor_count,reversal_exits,liquidity_failsafes,max_hold_exits,capture_boundary_failures,time_in_market_seconds,opportunity_cost_bps,episodes_per_hour,episodes_per_day_extrapolated,status
+SHORT,IMMEDIATE_PROFIT_EXIT,0,0,,,,,,,,,0,0,0,0,0,0,,,,MORE_DATA_REQUIRED
+SHORT,ELASTIC_300_150_V0,0,0,,,,,,,,,0,0,0,0,0,0,,,,MORE_DATA_REQUIRED
+SHORT,MULTI_MINUTE_RUNNER_10M_V0,0,0,,,,,,,,,0,0,0,0,0,0,,,,MORE_DATA_REQUIRED
+SHORT,MULTI_MINUTE_RUNNER_15M_V0,0,0,,,,,,,,,0,0,0,0,0,0,,,,MORE_DATA_REQUIRED

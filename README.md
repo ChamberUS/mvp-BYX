@@ -476,3 +476,14 @@ A primeira sessão nova cobre apenas 59,012 s. Todos os labels longos são `LABE
 políticas/runners permanecem `MORE_DATA_REQUIRED`. O comando de continuação até 24h/duas datas,
 maker queue, episódios não sobrepostos e limitações estão em
 [`docs/MULTI_DAY_EXECUTION_ECONOMICS.md`](docs/MULTI_DAY_EXECUTION_ECONOMICS.md).
+
+## Qualificação econômica multi-day
+
+A Sprint 4A.3.2 corrige a proveniência de captura: novas sessões gravam SHA, estado clean/dirty,
+branch, versão e hash da configuração. O raw anterior não foi reescrito e é rejeitado da amostra
+científica por proveniência incompleta. Uma nova sessão clean de 59,016 s foi admitida, mas o
+campaign ainda tem somente uma data e permanece `ENGINEERING_ONLY`.
+
+A resposta científica central é **MORE_DATA_REQUIRED**; nenhum lado, policy, notional ou runner foi
+declarado vencedor, e o holdout permanece fechado. Critérios, operação resumível e limitações estão
+em [`docs/MULTI_DAY_ECONOMIC_QUALIFICATION.md`](docs/MULTI_DAY_ECONOMIC_QUALIFICATION.md).

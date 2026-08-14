@@ -59,6 +59,83 @@ class ExtendedLabelStatus(StrEnum):
     LABEL_INCOMPLETE = "LABEL_INCOMPLETE"
 
 
+class AccessibleEdgeAnswer(StrEnum):
+    YES = "YES"
+    NO = "NO"
+    MORE_DATA_REQUIRED = "MORE_DATA_REQUIRED"
+
+
+@dataclass(frozen=True, slots=True)
+class QualificationEvidence:
+    dataset_status: DatasetSufficiency
+    utc_dates: int
+    quality_sufficient: bool
+    independent_episodes_sufficient: bool
+    maker_observations_sufficient: bool
+    all_structures_evaluable: bool
+    accessible_candidate_count: int
+    normal_latency_positive: bool
+    confirmation_same_direction: bool
+    temporally_distributed: bool
+    bootstrap_supportive: bool
+    leakage_detected: bool = False
+    institutional_conditions_required: bool = False
+
+
+def accessible_edge_answer(evidence: QualificationEvidence) -> AccessibleEdgeAnswer:
+    ready = (
+        evidence.dataset_status
+        in (DatasetSufficiency.DISCOVERY_READY, DatasetSufficiency.CONFIRMATION_READY)
+        and evidence.utc_dates >= 2
+        and evidence.quality_sufficient
+        and evidence.independent_episodes_sufficient
+        and evidence.maker_observations_sufficient
+    )
+    if not ready or not evidence.all_structures_evaluable:
+        return AccessibleEdgeAnswer.MORE_DATA_REQUIRED
+    candidate_passes = (
+        evidence.accessible_candidate_count > 0
+        and evidence.normal_latency_positive
+        and evidence.confirmation_same_direction
+        and evidence.temporally_distributed
+        and evidence.bootstrap_supportive
+        and not evidence.leakage_detected
+        and not evidence.institutional_conditions_required
+    )
+    return AccessibleEdgeAnswer.YES if candidate_passes else AccessibleEdgeAnswer.NO
+
+
+def small_account_feasibility(
+    *, dataset_ready: bool, execution_possible: bool, costs_destroy_edge: bool,
+    liquidity_sufficient: bool, fills_plausible: bool
+) -> str:
+    if not dataset_ready:
+        return "MORE_DATA_REQUIRED"
+    return (
+        "SMALL_ACCOUNT_FEASIBLE"
+        if (
+            execution_possible
+            and not costs_destroy_edge
+            and liquidity_sufficient
+            and fills_plausible
+        )
+        else "SMALL_ACCOUNT_NOT_FEASIBLE"
+    )
+
+
+def exit_increment_is_useful(
+    *, entry_edge_bps: Decimal | None, exit_increment_bps: Decimal | None,
+    temporally_stable: bool
+) -> bool:
+    return (
+        entry_edge_bps is not None
+        and entry_edge_bps > 0
+        and exit_increment_bps is not None
+        and exit_increment_bps > 0
+        and temporally_stable
+    )
+
+
 @dataclass(frozen=True, slots=True)
 class ExecutionPolicyDefinition:
     policy_id: ExecutionPolicyId

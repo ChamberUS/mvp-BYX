@@ -205,3 +205,12 @@ pode reaparecer na seleção multi-day. O novo protocolo estende availability la
 mas rejeita qualquer horizon que cruze session end/CAPTURE_BREAK. Para evitar pseudo-replicação,
 episodes são não sobrepostos por lado, notional, política e variante de saída. Bootstrap futuro usa
 blocos temporais de 30 minutos. Consulte `docs/MULTI_DAY_EXECUTION_ECONOMICS.md`.
+
+## Proveniência obrigatória para datasets científicos
+
+Cada nova sessão persiste SHA completo, `dirty_worktree`, branch, versão do recorder e hash canônico
+da configuração. Falha ao consultar Git não impede gravar raw, mas produz
+`PROVENANCE_INCOMPLETE`; sessão dirty ou UNKNOWN não entra em discovery/confirmation. Admissão
+também verifica quatro streams, integridade, book sincronizado e replay determinístico. Breaks não
+são interpolados e chunks rejeitados não contaminam chunks válidos. O contrato completo e a
+resposta central estão em `docs/MULTI_DAY_ECONOMIC_QUALIFICATION.md`.

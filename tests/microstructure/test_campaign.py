@@ -125,7 +125,9 @@ def test_campaign_rejects_unresolved_incident(tmp_path: Path) -> None:
 
 
 def test_campaign_resume_uses_requested_chunk_duration_without_duplicate(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     session = write_session(tmp_path / "session", market=MarketType.USD_M_FUTURES)
     source_manifest = session / "manifest.json"
@@ -146,6 +148,14 @@ def test_campaign_resume_uses_requested_chunk_duration_without_duplicate(
         market="futures",
         symbol="ETHUSDT",
         maximum_reconnects=3,
+    )
+    monkeypatch.setattr(
+        "adaptive_trader.cli.main.qualify_session",
+        lambda path, **_kwargs: type(
+            "Admission",
+            (),
+            {"admitted": True, "path": str(path)},
+        )(),
     )
 
     assert run(_microstructure_campaign_record(args)) == 0

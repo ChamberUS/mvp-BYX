@@ -1,0 +1,4 @@
+notional_usdt,leverage,execution_possible,costs_preserve_edge,liquidity_sufficient,fill_behavior_plausible,status,dataset_status
+100,1,,,,,MORE_DATA_REQUIRED,ENGINEERING_ONLY
+500,1,,,,,MORE_DATA_REQUIRED,ENGINEERING_ONLY
+1000,1,,,,,MORE_DATA_REQUIRED,ENGINEERING_ONLY
