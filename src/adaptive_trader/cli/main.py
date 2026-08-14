@@ -777,17 +777,9 @@ async def _microstructure_campaign_record(args: argparse.Namespace) -> int:
         if existing.symbol != args.symbol.upper():
             raise ValueError("campaign resume symbol differs from existing campaign")
         paths.extend(Path(item.path) for item in existing.sessions)
-        for path in paths:
-            admission = qualify_session(
-                path,
-                expected_market=existing.market,
-                expected_symbol=existing.symbol,
-            )
-            if not admission.admitted:
-                continue
-            requested = inspect_session(path).get("requested_duration_seconds", 0)
-            if isinstance(requested, (int, float)) and not isinstance(requested, bool):
-                captured += float(requested)
+        captured = _scientific_captured_seconds(
+            tuple(paths), market=existing.market, symbol=existing.symbol
+        )
     stop_requested = False
     current: PublicMicrostructureRecorder | None = None
     last_admission: SessionAdmission | None = None
@@ -808,7 +800,7 @@ async def _microstructure_campaign_record(args: argparse.Namespace) -> int:
             continue
     try:
         while captured < args.total_seconds and not stop_requested:
-            duration = min(args.chunk_seconds, max(1, int(args.total_seconds - captured)))
+            duration = args.chunk_seconds
             current = PublicMicrostructureRecorder(
                 market_type=_microstructure_market(args.market),
                 symbol=args.symbol,
@@ -835,7 +827,7 @@ async def _microstructure_campaign_record(args: argparse.Namespace) -> int:
             paths.append(result.session.session_path)
             campaign = MicrostructureCampaignBuilder().build(args.campaign_id, tuple(paths))
             MicrostructureCampaignBuilder().write(campaign, manifest_path)
-            captured += duration
+            captured += last_admission.duration_seconds
     finally:
         for current_signal in registered:
             loop.remove_signal_handler(current_signal)
@@ -855,6 +847,22 @@ async def _microstructure_campaign_record(args: argparse.Namespace) -> int:
         )
     )
     return 0
+
+
+def _scientific_captured_seconds(
+    paths: tuple[Path, ...], *, market: str, symbol: str
+) -> float:
+    return sum(
+        admission.duration_seconds
+        for path in paths
+        if (
+            admission := qualify_session(
+                path,
+                expected_market=market,
+                expected_symbol=symbol,
+            )
+        ).admitted
+    )
 
 
 def _microstructure_campaign_status(args: argparse.Namespace) -> int:

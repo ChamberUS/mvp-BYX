@@ -7,7 +7,10 @@ from pathlib import Path
 
 import pytest
 
-from adaptive_trader.cli.main import _microstructure_campaign_record
+from adaptive_trader.cli.main import (
+    _microstructure_campaign_record,
+    _scientific_captured_seconds,
+)
 from adaptive_trader.domain.market import MarketType
 from adaptive_trader.microstructure.campaign import (
     DatasetSufficiency,
@@ -154,13 +157,34 @@ def test_campaign_resume_uses_requested_chunk_duration_without_duplicate(
         lambda path, **_kwargs: type(
             "Admission",
             (),
-            {"admitted": True, "path": str(path)},
+            {"admitted": True, "path": str(path), "duration_seconds": 60.0},
         )(),
     )
 
     assert run(_microstructure_campaign_record(args)) == 0
     shown = json.loads(capsys.readouterr().out)
     assert len(shown["sessions"]) == 1
+
+
+def test_campaign_resume_counts_scientific_duration_not_requested_duration(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path / "session"
+    path.mkdir()
+    monkeypatch.setattr(
+        "adaptive_trader.cli.main.qualify_session",
+        lambda _path, **_kwargs: type(
+            "Admission",
+            (),
+            {"admitted": True, "duration_seconds": 58.761},
+        )(),
+    )
+
+    captured = _scientific_captured_seconds(
+        (path,), market="USD_M_FUTURES", symbol="ETHUSDT"
+    )
+
+    assert captured == 58.761
 
 
 @pytest.mark.parametrize(

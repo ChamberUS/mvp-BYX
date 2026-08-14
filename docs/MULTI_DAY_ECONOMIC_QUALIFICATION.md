@@ -91,3 +91,6 @@ duration condition still lacks 86,282.223 seconds. The new eligible hash is
 No financial selection was opened: discovery/confirmation remain unavailable, holdout stays
 locked, and all policy/notional/runner economics remain null with `MORE_DATA_REQUIRED`. See
 `SPRINT_4A_3_3_24H_DATA_QUALIFICATION.md` and the `24h-multi-day-qualification-...` bundle.
+
+Resume now compares `--total-seconds` with admitted scientific event-interval duration rather than
+requested wall-clock duration and records full chunks until the valid-duration gate is reached.

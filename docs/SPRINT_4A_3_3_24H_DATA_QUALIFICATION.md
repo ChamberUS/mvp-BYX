@@ -64,3 +64,8 @@ adaptive-trader market microstructure campaign-record \
 Do not run economic selection until the status shows at least 86,400 scientifically valid seconds
 and at least two UTC dates. A rejected chunk remains diagnostic raw and never counts toward the
 gate.
+
+The resume counter was corrected in this sprint to sum admitted scientific event-interval duration,
+not requested wall-clock duration. While the gate is incomplete, the recorder requests another
+full configured chunk instead of creating a tiny residual chunk. Existing raw remains valid and was
+not rewritten; this change only prevents an early stop below 86,400 valid seconds.
