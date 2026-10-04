@@ -781,6 +781,8 @@ async def _microstructure_campaign_record(args: argparse.Namespace) -> int:
             tuple(paths), market=existing.market, symbol=existing.symbol
         )
     stop_requested = False
+    stop_event = asyncio.Event()
+    rejected_chunks = 0
     current: PublicMicrostructureRecorder | None = None
     last_admission: SessionAdmission | None = None
     loop = asyncio.get_running_loop()
@@ -788,6 +790,7 @@ async def _microstructure_campaign_record(args: argparse.Namespace) -> int:
     def stop() -> None:
         nonlocal stop_requested
         stop_requested = True
+        stop_event.set()
         if current is not None:
             current.request_stop()
 
@@ -823,7 +826,20 @@ async def _microstructure_campaign_record(args: argparse.Namespace) -> int:
                 encoding="utf-8",
             )
             if not last_admission.admitted:
-                break
+                rejected_chunks += 1
+                delay = min(60, 10 * rejected_chunks)
+                print(
+                    f"NO_ADMITTED_CHUNK: scientific admission rejected; retry in {delay}s",
+                    file=sys.stderr,
+                    flush=True,
+                )
+                if not stop_requested:
+                    try:
+                        await asyncio.wait_for(stop_event.wait(), timeout=delay)
+                    except TimeoutError:
+                        pass
+                continue
+            rejected_chunks = 0
             paths.append(result.session.session_path)
             campaign = MicrostructureCampaignBuilder().build(args.campaign_id, tuple(paths))
             MicrostructureCampaignBuilder().write(campaign, manifest_path)
@@ -831,13 +847,24 @@ async def _microstructure_campaign_record(args: argparse.Namespace) -> int:
     finally:
         for current_signal in registered:
             loop.remove_signal_handler(current_signal)
+    if not paths:
+        print(json.dumps({
+            "campaign_id": args.campaign_id,
+            "capture_status": "NO_SESSION",
+            "success": False,
+            "last_chunk_admission": (
+                last_admission.as_dict() if last_admission is not None else None
+            ),
+        }, sort_keys=True))
+        return 75
     campaign = MicrostructureCampaignBuilder().build(args.campaign_id, tuple(paths))
-    MicrostructureCampaignBuilder().write(campaign, manifest_path)
     print(
         json.dumps(
             {
                 **campaign.as_dict(),
                 "manifest": str(manifest_path),
+                "capture_status": "COMPLETE" if captured >= args.total_seconds else "INCOMPLETE",
+                "success": captured >= args.total_seconds,
                 "last_chunk_admission": (
                     last_admission.as_dict() if last_admission is not None else None
                 ),
@@ -846,7 +873,7 @@ async def _microstructure_campaign_record(args: argparse.Namespace) -> int:
             sort_keys=True,
         )
     )
-    return 0
+    return 0 if captured >= args.total_seconds else 75
 
 
 def _scientific_captured_seconds(
